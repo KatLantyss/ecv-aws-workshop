@@ -1,6 +1,6 @@
 ---
 title: Badge 與 Alert
-order: 3
+order: 2
 ---
 
 # Badge 與 Alert

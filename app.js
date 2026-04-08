@@ -16,7 +16,22 @@ const ICONS = {
   'arrow-right': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
-function getIcon(name) { return ICONS[name] || ''; }
+function getIcon(name) {
+  if (ICONS[name]) return ICONS[name];
+  if (typeof lucide !== 'undefined') {
+    // Lucide icon names are PascalCase internally, try both
+    const key = name.replace(/-./g, m => m[1].toUpperCase()).replace(/^./, m => m.toUpperCase());
+    const iconData = lucide.icons[key] || lucide.icons[name];
+    if (iconData) {
+      const inner = iconData.map(([tag, attrs]) => {
+        const a = Object.entries(attrs).map(([k,v]) => `${k}="${v}"`).join(' ');
+        return `<${tag} ${a}/>`;
+      }).join('');
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+    }
+  }
+  return '';
+}
 
 /* ═══════════════════════════════════════════
    Markdown Custom Syntax Preprocessor
@@ -275,7 +290,7 @@ function renderLanding() {
     const m = ws.manifest;
     const pageCount = (m.pages || []).length;
     return `<a class="ws-card" href="#${ws.slug}" onclick="enterWorkshop('${ws.slug}');return false">
-      <div class="ws-card-icon">${m.icon || '📘'}</div>
+      <div class="ws-card-icon">${getIcon(m.icon) || m.icon || '📘'}</div>
       <div class="ws-card-body">
         <div class="ws-card-badges">
           ${m.badge ? `<span class="ws-badge ws-badge-info">${m.badge}</span>` : ''}
