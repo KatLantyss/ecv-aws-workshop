@@ -13,14 +13,20 @@ order: 0
 
 ```
 content/
-└── my-workshop/
-    ├── _manifest.json        # Workshop 卡片資訊
-    ├── _index.md             # Workshop 首頁
-    ├── 01-module-name/
-    │   ├── _index.md         # 章節頁面
-    │   └── diagram.png       # 圖片直接放頁面資料夾
-    └── cleanup.md
+├── my-workshop/              # 正常 workshop
+│   ├── _manifest.json
+│   ├── _index.md
+│   ├── 01-module-name/
+│   │   ├── _index.md
+│   │   └── diagram.png
+│   └── cleanup.md
+└── _my-draft/                # _開頭 → build 時忽略
+    └── _index.md
 ```
+
+:::alert{type="info"}
+資料夾名稱加上 `_` 前綴（如 `_my-draft`）會被 `build.sh` 忽略，不會出現在首頁。拿掉 `_` 即可恢復。
+:::
 
 :::alert{type="info"}
 新增 workshop 後執行 `./build.sh`，會自動掃描 `content/` 並更新 `config.json` 和 `_manifest.json`。

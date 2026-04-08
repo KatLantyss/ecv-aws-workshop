@@ -10,8 +10,7 @@ const ICONS = {
   'aws-success':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4.5 7.5 7 10l4-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
   'aws-warning':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v4M8 10v2" stroke="currentColor" stroke-width="2"/><path d="M6.52 1.88l-5.33 9.76c-.13.23-.19.5-.19.76 0 .88.71 1.59 1.59 1.59H13.4c.88 0 1.59-.71 1.59-1.59 0-.27-.07-.53-.19-.76L9.48 1.88C9.18 1.34 8.62 1 8 1s-1.18.34-1.48.88Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
   'aws-error':    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="2"/></svg>',
-  'aws-copy':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M15 5H5v10h10V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><path d="M13 1H1v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
-  'aws-arrow-right': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  'aws-copy':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M15 5H5v10h10V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><path d="M13 1H1v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>'
 };
 
 function getIcon(name) {
@@ -322,6 +321,8 @@ function showLanding() {
   document.getElementById('main').style.display = 'none';
   document.getElementById('sidebar').classList.remove('visible');
   document.getElementById('breadcrumb').innerHTML = '';
+  document.getElementById('progressText').textContent = '';
+  document.getElementById('progressFill').style.width = '0';
   document.getElementById('prevBtn').style.display = 'none';
   document.getElementById('nextBtn').style.display = 'none';
   document.body.classList.remove('workshop-mode');

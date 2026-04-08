@@ -7,11 +7,13 @@ set -e
 
 CONTENT="content"
 
-# --- 1. 掃描所有 workshop 資料夾 ---
+# --- 1. 掃描所有 workshop 資料夾（_開頭的跳過）---
 ws_list=()
 for dir in "$CONTENT"/*/; do
+  slug=$(basename "$dir")
+  [[ "$slug" == _* ]] && continue
   [ -f "${dir}_index.md" ] || continue
-  ws_list+=("$(basename "$dir")")
+  ws_list+=("$slug")
 done
 
 # 更新 config.json 的 workshops 陣列（保留其他欄位）
