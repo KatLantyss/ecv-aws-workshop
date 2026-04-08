@@ -261,7 +261,7 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 
 /* ─── Alert ─── */
 .ws-alert{display:flex;gap:.75rem;padding:1rem 1.15rem;margin:1rem 0;border-radius:var(--radius);
-  border-left:4px solid;font-size:.88rem;line-height:1.6}
+  border:2px solid;font-size:.88rem;line-height:1.6}
 .ws-alert-icon{flex-shrink:0;line-height:1.5;display:flex;align-items:flex-start;padding-top:2px}
 .ws-alert-icon svg{width:18px;height:18px}
 .ws-alert-body{flex:1;min-width:0}
@@ -325,6 +325,15 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .ws-badge-warning{background:rgba(210,153,34,.15);color:var(--warning)}
 .ws-badge-danger{background:rgba(248,81,73,.15);color:var(--danger)}
 .ws-badge-default{background:var(--surface3);color:var(--text-dim)}
+
+/* ─── Status text ─── */
+.ws-status{display:inline-flex;align-items:center;gap:.35rem;font-size:.9rem;font-weight:600}
+.ws-status-icon{display:inline-flex;align-items:center}
+.ws-status-icon svg{width:18px;height:18px}
+.ws-status-info{color:var(--info)}
+.ws-status-success{color:var(--success)}
+.ws-status-warning{color:var(--warning)}
+.ws-status-danger{color:var(--danger)}
 
 /* ─── Syntax highlight ─── */
 .token-keyword{color:#ff7b72}

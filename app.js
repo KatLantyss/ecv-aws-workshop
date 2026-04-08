@@ -2,18 +2,16 @@
    Icon Registry (SSOT)
    ═══════════════════════════════════════════ */
 const ICONS = {
-  'sign-out': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M9 0V2H3V14H9V16H3C1.89543 16 1 15.1046 1 14V2C1 0.895431 1.89543 0 3 0H9Z"/><path d="M12.5858 9L10 11.5858L11.4142 13L15.7071 8.70711C16.0976 8.31658 16.0976 7.68342 15.7071 7.29289L11.4142 3L10 4.41421L12.5858 7H6V9H12.5858Z"/></svg>',
-  'new-tab':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M13 9.012v-6H7M13.02 3 7 9.01M3 5.012v8h8.01" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
-  'refresh':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none" overflow="hidden"><path d="M15 0v5l-5-.04" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 8c0 3.87-3.13 7-7 7s-7-3.13-7-7 3.13-7 7-7c2.79 0 5.2 1.63 6.33 4" stroke="currentColor" stroke-width="2"/></svg>',
-  'expand':   '<svg viewBox="2 3 12 10" xmlns="http://www.w3.org/2000/svg"><path d="m8 11 4-6H4l4 6Z" fill="currentColor"/></svg>',
-  'info':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 12V7M8 6V4" stroke="currentColor" stroke-width="2"/></svg>',
-  'success':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4.5 7.5 7 10l4-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
-  'warning':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v4M8 10v2" stroke="currentColor" stroke-width="2"/><path d="M6.52 1.88l-5.33 9.76c-.13.23-.19.5-.19.76 0 .88.71 1.59 1.59 1.59H13.4c.88 0 1.59-.71 1.59-1.59 0-.27-.07-.53-.19-.76L9.48 1.88C9.18 1.34 8.62 1 8 1s-1.18.34-1.48.88Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
-  'error':    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="2"/></svg>',
-  'copy':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M15 5H5v10h10V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><path d="M13 1H1v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
-  'moon':     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>',
-  'sun':      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
-  'arrow-right': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  'aws-sign-out': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M9 0V2H3V14H9V16H3C1.89543 16 1 15.1046 1 14V2C1 0.895431 1.89543 0 3 0H9Z"/><path d="M12.5858 9L10 11.5858L11.4142 13L15.7071 8.70711C16.0976 8.31658 16.0976 7.68342 15.7071 7.29289L11.4142 3L10 4.41421L12.5858 7H6V9H12.5858Z"/></svg>',
+  'aws-new-tab':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M13 9.012v-6H7M13.02 3 7 9.01M3 5.012v8h8.01" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  'aws-refresh':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none" overflow="hidden"><path d="M15 0v5l-5-.04" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 8c0 3.87-3.13 7-7 7s-7-3.13-7-7 3.13-7 7-7c2.79 0 5.2 1.63 6.33 4" stroke="currentColor" stroke-width="2"/></svg>',
+  'aws-expand':   '<svg viewBox="2 3 12 10" xmlns="http://www.w3.org/2000/svg"><path d="m8 11 4-6H4l4 6Z" fill="currentColor"/></svg>',
+  'aws-info':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 12V7M8 6V4" stroke="currentColor" stroke-width="2"/></svg>',
+  'aws-success':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4.5 7.5 7 10l4-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
+  'aws-warning':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v4M8 10v2" stroke="currentColor" stroke-width="2"/><path d="M6.52 1.88l-5.33 9.76c-.13.23-.19.5-.19.76 0 .88.71 1.59 1.59 1.59H13.4c.88 0 1.59-.71 1.59-1.59 0-.27-.07-.53-.19-.76L9.48 1.88C9.18 1.34 8.62 1 8 1s-1.18.34-1.48.88Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
+  'aws-error':    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="2"/></svg>',
+  'aws-copy':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M15 5H5v10h10V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><path d="M13 1H1v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
+  'aws-arrow-right': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
 function getIcon(name) {
@@ -61,13 +59,13 @@ function preprocessCustomSyntax(md) {
 
   md = md.replace(/::button\[([^\]]*)\]\{([^}]*)\}/g, (_, text, attrs) => {
     const variant = (attrs.match(/variant="([^"]+)"/) || [])[1] || 'primary';
-    const icon    = (attrs.match(/icon="([^"]+)"/)    || [])[1] || '';
+    const prefix  = (attrs.match(/prefix="([^"]+)"/)  || [])[1] || '';
     const postfix = (attrs.match(/postfix="([^"]+)"/) || [])[1] || '';
     const split   = (attrs.match(/split="([^"]+)"/)   || [])[1] || '';
     const dropdown = attrs.includes('dropdown');
-    if (!text.trim() && icon) return `<div class="ws-btn-icon">${getIcon(icon)}</div>`;
-    const pre  = icon    ? `${getIcon(icon)} `    : '';
-    const post = postfix ? ` ${getIcon(postfix)}`  : '';
+    if (!text.trim() && prefix) return `<div class="ws-btn-icon">${getIcon(prefix)}</div>`;
+    const pre  = prefix  ? `${getIcon(prefix)} `   : '';
+    const post = postfix ? ` ${getIcon(postfix)}`   : '';
     const caret = dropdown ? ` ${CARET_SVG}` : '';
     if (split) {
       return `<span class="ws-btn-split"><div class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</div><span class="ws-btn-divider"></span><div class="ws-btn ws-btn-${variant}">${getIcon(split)}</div></span>`;
@@ -80,17 +78,25 @@ function preprocessCustomSyntax(md) {
     return `<span class="ws-badge ws-badge-${type}">${text}</span>`;
   });
 
+  // Status text: ::status[text]{type="success" icon="circle-check"}
+  md = md.replace(/::status\[([^\]]+)\]\{([^}]*)\}/g, (_, text, attrs) => {
+    const type = (attrs.match(/type="([^"]+)"/) || [])[1] || 'info';
+    const icon = (attrs.match(/icon="([^"]+)"/) || [])[1] || '';
+    const iconHtml = icon ? `<span class="ws-status-icon">${getIcon(icon)}</span>` : '';
+    return `<span class="ws-status ws-status-${type}">${iconHtml}${text}</span>`;
+  });
+
   md = md.replace(/::video\{src="([^"]+)"\}/g, (_, src) => {
     const url = src.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
     return `<div class="ws-video"><iframe src="${url}" allowfullscreen loading="lazy"></iframe></div>`;
   });
 
-  const alertIconMap = { info: 'info', warning: 'warning', success: 'success', danger: 'error' };
+  const alertIconMap = { info: 'aws-info', warning: 'aws-warning', success: 'aws-success', danger: 'aws-error' };
   md = md.replace(/:::alert\{type="(\w+)"\}\n([\s\S]*?):::/g, (_, type, body) =>
     `<div class="ws-alert ws-alert-${type}"><span class="ws-alert-icon">${getIcon(alertIconMap[type] || '')}</span><div class="ws-alert-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::expand\{title="([^"]+)"\}\n([\s\S]*?):::/g, (_, title, body) =>
-    `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('expand')}</span>${title}</div><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
+    `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</div><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::steps\n([\s\S]*?):::/g, (_, body) => {
     const html = body.trim().split('\n').filter(l => l.trim()).map(line =>
@@ -199,7 +205,7 @@ marked.use({
     code({ text, lang }) {
       const highlighted = simpleHighlight(text);
       const langClass = lang ? ` class="language-${lang}"` : '';
-      return `<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('copy')}</button><code${langClass}>${highlighted}</code></pre>`;
+      return `<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>`;
     },
     image({ href, title, text }) {
       if (href && !href.startsWith('http') && !href.startsWith('/')) {
@@ -301,7 +307,7 @@ function renderLanding() {
         <p class="ws-card-desc">${m.description || ''}</p>
         <div class="ws-card-meta">
           <span>${pageCount} 個章節</span>
-          <span class="ws-card-arrow">${getIcon('arrow-right')}</span>
+          <span class="ws-card-arrow">${getIcon('aws-arrow-right')}</span>
         </div>
       </div>
     </a>`;
@@ -506,9 +512,9 @@ function switchTab(id, index) {
 
 function copyCode(btn) {
   navigator.clipboard.writeText(btn.nextElementSibling.textContent);
-  btn.innerHTML = getIcon('success');
+  btn.innerHTML = getIcon('aws-success');
   btn.style.color = 'var(--success)';
-  setTimeout(() => { btn.innerHTML = getIcon('copy'); btn.style.color = ''; }, 1200);
+  setTimeout(() => { btn.innerHTML = getIcon('aws-copy'); btn.style.color = ''; }, 1200);
 }
 
 function copyInline(el, text) {

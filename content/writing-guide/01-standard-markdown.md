@@ -9,7 +9,7 @@ order: 1
 
 ## 文字格式
 
-**粗體文字** 、 *斜體文字* 、 ~~刪除線~~
+**粗體文字**、*斜體文字*、~~刪除線~~
 
 ## 列表
 
@@ -28,10 +28,10 @@ order: 1
 
 ```markdown
 [連結文字](https://example.com)
-![圖片說明](images/screenshot.png)
+![圖片說明](screenshot.png)
 ```
 
-圖片使用相對路徑，會自動解析到該 workshop 目錄下。
+圖片使用相對路徑，會自動解析到頁面所在目錄。
 
 ## 表格
 
@@ -45,7 +45,7 @@ order: 1
 
 行內程式碼：`aws s3 ls`
 
-可複製的行內程式碼（雙 backtick），點擊即複製到剪貼簿：``aws sts get-caller-identity``好
+可複製的行內程式碼（雙 backtick），點擊即複製到剪貼簿：``aws sts get-caller-identity``
 
 ```markdown
 `一般行內程式碼`

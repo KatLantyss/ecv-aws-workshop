@@ -1,16 +1,16 @@
 {
   "title": "Markdown 撰寫指南",
   "description": "本框架支援的所有 Markdown 語法與自訂元件的完整參考，含即時渲染範例。",
-  "badge": "TUTORIAL",
-  "level": "",
-  "duration": "",
+  "badge": "Tutorial",
+  "level": "Easy",
+  "duration": "5分鐘",
   "icon": "book-marked",
   "pages": [
     "_index.md",
     "01-standard-markdown.md",
     "02-badges-alerts.md",
     "03-interactive/_index.md",
-    "05-media/_index.md",
-    "04-buttons/_index.md"
+    "04-buttons/_index.md",
+    "05-media/_index.md"
   ]
 }

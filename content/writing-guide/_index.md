@@ -17,9 +17,8 @@ content/
     ├── _manifest.json        # Workshop 卡片資訊
     ├── _index.md             # Workshop 首頁
     ├── 01-module-name/
-    │   └── _index.md         # 章節頁面
-    ├── images/
-    │   └── screenshot.png
+    │   ├── _index.md         # 章節頁面
+    │   └── diagram.png       # 圖片直接放頁面資料夾
     └── cleanup.md
 ```
 
@@ -29,7 +28,7 @@ content/
 
 ## _manifest.json
 
-`_manifest.json` 提供首頁卡片的顯示資訊，`pages` 欄位由 `build.sh` 自動產生：
+卡片顯示資訊，`pages` 由 `build.sh` 自動產生：
 
 ```json
 {
@@ -38,10 +37,12 @@ content/
   "badge": "HANDS-ON LAB",
   "level": "初級 ~ 中級",
   "duration": "約 2 小時",
-  "icon": "☁",
+  "icon": "activity",
   "pages": ["_index.md", "01-basics/_index.md"]
 }
 ```
+
+`icon` 可以填 Lucide 圖示名稱、`aws-` 前綴的自訂圖示、或 emoji。
 
 ## Front Matter
 

@@ -1,6 +1,6 @@
 ---
 title: Button 按鈕
-order: 5
+order: 4
 ---
 
 # Button 按鈕
@@ -23,25 +23,35 @@ order: 5
 
 ## 帶圖示
 
-`icon` 放文字前方，`postfix` 放文字後方：
+`prefix` 放文字前方，`postfix` 放文字後方：
 
 :::button-row
-::button[開新分頁]{variant="link" icon="new-tab"} ::button[Add session]{variant="link" postfix="new-tab"} ::button[登出]{variant="link" icon="sign-out"}
+::button[開新分頁]{variant="link" prefix="aws-new-tab"} ::button[Add session]{variant="link" postfix="aws-new-tab"} ::button[登出]{variant="link" prefix="aws-sign-out"}
 :::
 
 ```markdown
-::button[開新分頁]{variant="link" icon="new-tab"}
-::button[Add session]{variant="link" postfix="new-tab"}
+::button[開新分頁]{variant="link" prefix="aws-new-tab"}
+::button[Add session]{variant="link" postfix="aws-new-tab"}
+```
+
+也可以用 Lucide 圖示：
+
+:::button-row
+::button[部署]{variant="primary" prefix="rocket"} ::button[資料庫]{variant="link" prefix="database"}
+:::
+
+```markdown
+::button[部署]{variant="primary" prefix="rocket"}
 ```
 
 ## 純圖示按鈕
 
 :::button-row
-::button[]{variant="link" icon="refresh"} ::button[]{variant="link" icon="copy"}
+::button[]{variant="link" prefix="aws-refresh"} ::button[]{variant="link" prefix="aws-copy"}
 :::
 
 ```markdown
-::button[]{variant="link" icon="refresh"}
+::button[]{variant="link" prefix="aws-refresh"}
 ```
 
 ## 下拉按鈕
@@ -57,11 +67,11 @@ order: 5
 ## Split 按鈕
 
 :::button-row
-::button[Launch instances]{variant="primary" split="expand"} ::button[Add session]{variant="link" postfix="new-tab" split="expand"}
+::button[Launch instances]{variant="primary" split="aws-expand"} ::button[Add session]{variant="link" postfix="aws-new-tab" split="aws-expand"}
 :::
 
 ```markdown
-::button[文字]{variant="primary" split="expand"}
+::button[文字]{variant="primary" split="aws-expand"}
 ```
 
 ## 按鈕列
@@ -80,4 +90,6 @@ order: 5
 
 ## 可用圖示
 
-`sign-out`、`new-tab`、`refresh`、`expand`、`info`、`success`、`warning`、`error`、`copy`
+自訂 AWS 圖示：`aws-sign-out`、`aws-new-tab`、`aws-refresh`、`aws-expand`、`aws-info`、`aws-success`、`aws-warning`、`aws-error`、`aws-copy`
+
+也可以直接使用任何 [Lucide](https://lucide.dev/icons) 圖示名稱。

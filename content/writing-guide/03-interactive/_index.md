@@ -29,8 +29,6 @@ VPC（Virtual Private Cloud）提供隔離的虛擬網路環境。
 - **Outbound Rules** — 控制離開的流量
 :::
 
-語法：
-
 ```markdown
 :::expand{title="標題文字"}
 收合的內容...
@@ -64,8 +62,6 @@ aws --version
 ```
 :::
 
-語法：
-
 ````markdown
 :::tabs
 ::tab[分頁標題一]
@@ -84,11 +80,9 @@ aws --version
 
 :::steps
 1. 安裝 AWS CLI
-2. 執行 `aws configure` 設定認證
-3. 執行 `aws sts get-caller-identity` 驗證連線
+2. 執行 ``aws configure`` 設定認證
+3. 執行 ``aws sts get-caller-identity`` 驗證連線
 :::
-
-語法：
 
 ```markdown
 :::steps

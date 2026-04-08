@@ -7,7 +7,7 @@ order: 5
 
 ## 圖片
 
-使用標準 Markdown 圖片語法，相對路徑會自動解析到頁面所在目錄：
+圖片直接放在頁面資料夾下，用相對路徑引用：
 
 ```markdown
 ![架構圖](guidance-arch.png)
@@ -25,3 +25,7 @@ order: 5
 ::video{src="https://www.youtube.com/watch?v=VIDEO_ID"}
 ::video{src="https://youtu.be/VIDEO_ID"}
 ```
+
+效果：
+
+::video{src="https://www.youtube.com/watch?v=mUL0ABssVKo"}
