@@ -50,7 +50,7 @@ for root, dirs, files in os.walk(ws_dir):
         rel = os.path.relpath(os.path.join(root, f), ws_dir)
         pages.append(rel)
 
-# 讀 front matter 取 order
+# 讀 front matter 取 order（支援點分隔，如 3.1 → (3, 1)）
 def get_order(path):
     try:
         with open(os.path.join(ws_dir, path)) as f:
@@ -59,12 +59,13 @@ def get_order(path):
         if m:
             for line in m.group(1).split('\n'):
                 if line.strip().startswith('order:'):
-                    return int(line.split(':',1)[1].strip())
+                    val = line.split(':',1)[1].strip()
+                    return tuple(int(x) for x in val.split('.'))
     except:
         pass
-    return 999
+    return (999,)
 
-pages.sort(key=lambda p: get_order(p))
+pages = sorted(pages, key=get_order)
 
 # 從 _index.md front matter 讀 metadata
 meta = {}

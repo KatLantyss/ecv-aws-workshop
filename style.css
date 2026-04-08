@@ -105,8 +105,9 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
   font-size:.8rem;color:var(--text-dim);text-decoration:none;transition:var(--transition)}
 .sidebar-back:hover{background:var(--accent-dim);color:var(--accent)}
 .sidebar-section{padding:0 .75rem;margin-bottom:.5rem;flex:1;overflow-y:auto;padding-bottom:1rem}
-.sidebar-label{font-size:.65rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;
-  text-transform:uppercase;padding:.5rem .75rem;font-family:'JetBrains Mono',monospace}
+.sidebar-label{font-size:.7rem;font-weight:700;color:var(--text-dim);letter-spacing:.1em;
+  text-transform:uppercase;padding:.5rem .75rem .75rem;font-family:'JetBrains Mono',monospace;
+  border-bottom:1px solid var(--border);margin-bottom:.25rem}
 .sidebar-nav{list-style:none}
 .sidebar-nav li{list-style:none}
 .sidebar-nav a{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;margin:1px 0;
@@ -116,9 +117,6 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .sidebar-nav a.active{background:var(--accent-dim);color:var(--accent);font-weight:500}
 .sidebar-nav a.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
   width:3px;height:60%;border-radius:0 2px 2px 0;background:var(--accent)}
-.sidebar-nav .nav-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);
-  opacity:.6;width:1.5rem;text-align:right;flex-shrink:0}
-.sidebar-nav a.active .nav-num{color:var(--accent);opacity:.8}
 .progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .4s ease}
 
@@ -159,11 +157,12 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 
 /* Inline code */
 .content code{font-family:'JetBrains Mono',monospace;font-size:.82rem}
-.content p code,.content li code{background:var(--surface2);padding:.15rem .4rem;border-radius:4px;
+.content p code,.content li code,.content td code{background:var(--surface2);padding:.15rem .4rem;border-radius:4px;
   color:var(--accent2);border:1px solid var(--border);font-size:.8rem}
 
 /* Copyable inline code */
 .content code.copyable{cursor:pointer;border-style:dashed;transition:var(--transition);position:relative;margin:0 .3em}
+.content td code.copyable{margin:0}
 .content code.copyable:hover{border-color:var(--ws-btn-link-color);color:var(--ws-btn-link-color)}
 .content code.copyable::after{content:'複製';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
   padding:.2rem .5rem;border-radius:4px;font-size:.65rem;font-family:'Amazon Ember',sans-serif;
@@ -328,7 +327,7 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .ws-badge-default{background:var(--surface3);color:var(--text-dim)}
 
 /* ─── Status text ─── */
-.ws-status{display:inline-flex;align-items:center;gap:.35rem;font-size:.9rem;font-weight:600}
+.ws-status{display:inline-flex;align-items:center;gap:.35rem;font-size:1rem;font-weight:600;vertical-align:middle;transform:translateY(-1.5px)}
 .ws-status-icon{display:inline-flex;align-items:center}
 .ws-status-icon svg{width:18px;height:18px}
 .ws-status-info{color:var(--info)}

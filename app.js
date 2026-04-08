@@ -387,7 +387,6 @@ async function enterWorkshop(slug, chapterId) {
   }));
 
   chapters = results.filter(Boolean);
-  chapters.sort((a, b) => a.order - b.order);
 
   document.getElementById('sidebarLabel').textContent = ws.manifest.title || slug;
   buildSidebar();
@@ -402,10 +401,8 @@ async function enterWorkshop(slug, chapterId) {
    ═══════════════════════════════════════════ */
 function buildSidebar() {
   document.getElementById('sidebarNav').innerHTML = chapters.map((ch, i) => {
-    const num = String(i + 1).padStart(2, '0');
     const indent = ch.depth > 0 ? ` style="padding-left:${ch.depth * 1.2 + 0.75}rem"` : '';
-    return `<li><a href="#${currentWorkshop}/${ch.id}" onclick="loadChapter(${i});closeMobile()"${indent}>
-      <span class="nav-num">${num}</span>${ch.title}</a></li>`;
+    return `<li><a href="#${currentWorkshop}/${ch.id}" onclick="loadChapter(${i});closeMobile()"${indent}>${ch.title}</a></li>`;
   }).join('');
 }
 

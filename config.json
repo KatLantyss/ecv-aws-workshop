@@ -4,6 +4,7 @@
   "logo": "assets/logo.png",
   "footer": "© 2026 eCloudvalley Digital Technology",
   "workshops": [
+    "ecs-workshop",
     "writing-guide"
   ]
 }
