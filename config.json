@@ -1,0 +1,9 @@
+{
+  "title": "AWS Workshop",
+  "subtitle": "eCloudvalley 雲端技術實戰工作坊",
+  "logo": "assets/logo.png",
+  "footer": "© 2026 eCloudvalley Digital Technology",
+  "workshops": [
+    "writing-guide"
+  ]
+}

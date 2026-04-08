@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Workshop</title>
+<link href="https://fonts.cdnfonts.com/css/amazon-ember" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script>
+(function(){
+  const saved = localStorage.getItem('ws-theme');
+  document.documentElement.setAttribute('data-theme', saved || 'dark');
+})();
+</script>
+</head>
+<body>
+
+<!-- ═══ Header ═══ -->
+<div class="header">
+  <div class="header-logo">
+    <div class="header-logo-icon" id="headerLogo">☁</div>
+    <a href="#" id="headerTitle" class="header-title-link" onclick="goHome();return false">ECV AWS Workshop</a>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+  <div class="header-center">
+    <div class="header-breadcrumb" id="breadcrumb"></div>
+  </div>
+  <div class="header-right">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+    <button class="header-btn" id="prevBtn" onclick="navigatePrev()">← 上一頁</button>
+    <button class="header-btn" id="nextBtn" onclick="navigateNext()">下一頁 →</button>
+  </div>
+</div>
+
+<!-- ═══ Sidebar (workshop reader mode) ═══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <a class="sidebar-back" href="#" onclick="goHome();return false">← 回到首頁</a>
+    <div class="sidebar-label" id="sidebarLabel">目錄</div>
+    <ul class="sidebar-nav" id="sidebarNav"></ul>
+  </div>
+  <div class="sidebar-progress">
+    <div class="progress-text" id="progressText">0 / 0</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</aside>
+
+<!-- ═══ Landing page (card grid) ═══ -->
+<main class="landing" id="landing">
+  <div class="landing-hero">
+    <h1 id="landingTitle">ECV AWS Workshop</h1>
+    <p id="landingSubtitle">eCloudvalley 雲端技術實戰工作坊</p>
+  </div>
+  <div class="card-grid" id="cardGrid"></div>
+  <footer class="footer" id="landingFooter"></footer>
+</main>
+
+<!-- ═══ Workshop reader ═══ -->
+<main class="main" id="main" style="display:none">
+  <article class="content" id="content">
+    <div class="loading">載入中...</div>
+  </article>
+  <div class="content" id="pageNav"></div>
+  <footer class="footer" id="footer"></footer>
+</main>
+
+<div class="overlay" id="overlay"></div>
+<script src="app.js"></script>
+</body>
+</html>
