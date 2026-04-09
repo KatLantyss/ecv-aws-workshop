@@ -108,3 +108,13 @@ python3 -m http.server 8080
 4. 執行 `./build.sh`
 
 資料夾名稱加 `_` 前綴（如 `_my-draft`）會被 build 忽略。
+
+
+## TODO
+
+- RWD
+- 調整圖片大小,對其 圖片說明欄位
+- Mermaid Support, Drawio support
+- 使用 CodeCommit, CodePipeline, CodeBuild 同步所有內容（S3為主要版本）
+- Lab Account 後台變更 / Cognito 身份驗證
+- Call Lambda/Eventbridge/API Gateway... 直接部署 CloudFormation 以及回傳回去 UI 特定資源

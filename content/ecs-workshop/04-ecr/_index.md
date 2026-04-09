@@ -1,161 +1,33 @@
 ---
-title: Lab 3 - ECR 映像管理
-order: 4
+title: Task 3 - ECR 映像推送
+order: 5
 ---
 
-# Lab 3 - ECR 容器映像儲存
+# Task 3 - 推送映像至 Amazon ECR
 
-::badge[實作]{type="info"} ::badge[約 15-20 分鐘]{type="default"}
+::badge[實作]{type="info"} ::badge[約 10-15 分鐘]{type="default"}
 
-建立一個簡單的 Node.js 應用程式，打包成 Docker 映像，並推送至 Amazon ECR。
-
----
-
-## 3.1 認識 Amazon ECR
-
-Amazon Elastic Container Registry（ECR）是 AWS 提供的全託管容器映像儲存庫，類似於 Docker Hub，但與 AWS 服務深度整合。
-
-| 功能 | 說明 |
-|------|------|
-| Image Scanning | 推送映像時自動掃描安全漏洞 |
-| Lifecycle Policy | 自動清理舊映像，節省儲存成本 |
-| 加密 | 映像靜態加密（AES-256） |
-| IAM 整合 | 透過 IAM 控制存取權限 |
-| 跨區域複製 | 支援映像跨 Region 複製 |
-
-:::alert{type="info"}
-在 Lab 2 的 CloudFormation 中，我們已經建立了 ECR Repository ``ecs-workshop-app``，並啟用了 Image Scanning 和 Lifecycle Policy（保留最新 5 個映像）。
-:::
+將 Command Host 上建置好的 Docker 映像推送至 Amazon ECR，讓 ECS 可以從中拉取映像來部署。
 
 ---
 
-## 3.2 在 Console 確認 ECR Repository
+## 4.1 在 Console 確認 ECR Repository
+
+Task 1 的 CloudFormation 已經建立了 ECR Repository。
 
 :::steps
 1. 開啟 [ECR Console](https://console.aws.amazon.com/ecr/)
 2. 左側選單點擊 **Repositories**
-3. 確認 ``ecs-workshop-app`` 存在
-4. 點擊進入，目前應該沒有任何映像
-:::
-
----
-
-## 3.3 建立應用程式
-
-我們將建立一個簡單的 Node.js Express 應用，提供 Health Check 端點。
-
-:::steps
-1. 建立專案目錄
-
-```bash
-mkdir -p app
-cd app
-```
-
-2. 建立 ``package.json``
-
-```bash
-cat > package.json << 'EOF'
-{
-  "name": "ecs-workshop-app",
-  "version": "1.0.0",
-  "description": "ECS Workshop Demo App",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.0"
-  }
-}
-EOF
-```
-
-3. 建立 ``server.js``
-
-```bash
-cat > server.js << 'EOF'
-const express = require('express');
-const app = express();
-const PORT = 3000;
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-app.get('/', (req, res) => {
-  res.json({
-    message: 'ECS Workshop App',
-    version: '1.0.0',
-    endpoints: [
-      'GET /health - Health check',
-      'GET / - This page'
-    ]
-  });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
-EOF
-```
-
-4. 建立 ``Dockerfile``
-
-```bash
-cat > Dockerfile << 'EOF'
-FROM node:18-alpine
-WORKDIR /app
-COPY package.json .
-RUN npm install --production
-COPY server.js .
-EXPOSE 3000
-CMD ["node", "server.js"]
-EOF
-```
+3. 確認 ``ecs-workshop-app`` 存在，目前應該沒有任何映像
 :::
 
 :::alert{type="info"}
-使用 `node:18-alpine` 是因為 Alpine 映像體積小（~50MB vs ~350MB），減少拉取時間與攻擊面。
+CloudFormation 已為這個 Repository 啟用了 **Image Scanning**（推送時自動掃描漏洞）和 **Lifecycle Policy**（保留最新 5 個映像）。
 :::
 
 ---
 
-## 3.4 本機測試
-
-在推送到 ECR 之前，先在本機驗證映像是否正常：
-
-```bash
-# 建置映像
-docker build -t ecs-workshop-app:latest .
-
-# 啟動容器
-docker run -d -p 3000:3000 --name test-app ecs-workshop-app:latest
-
-# 測試
-curl http://localhost:3000/health
-curl http://localhost:3000/
-```
-
-:::expand{title="預期輸出"}
-```json
-{"status":"healthy","timestamp":"2026-04-09T..."}
-{"message":"ECS Workshop App","version":"1.0.0","endpoints":["GET /health - Health check","GET / - This page"]}
-```
-:::
-
-測試完成後清理：
-
-```bash
-docker stop test-app && docker rm test-app
-```
-
----
-
-## 3.5 推送映像至 ECR
-
-:::steps
-1. 登入 ECR
+## 4.2 登入 ECR
 
 ```bash
 aws ecr get-login-password --region us-east-1 | \
@@ -164,37 +36,64 @@ aws ecr get-login-password --region us-east-1 | \
 
 預期輸出：``Login Succeeded``
 
-2. 標記映像
+:::expand{title="ECR_REPO 環境變數還沒設定？"}
+如果 Task 1 未設定環境變數，請先執行：
 
 ```bash
-docker tag ecs-workshop-app:latest $ECR_REPO:v1
-docker tag ecs-workshop-app:latest $ECR_REPO:latest
+export ECR_REPO=<貼上 CloudFormation Outputs 的 ECRRepositoryUri>
 ```
 
-3. 推送映像
-
-```bash
-docker push $ECR_REPO:v1
-docker push $ECR_REPO:latest
-```
-:::
-
-:::alert{type="info"}
-同時標記版本號 ``v1`` 和 ``latest``，方便後續管理與回滾。
+例如：`export ECR_REPO=123456789012.dkr.ecr.us-east-1.amazonaws.com/ecs-workshop-app`
 :::
 
 ---
 
-## 3.6 在 Console 驗證推送結果
+## 4.3 標記並推送映像
+
+:::steps
+1. 標記映像
+
+```bash
+docker tag web2048:latest $ECR_REPO:latest
+```
+
+2. 確認標記成功
+
+```bash
+docker images
+```
+
+預期看到兩個映像指向同一個 IMAGE ID：`web2048:latest` 和 `<ECR_URI>:latest`。
+
+3. 推送映像
+
+```bash
+docker push $ECR_REPO:latest
+```
+:::
+
+:::expand{title="預期輸出"}
+```
+The push refers to repository [123456789012.dkr.ecr.us-east-1.amazonaws.com/ecs-workshop-app]
+9fb7edea8440: Pushed
+abc66ad258e9: Pushed
+...
+latest: digest: sha256:... size: 1780
+```
+:::
+
+---
+
+## 4.4 在 Console 驗證推送結果
 
 :::steps
 1. 回到 [ECR Console](https://console.aws.amazon.com/ecr/) → **Repositories** → ``ecs-workshop-app``
-2. 確認看到 ``v1`` 和 ``latest`` 兩個映像標籤
-3. 點擊任一映像，可以查看 **Scan results**（Image Scanning 結果）
+2. 確認看到 ``latest`` 映像標籤
+3. 點擊映像，可以查看 **Vulnerabilities** 欄位（Image Scanning 結果）
 :::
 
 :::expand{title="關於 Image Scanning"}
-因為我們在 CloudFormation 中啟用了 `ScanOnPush: true`，ECR 會自動掃描推送的映像，檢查 OS 套件是否有已知的 CVE 漏洞。正式環境中應將此整合至 CI/CD Pipeline，阻擋含有 CRITICAL 漏洞的映像部署。
+ECR 會自動掃描推送的映像，檢查 OS 套件是否有已知的 CVE 漏洞。正式環境中應將此整合至 CI/CD Pipeline，阻擋含有 CRITICAL 漏洞的映像部署。
 :::
 
 ---
@@ -203,15 +102,10 @@ docker push $ECR_REPO:latest
 
 | 項目 | 驗證方式 | 預期結果 |
 |------|----------|----------|
-| 本機測試 | ``curl localhost:3000/health`` | `{"status":"healthy"}` |
 | ECR 登入 | ``docker login`` | Login Succeeded |
-| 映像推送 | ECR Console | 看到 v1 和 latest 標籤 |
-| 漏洞掃描 | ECR Console → Scan results | 顯示掃描結果 |
-
-```bash
-cd ..
-```
+| 映像推送 | ECR Console | 看到 latest 標籤 |
+| 漏洞掃描 | ECR Console → Vulnerabilities | 顯示掃描結果 |
 
 :::alert{type="success"}
-映像已就緒，前往下一節將應用部署至 ECS。
+映像已推送至 ECR，前往下一節將 2048 遊戲部署到 ECS Fargate。
 :::

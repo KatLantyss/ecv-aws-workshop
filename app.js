@@ -24,7 +24,7 @@ function getIcon(name) {
         const a = Object.entries(attrs).map(([k,v]) => `${k}="${v}"`).join(' ');
         return `<${tag} ${a}/>`;
       }).join('');
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
     }
   }
   return '';
@@ -69,7 +69,7 @@ function preprocessCustomSyntax(md) {
     if (split) {
       return `<span class="ws-btn-split"><div class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</div><span class="ws-btn-divider"></span><div class="ws-btn ws-btn-${variant}">${getIcon(split)}</div></span>`;
     }
-    return `<div class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</div>`;
+    return `<span class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</span>`;
   });
 
   md = md.replace(/::badge\[([^\]]+)\]\{([^}]+)\}/g, (_, text, attrs) => {
@@ -98,8 +98,18 @@ function preprocessCustomSyntax(md) {
     `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</div><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::steps\n([\s\S]*?):::/g, (_, body) => {
-    const html = body.trim().split('\n').filter(l => l.trim()).map(line =>
-      `<div class="ws-step"><div class="ws-step-num"></div><div class="ws-step-body">\n\n${line.replace(/^\d+\.\s*/, '')}\n\n</div></div>`
+    // 按 "數字." 開頭分割成 steps，子列表和續行歸入上一個 step
+    const lines = body.trim().split('\n');
+    const steps = [];
+    for (const line of lines) {
+      if (/^\d+\.\s/.test(line.trim())) {
+        steps.push(line.replace(/^\s*\d+\.\s*/, ''));
+      } else if (steps.length > 0 && line.trim()) {
+        steps[steps.length - 1] += '\n' + line;
+      }
+    }
+    const html = steps.map(s =>
+      `<div class="ws-step"><div class="ws-step-body">\n\n${s.trim()}\n\n</div></div>`
     ).join('');
     return `<div class="ws-steps">${html}</div>`;
   });
@@ -508,15 +518,30 @@ function switchTab(id, index) {
   c.querySelectorAll('.ws-tab-panel').forEach((p, i) => p.classList.toggle('active', i === index));
 }
 
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
 function copyCode(btn) {
-  navigator.clipboard.writeText(btn.nextElementSibling.textContent);
+  copyToClipboard(btn.nextElementSibling.textContent);
   btn.innerHTML = getIcon('aws-success');
   btn.style.color = 'var(--success)';
   setTimeout(() => { btn.innerHTML = getIcon('aws-copy'); btn.style.color = ''; }, 1200);
 }
 
 function copyInline(el, text) {
-  navigator.clipboard.writeText(text);
+  copyToClipboard(text);
   el.classList.add('copied');
   setTimeout(() => el.classList.remove('copied'), 1200);
 }

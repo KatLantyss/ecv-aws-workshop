@@ -129,8 +129,8 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 3000
-          ToPort: 3000
+          FromPort: 80
+          ToPort: 80
           SourceSecurityGroupId: !Ref ALBSecurityGroup
 
   RDSSecurityGroup:
@@ -143,6 +143,60 @@ Resources:
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref ECSSecurityGroup
+
+  # ==================== Command Host ====================
+  CommandHostRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ecs-workshop-command-host-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  CommandHostInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref CommandHostRole
+
+  CommandHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Command Host Security Group
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  CommandHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref CommandHostSecurityGroup
+      IamInstanceProfile: !Ref CommandHostInstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y docker git
+          systemctl enable docker
+          systemctl start docker
+          usermod -aG docker ssm-user
+      Tags:
+        - Key: Name
+          Value: ecs-workshop-command-host
 
   # ==================== ALB ====================
   ALB:
@@ -160,11 +214,11 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: ecs-workshop-tg
-      Port: 3000
+      Port: 80
       Protocol: HTTP
       VpcId: !Ref VPC
       TargetType: ip
-      HealthCheckPath: /health
+      HealthCheckPath: /
       HealthCheckIntervalSeconds: 30
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 3
@@ -217,13 +271,6 @@ Resources:
               }
             ]
           }
-
-  # ==================== CloudWatch Logs ====================
-  LogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: /ecs/ecs-workshop
-      RetentionInDays: 7
 
   # ==================== IAM Roles ====================
   ECSTaskExecutionRole:
@@ -308,6 +355,10 @@ Resources:
       BackupRetentionPeriod: 0
 
 Outputs:
+  CommandHostSessionUrl:
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${CommandHost}?region=${AWS::Region}'
+  Region:
+    Value: !Ref AWS::Region
   ECSClusterName:
     Value: !Ref ECSCluster
   ECRRepositoryUri:

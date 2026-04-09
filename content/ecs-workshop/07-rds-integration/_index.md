@@ -1,33 +1,33 @@
 ---
-title: Lab 6 - RDS 整合
-order: 7
+title: Task 6 - RDS 整合
+order: 8
 ---
 
-# Lab 6 - 資料庫儲存整合（RDS）
+# Task 6 - 資料庫儲存整合（RDS）
 
 ::badge[實作]{type="info"} ::badge[約 15-20 分鐘]{type="default"}
 
-更新應用程式整合 RDS MySQL，實現資料的寫入與讀取，重新建置映像並透過 Console 部署至 ECS。
+為應用加上 RDS MySQL 整合，實現遊戲排行榜的寫入與讀取功能。
 
 ---
 
-## 6.1 更新應用程式
+## 7.1 更新應用程式
 
 :::steps
-1. 更新 ``package.json``（新增 MySQL 驅動）
+1. 進入 2048 目錄
 
 ```bash
-cd app
+cd ~/2048
+```
 
+2. 更新 ``package.json``（新增 MySQL 驅動）
+
+```bash
 cat > package.json << 'EOF'
 {
-  "name": "ecs-workshop-app",
+  "name": "web2048-api",
   "version": "3.0.0",
-  "description": "ECS Workshop Demo App with S3 + RDS",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.18.0",
     "@aws-sdk/client-s3": "^3.400.0",
@@ -37,22 +37,23 @@ cat > package.json << 'EOF'
 EOF
 ```
 
-2. 更新 ``server.js``（新增 DB 端點）
+3. 更新 ``server.js``（新增 DB 端點）
 
 ```bash
 cat > server.js << 'SERVEREOF'
 const express = require('express');
+const path = require('path');
 const { S3Client, PutObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const mysql = require('mysql2/promise');
 
 const app = express();
-const PORT = 3000;
+const PORT = 80;
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 const BUCKET = process.env.S3_BUCKET;
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// MySQL Connection Pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER || 'admin',
@@ -62,95 +63,58 @@ const pool = mysql.createPool({
   connectionLimit: 5
 });
 
-// Initialize DB table
 async function initDB() {
   try {
     await pool.execute(`
-      CREATE TABLE IF NOT EXISTS messages (
+      CREATE TABLE IF NOT EXISTS scores (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        content VARCHAR(255) NOT NULL,
+        player VARCHAR(50) NOT NULL,
+        score INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log('Database table initialized');
-  } catch (err) {
-    console.error('DB init error:', err.message);
-  }
+  } catch (err) { console.error('DB init error:', err.message); }
 }
 initDB();
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', version: '3.0.0', timestamp: new Date().toISOString() });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', version: '3.0.0' });
 });
 
-app.get('/', (req, res) => {
-  res.json({
-    message: 'ECS Workshop App',
-    version: '3.0.0',
-    features: ['health-check', 's3-upload', 's3-list', 'db-read', 'db-write'],
-    endpoints: [
-      'GET  /health       - Health check',
-      'POST /s3/upload    - Upload text to S3',
-      'GET  /s3/files     - List S3 files',
-      'POST /db/messages  - Write message to DB',
-      'GET  /db/messages  - Read messages from DB'
-    ]
-  });
-});
-
-// ===== S3 Endpoints =====
-app.post('/s3/upload', async (req, res) => {
+// S3 endpoints
+app.post('/api/s3/upload', async (req, res) => {
   try {
     const { filename, content } = req.body;
-    if (!filename || !content) {
-      return res.status(400).json({ error: 'filename and content are required' });
-    }
-    await s3.send(new PutObjectCommand({
-      Bucket: BUCKET, Key: filename, Body: content, ContentType: 'text/plain'
-    }));
+    if (!filename || !content) return res.status(400).json({ error: 'filename and content required' });
+    await s3.send(new PutObjectCommand({ Bucket: BUCKET, Key: filename, Body: content, ContentType: 'text/plain' }));
     res.json({ message: 'Upload successful', bucket: BUCKET, key: filename });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/s3/files', async (req, res) => {
+app.get('/api/s3/files', async (req, res) => {
   try {
     const data = await s3.send(new ListObjectsV2Command({ Bucket: BUCKET }));
-    const files = (data.Contents || []).map(f => ({
-      key: f.Key, size: f.Size, lastModified: f.LastModified
-    }));
+    const files = (data.Contents || []).map(f => ({ key: f.Key, size: f.Size, lastModified: f.LastModified }));
     res.json({ bucket: BUCKET, fileCount: files.length, files });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== DB Endpoints =====
-app.post('/db/messages', async (req, res) => {
+// Leaderboard endpoints
+app.post('/api/scores', async (req, res) => {
   try {
-    const { content } = req.body;
-    if (!content) {
-      return res.status(400).json({ error: 'content is required' });
-    }
-    const [result] = await pool.execute(
-      'INSERT INTO messages (content) VALUES (?)', [content]
-    );
-    res.json({ message: 'Message saved', id: result.insertId });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    const { player, score } = req.body;
+    if (!player || !score) return res.status(400).json({ error: 'player and score required' });
+    const [result] = await pool.execute('INSERT INTO scores (player, score) VALUES (?, ?)', [player, score]);
+    res.json({ message: 'Score saved', id: result.insertId });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/db/messages', async (req, res) => {
+app.get('/api/scores', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM messages ORDER BY created_at DESC LIMIT 20'
-    );
-    res.json({ count: rows.length, messages: rows });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    const [rows] = await pool.execute('SELECT * FROM scores ORDER BY score DESC LIMIT 10');
+    res.json({ count: rows.length, scores: rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
@@ -164,40 +128,33 @@ SERVEREOF
 
 ---
 
-## 6.2 重新建置並推送映像
+## 7.2 重新建置並推送映像
 
 ```bash
-docker build -t ecs-workshop-app:v3 .
-
-docker tag ecs-workshop-app:v3 $ECR_REPO:v3
-docker tag ecs-workshop-app:v3 $ECR_REPO:latest
-
-docker push $ECR_REPO:v3
+docker build -t web2048:v3 .
+docker tag web2048:v3 $ECR_REPO:latest
 docker push $ECR_REPO:latest
 ```
 
 ---
 
-## 6.3 透過 Console 建立新版 Task Definition
+## 7.3 透過 Console 更新 Task Definition
 
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → ``ecs-workshop-app``
 
 2. 點擊 ::button[Create new revision]{variant="primary"}
 
-3. 在 **Container - 1** 區塊：
-   - 將 **Image URI** 的標籤從 ``:v2`` 改為 ``:v3``
-
-4. 在 **Environment variables** 區段，保留既有的 ``S3_BUCKET``，並新增以下變數：
+3. 在 **Environment variables** 區段，保留既有的 ``S3_BUCKET``，新增以下變數：
 
 | Key | Value |
 |-----|-------|
-| ``DB_HOST`` | 貼上 Lab 2 記錄的 RDS Endpoint |
+| ``DB_HOST`` | 貼上 Task 1 記錄的 RDS Endpoint |
 | ``DB_USER`` | ``admin`` |
-| ``DB_PASSWORD`` | 你在 Lab 2 設定的資料庫密碼 |
+| ``DB_PASSWORD`` | Task 1 設定的資料庫密碼 |
 | ``DB_NAME`` | ``workshopdb`` |
 
-5. 點擊 ::button[Create]{variant="primary"}
+4. 點擊 ::button[Create]{variant="primary"}
 :::
 
 :::alert{type="warning"}
@@ -206,74 +163,70 @@ docker push $ECR_REPO:latest
 
 ---
 
-## 6.4 透過 Console 更新 ECS Service
+## 7.4 透過 Console 更新 ECS Service
 
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → ``ecs-workshop-cluster``
-
 2. 在 **Services** 分頁，勾選 ``ecs-workshop-service``，點擊 ::button[Update]{variant="primary"}
-
 3. **Revision**：選擇 LATEST
 4. 勾選 **Force new deployment**
 5. 點擊 ::button[Update]{variant="primary"}
 :::
 
-等待部署完成（約 2-3 分鐘），在 **Deployments** 分頁確認新版本已完成部署。
+等待部署完成（約 2-3 分鐘）。
 
 ---
 
-## 6.5 測試 RDS 功能
+## 7.5 測試排行榜功能
 
-### 寫入資料
+### 提交分數
 
 ```bash
-curl -X POST http://$ALB_DNS/db/messages \
+curl -X POST http://$ALB_DNS/api/scores \
   -H "Content-Type: application/json" \
-  -d '{"content": "Hello from ECS Workshop!"}'
+  -d '{"player": "Alice", "score": 2048}'
+
+curl -X POST http://$ALB_DNS/api/scores \
+  -H "Content-Type: application/json" \
+  -d '{"player": "Bob", "score": 4096}'
 ```
 
-:::expand{title="預期輸出"}
-```json
-{"message":"Message saved","id":1}
-```
-:::
-
-### 讀取資料
+### 查看排行榜
 
 ```bash
-curl http://$ALB_DNS/db/messages
+curl http://$ALB_DNS/api/scores
 ```
 
 :::expand{title="預期輸出"}
 ```json
-{"count":1,"messages":[{"id":1,"content":"Hello from ECS Workshop!","created_at":"..."}]}
+{"count":2,"scores":[{"id":2,"player":"Bob","score":4096,"created_at":"..."},{"id":1,"player":"Alice","score":2048,"created_at":"..."}]}
 ```
 :::
 
 ### 驗證完整功能
 
 ```bash
-curl http://$ALB_DNS/
-curl http://$ALB_DNS/health
-curl http://$ALB_DNS/s3/files
-curl http://$ALB_DNS/db/messages
+curl http://$ALB_DNS/api/health    # version: 3.0.0
+curl http://$ALB_DNS/api/s3/files  # S3 仍正常
+curl http://$ALB_DNS/api/scores    # 排行榜
 ```
+
+瀏覽器開啟 ``http://<ALB_DNS>``，2048 遊戲仍正常運作。
 
 ---
 
 ## 常見問題
 
 :::expand{title="連接 RDS 失敗（ETIMEDOUT）？"}
-確認以下幾點：
-1. RDS Security Group 允許來自 ECS Security Group 的 Port 3306 流量
-2. RDS 部署在 Private Subnet，ECS Task 部署在 Public Subnet，兩者在同一 VPC 內
-3. 環境變數 ``DB_HOST`` 是否正確設定為 RDS Endpoint
+1. 確認 RDS Security Group 允許來自 ECS Security Group 的 Port 3306 流量
+2. 確認 RDS 部署在 Private Subnet，ECS Task 部署在 Public Subnet，兩者在同一 VPC 內
+3. 確認環境變數 ``DB_HOST`` 是否正確設定為 RDS Endpoint
 
-可在 [RDS Console](https://console.aws.amazon.com/rds/) → **Databases** → ``ecs-workshop-db`` 中確認 Endpoint 和 Security Group。
+可在 [RDS Console](https://console.aws.amazon.com/rds/) → **Databases** → ``ecs-workshop-db`` 中確認。
 :::
 
 :::expand{title="資料庫連線被拒絕（Access Denied）？"}
-確認 ``DB_USER`` 和 ``DB_PASSWORD`` 與 CloudFormation 部署時設定的一致。可在 Task Definition 的環境變數中檢查。
+確認 ``DB_USER`` 和 ``DB_PASSWORD`` 與 CloudFormation 部署時設定的一致。
 :::
 
 ---
@@ -282,15 +235,10 @@ curl http://$ALB_DNS/db/messages
 
 | 項目 | 驗證方式 | 預期結果 |
 |------|----------|----------|
-| 映像推送 | ECR Console | 看到 v3 標籤 |
-| Task Definition | ECS Console | 新版本含 DB 環境變數 |
-| DB 寫入 | ``curl POST /db/messages`` | Message saved |
-| DB 讀取 | ``curl GET /db/messages`` | 顯示已寫入的訊息 |
-| 全功能驗證 | ``curl /`` | version: 3.0.0，5 個端點 |
-
-```bash
-cd ..
-```
+| 2048 遊戲 | 瀏覽器開啟 ALB DNS | 遊戲正常運作 |
+| Health API | ``curl /api/health`` | version: 3.0.0 |
+| 提交分數 | ``curl POST /api/scores`` | Score saved |
+| 排行榜 | ``curl GET /api/scores`` | 顯示分數排名 |
 
 :::alert{type="success"}
 所有功能整合完成，前往最後一節清除資源。
