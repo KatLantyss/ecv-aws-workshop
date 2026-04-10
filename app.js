@@ -475,6 +475,7 @@ function renderMarkdown(md) {
 
   document.getElementById('content').innerHTML = html;
   document.getElementById('pageNav').innerHTML = navHtml;
+  initLightbox();
   buildTOC();
   observeTOC();
   const el = document.getElementById('content');
@@ -629,6 +630,42 @@ function updateThemeIcon() {
   const btn = document.getElementById('themeToggle');
   if (!btn) return;
   btn.innerHTML = getIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'moon' : 'sun');
+}
+
+/* ═══════════════════════════════════════════
+   Lightbox
+   ═══════════════════════════════════════════ */
+function initLightbox() {
+  document.querySelectorAll('#content img').forEach(img => {
+    // wrap for hover tooltip
+    if (!img.closest('.img-zoom-wrap')) {
+      const wrap = document.createElement('span');
+      wrap.className = 'img-zoom-wrap';
+      img.parentNode.insertBefore(wrap, img);
+      wrap.appendChild(img);
+    }
+    img.addEventListener('click', () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'lightbox-overlay';
+      overlay.innerHTML = `
+        <button class="lightbox-close" aria-label="關閉">${getIcon('x')}</button>
+        <img src="${img.src}" alt="${img.alt}">
+      `;
+      const close = () => {
+        overlay.classList.remove('lightbox-open');
+        overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+      };
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay || e.target.closest('.lightbox-close')) close();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') close();
+      }, { once: true });
+      document.body.appendChild(overlay);
+      // 雙 rAF 確保 transition 正確觸發
+      requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('lightbox-open')));
+    });
+  });
 }
 
 /* ═══════════════════════════════════════════
