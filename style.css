@@ -289,6 +289,21 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .ws-alert-danger{background:rgba(248,81,73,.08);border-color:var(--danger)}
 .ws-alert-danger .ws-alert-icon{color:var(--danger)}
 
+/* ─── Banner (filled alert) ─── */
+.ws-banner{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.15rem;margin:1rem 0;border-radius:var(--radius);
+  font-size:.88rem;line-height:1.6;color:#fff}
+.ws-banner-icon{flex-shrink:0;display:flex;align-items:center}
+.ws-banner-icon svg{width:18px;height:18px}
+.ws-banner-body{flex:1;min-width:0}
+.ws-banner-body p{margin:0;color:#fff}
+.ws-banner-body a{color:#fff;text-decoration:underline}
+.ws-banner-body strong{color:#fff}
+.ws-banner-body code{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3);color:#fff}
+.ws-banner-info{background:var(--info)}
+.ws-banner-warning{background:var(--warning)}
+.ws-banner-success{background:var(--success)}
+.ws-banner-danger{background:var(--danger)}
+
 /* ─── Expand ─── */
 .ws-expand{margin:1rem 0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .ws-expand-header{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;

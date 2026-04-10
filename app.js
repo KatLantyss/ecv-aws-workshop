@@ -94,6 +94,9 @@ function preprocessCustomSyntax(md) {
   md = md.replace(/:::alert\{type="(\w+)"\}\n([\s\S]*?):::/g, (_, type, body) =>
     `<div class="ws-alert ws-alert-${type}"><span class="ws-alert-icon">${getIcon(alertIconMap[type] || '')}</span><div class="ws-alert-body">\n\n${body.trim()}\n\n</div></div>`);
 
+  md = md.replace(/:::banner\{type="(\w+)"\}\n([\s\S]*?):::/g, (_, type, body) =>
+    `<div class="ws-banner ws-banner-${type}"><span class="ws-banner-icon">${getIcon(alertIconMap[type] || '')}</span><div class="ws-banner-body">\n\n${body.trim()}\n\n</div></div>`);
+
   md = md.replace(/:::expand\{title="([^"]+)"\}\n([\s\S]*?):::/g, (_, title, body) =>
     `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</div><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
 
@@ -141,7 +144,7 @@ function simpleHighlight(code) {
     'if','else','for','while','async','await','export','default','new','try','catch','throw']);
   const out = [];
   // 逐 token 處理，避免 regex 互相干擾
-  const re = /(\/\/[^\n]*|#[^\n]*|"[^"]*"|'[^']*'|\b\d+\b|\b[a-zA-Z_]\w*\b|[^\s]|\s+)/g;
+  const re = /((?<![:\w])\/\/[^\n]*|(?<=^|\s)#[^\n]*|"[^"]*"|'[^']*'|\b\d+\b|\b[a-zA-Z_]\w*\b|[^\s]|\s+)/g;
   let m;
   const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   while ((m = re.exec(code)) !== null) {
