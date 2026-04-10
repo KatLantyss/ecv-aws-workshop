@@ -17,13 +17,16 @@ order: 6
 
 ## 5.1 上傳靜態檔案至 S3
 
-先將 2048 遊戲的靜態檔案上傳到 S3 Bucket，後續 Node.js 應用啟動時會從 S3 sync 這些檔案。
+將 2048 遊戲的原始靜態檔案上傳到 S3 Bucket，後續 Node.js 應用啟動時會從 S3 sync 這些檔案。
 
 在 Command Host 終端機中執行：
 
 ```bash
 cd ~/2048
-aws s3 sync . s3://$S3_BUCKET/public/ --exclude "Dockerfile" --exclude "*.md" --exclude "LICENSE*" --exclude "Rakefile" --exclude "CONTRIBUTING*"
+aws s3 sync . s3://$S3_BUCKET/public/ \
+  --exclude "Dockerfile" --exclude "*.md" --exclude "LICENSE*" \
+  --exclude "Rakefile" --exclude "CONTRIBUTING*" --exclude "package.json" \
+  --exclude "server.js" --exclude ".git/*"
 ```
 
 驗證上傳結果：
@@ -41,8 +44,6 @@ aws s3 ls s3://$S3_BUCKET/public/
 2024-01-01 00:00:00       3988 index.html
 ```
 :::
-
-也可在 [S3 Console](https://console.aws.amazon.com/s3/) 中確認 Bucket 內的 `public/` 資料夾。
 
 ---
 
@@ -259,39 +260,39 @@ curl http://$ALB_DNS/api/health -w "\n"
 
 ### 驗證 S3 + RDS 整合
 
-在 Command Host 上修改 `index.html`，注入排行榜功能 — 遊戲結束時自動彈出輸入框，提交玩家名稱與分數至 RDS：
+接下來展示 S3 架構的核心優勢 — 不需要重新建置映像，只需更新 S3 上的檔案並重啟 Task，即可部署前端變更。
 
 :::steps
-1. 在 Command Host 終端機中，建立排行榜 JS 並注入到 `index.html`
+1. 在 Command Host 上，還原並修改 `index.html`，加入排行榜功能
 
 ```bash
 cd ~/2048
-
-# 修改標題以驗證 S3 內容更新
+git checkout index.html
 sed -i 's/<title>2048<\/title>/<title>2048 - S3 Edition<\/title>/' index.html
 
-# 建立排行榜功能 JS
 cat > leaderboard.js << 'LBEOF'
 (function(){
   var origMessage = HTMLActuator.prototype.message;
   HTMLActuator.prototype.message = function(won){
     origMessage.apply(this, arguments);
     var score = this.score;
-    var name = prompt((won ? "You win!" : "Game Over!") + " Score: " + score + "\nEnter your name for the leaderboard:");
-    if(name){
-      fetch("/api/scores",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({player:name,score:score})
-      }).then(function(r){return r.json()})
-        .then(function(d){alert("Score submitted! ID: "+d.id)})
-        .catch(function(e){alert("Submit failed: "+e)});
-    }
+    setTimeout(function(){
+      var name = prompt((won ? "You win!" : "Game Over!") + " Score: " + score + "\nEnter your name for the leaderboard:");
+      if(name){
+        fetch("/api/scores",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({player:name,score:score})
+        }).then(function(r){return r.json()})
+          .then(function(d){alert("Score submitted! ID: "+d.id)})
+          .catch(function(e){alert("Submit failed: "+e)});
+      }
+    }, 800);
   };
 })();
 LBEOF
 
-sed -i 's|</body>|<script src="leaderboard.js"></script></body>|' index.html
+sed -i '/leaderboard.js/!s|</body>|<script src="leaderboard.js"></script></body>|' index.html
 ```
 
 2. 上傳修改後的檔案到 S3
@@ -306,9 +307,13 @@ aws s3 cp leaderboard.js s3://$S3_BUCKET/public/leaderboard.js
    - 勾選任一 Task，點擊 ::button[Stop]{variant="primary"}
    - 等待新 Task 變為 ::status[Running]{type="success" icon="aws-success"}
 
-4. 在瀏覽器開啟 `http://<ALB_DNS>` 玩 2048 遊戲，確認分頁標題已變為「2048 - S3 Edition」
-5. 遊戲結束時，預期彈出輸入框要求輸入名稱
-6. 輸入名稱後，分數會自動提交至 RDS
+4. 在瀏覽器開啟 `http://<ALB_DNS>`，確認分頁標題已變為「2048 - S3 Edition」
+5. 玩 2048 遊戲直到 Game Over，預期彈出輸入框要求輸入名稱
+6. 輸入名稱後，分數自動提交至 RDS
+:::
+
+:::alert{type="info"}
+整個前端更新過程不需要重新 build 映像、不需要 push ECR、不需要更新 Task Definition — 只需要更新 S3 檔案並重啟 Task。這就是內容與映像分離架構的價值。
 :::
 
 ### 查看排行榜

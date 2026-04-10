@@ -9,7 +9,7 @@ order: 7
 
 刪除本工作坊建立的所有 AWS 資源，避免產生額外費用。
 
-:::alert{type="danger"}
+:::alert{type="warning"}
 請務必完成此 Lab，否則 RDS、ALB 等資源會持續計費。
 :::
 
@@ -20,7 +20,7 @@ order: 7
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster`
 2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-service`
-3. 點擊 ::button[Delete]{variant="primary"}
+3. 點擊 ::button[Delete service]{variant="link"}
 4. 在確認對話框中輸入 ``delete``，點擊 ::button[Delete]{variant="primary"}
 5. 等待 Service 刪除完成（所有 Task 會自動停止）
 :::
@@ -33,7 +33,6 @@ order: 7
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-app`
 2. 勾選所有版本
 3. 點擊 ::button[Actions]{variant="link" dropdown} → **Deregister**
-4. 切換到 **Inactive** 分頁，勾選所有版本，點擊 ::button[Actions]{variant="link" dropdown} → **Delete**
 :::
 
 ---
@@ -45,7 +44,7 @@ CloudFormation 無法刪除非空的 S3 Bucket，需先清空。
 :::steps
 1. 開啟 [S3 Console](https://console.aws.amazon.com/s3/)
 2. 找到並點擊 workshop 的 S3 Bucket
-3. 點擊 ::button[Empty]{variant="primary"}
+3. 點擊 ::button[Empty]{variant="link"}
 4. 輸入 ``permanently delete``，點擊 ::button[Empty]{variant="primary"}
 :::
 
@@ -56,9 +55,9 @@ CloudFormation 無法刪除非空的 S3 Bucket，需先清空。
 :::steps
 1. 開啟 [CloudFormation Console](https://console.aws.amazon.com/cloudformation/)
 2. 勾選 `ecs-fargate-lab` Stack
-3. 點擊 ::button[Delete]{variant="primary"}
-4. 確認刪除
-5. 等待狀態變為 ::status[DELETE_COMPLETE]{type="success" icon="aws-success"}（約 5-10 分鐘）
+3. 點擊 ::button[Delete stack]{variant="link"}
+4. 輸入 ``ecs-fargate-lab`` ，點擊 ::button[Delete stack]{variant="primary"}
+5. 等待狀態 ::status[DELETE_IN_PROGRESS]{type="info" icon="aws-info"} ， 期間可以使用 ::button[]{variant="link" prefix="aws-refresh"} 來刷新狀態，直到資源消失，即刪除完成。
 :::
 
 :::alert{type="info"}
@@ -97,8 +96,8 @@ CloudFormation Stack 刪除後，所有資源（包含 Command Host EC2）都會
 | 資源 | 驗證方式 | 預期結果 |
 |------|----------|----------|
 | ECS Service | ECS Console → Cluster | 不存在 |
-| Task Definitions | ECS Console → Task definitions | 已刪除 |
-| CloudFormation Stack | CloudFormation Console | DELETE_COMPLETE |
+| Task Definitions | ECS Console → Task definitions | 不存在 |
+| CloudFormation Stack | CloudFormation Console | 不存在 |
 | S3 Bucket | S3 Console | 不存在 |
 | ECR Repository | ECR Console | 不存在 |
 | RDS | RDS Console | 不存在 |
@@ -106,7 +105,7 @@ CloudFormation Stack 刪除後，所有資源（包含 Command Host EC2）都會
 
 ---
 
-## 恭喜完成 🎉
+## 恭喜完成
 
 本工作坊已全部完成。透過實作，成功將 2048 遊戲部署至 AWS Fargate，並整合了 S3 物件儲存與 RDS 資料庫。
 

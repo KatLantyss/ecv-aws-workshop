@@ -95,7 +95,6 @@ latest: digest: sha256:... size: 1780
 :::expand{title="關於 Image Scanning"}
 ECR 會自動掃描推送的映像，檢查 OS 套件是否有已知的 CVE 漏洞。正式環境中應將此整合至 CI/CD Pipeline，阻擋含有 CRITICAL 漏洞的映像部署。
 :::
-
 ---
 
 ## 完成檢查
