@@ -170,15 +170,20 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .content code.copyable{cursor:pointer;border-style:dashed;transition:var(--transition);position:relative;margin:0 .3em}
 .content td code.copyable{margin:0}
 .content code.copyable:hover{border-color:var(--ws-btn-link-color);color:var(--ws-btn-link-color)}
-.content code.copyable::after{content:'複製';position:fixed;
+/* Copyable tooltip */
+.content code.copyable::after{content:'COPY';position:fixed;
   left:var(--tip-x, 0);top:var(--tip-y, 0);
-  padding:.2rem .5rem;border-radius:4px;font-size:.65rem;font-family:'Amazon Ember',sans-serif;
-  background:var(--surface3);color:var(--text-dim);border:1px solid var(--border);
-  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:999;
-  transform:translate(12px,-120%)}
-.content code.copyable:hover::after{opacity:1}
+  padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.06em;
+  background:var(--accent);color:#fff;border:none;
+  white-space:nowrap;opacity:0;pointer-events:none;z-index:999;
+  transform:translate(10px,-130%);line-height:1.4;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+  transition:opacity .1s ease,transform .1s ease}
+.content code.copyable:hover::after{opacity:1;transform:translate(10px,-140%)}
 .content code.copyable.copied{border-color:var(--success);color:var(--success)}
-.content code.copyable.copied::after{content:'已複製 ✓';opacity:1;background:var(--success);color:#fff;border-color:var(--success)}
+.content code.copyable.copied::after{content:'✓ DONE';background:var(--success)}
+.content code.copyable.copied:hover::after{opacity:1;transform:translate(10px,-140%)}
 
 /* Code blocks */
 .content pre{position:relative;background:var(--surface);border:1px solid var(--border);
