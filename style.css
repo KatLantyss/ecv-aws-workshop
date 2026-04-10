@@ -461,3 +461,9 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .mermaid-wrap{margin:1.25rem 0;padding:1.25rem;background:var(--surface);
   border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;text-align:center}
 .mermaid-wrap svg{max-width:100%;height:auto}
+
+/* ─── Figure caption ─── */
+.ws-figure{display:block;margin:1rem 0}
+.ws-figure img{margin:0;display:block}
+.ws-figure figcaption{font-size:.78rem;color:var(--text-dim);text-align:center;
+  padding:.4rem .5rem 0;line-height:1.5}

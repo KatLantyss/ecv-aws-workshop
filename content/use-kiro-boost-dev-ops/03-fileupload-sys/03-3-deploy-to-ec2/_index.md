@@ -33,47 +33,27 @@ order: 5
 8) 終端機執行過程，只需要一個 terminal 視窗，請不要新的指令就重啟新terminal視窗，避免需要重複 aws configure sso 登入
 ```
 
-![Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.01.png)
+![Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.01.png "Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰")
 
-Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰
+![開始創建 Security Group 安全群組](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.56.png "開始創建 Security Group 安全群組")
 
-![開始創建 Security Group 安全群組](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.56.png)
+![開始創建 EC2 實例](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.21.17.png "開始創建 EC2 實例")
 
-開始創建 Security Group 安全群組
+![檢查 AWS Console - EC2 已建立完成](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.22.06.png "檢查 AWS Console - EC2 已建立完成")
 
-![開始創建 EC2 實例](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.21.17.png)
+![繼續執行 ssh 連線指令](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.23.35.png "繼續執行 ssh 連線指令")
 
-開始創建 EC2 實例
+![透過 scp 複製 docker-compose 檔案到 EC2](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.24.05.png "透過 scp 複製 docker-compose 檔案到 EC2")
 
-![檢查 AWS Console - EC2 已建立完成](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.22.06.png)
+![設定 EC2 Instance Profile（配置 ECR Pull Image 權限）](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.28.56.png "設定 EC2 Instance Profile（配置 ECR Pull Image 權限）")
 
-檢查 AWS Console - EC2 已建立完成
-
-![繼續執行 ssh 連線指令](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.23.35.png)
-
-繼續執行 ssh 連線指令
-
-![透過 scp 複製 docker-compose 檔案到 EC2](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.24.05.png)
-
-透過 scp 複製 docker-compose 檔案到 EC2
-
-![設定 EC2 Instance Profile（配置 ECR Pull Image 權限）](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.28.56.png)
-
-設定 EC2 Instance Profile（配置 ECR Pull Image 權限）
-
-![成功運行 docker-compose.yaml 檔案](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.44.30.png)
-
-成功運行 docker-compose.yaml 檔案
+![成功運行 docker-compose.yaml 檔案](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.44.30.png "成功運行 docker-compose.yaml 檔案")
 
 ### 驗證結果（完成）
 
-![前往 AWS Console - EC2，複製 Public IP](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.20.png)
+![前往 AWS Console - EC2，複製 Public IP](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.20.png "前往 AWS Console - EC2，複製 Public IP")
 
-前往 AWS Console - EC2，複製 Public IP
-
-![訪問 FileUpload 網頁](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.52.png)
-
-訪問 FileUpload 網頁
+![訪問 FileUpload 網頁](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.52.png "訪問 FileUpload 網頁")
 
 ![截圖 2026-03-31 上午11.46.18.png](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.46.18.png)
 

@@ -36,8 +36,18 @@ function getIcon(name) {
 const CARET_SVG = '<span class="ws-caret"><svg viewBox="2 3 12 10" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path d="m8 11 4-6H4l4 6Z"></path></svg></span>';
 
 function preprocessCustomSyntax(md) {
-  // 保護 code block（含巢狀 backtick），避免裡面的自訂語法被轉換
+  // 先保護 :::expand 區塊：body 獨立渲染後整塊當 code block 保護，避免內部語法干擾
   const codeBlocks = [];
+  md = md.replace(/:::expand\{title="([^"]+)"\}\n([\s\S]*?)^:::/gm, (match, title, body) => {
+    // body 遞迴跑一次完整處理（expand 不巢狀，安全）
+    const renderedBody = marked.parse(preprocessCustomSyntax(body.trim()));
+    const html = `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</div><div class="ws-expand-body">${renderedBody}</div></div>`;
+    codeBlocks.push(html);
+    return `\x00CB${codeBlocks.length - 1}\x00`;
+  });
+
+  // 保護 code block（含巢狀 backtick），避免裡面的自訂語法被轉換
+  // (codeBlocks array already declared above for expand blocks)
   md = md.replace(/^(`{3,})([^\n]*)\n([\s\S]*?)^\1\s*$/gm, (match) => {
     codeBlocks.push(match);
     return `\x00CB${codeBlocks.length - 1}\x00`;
@@ -96,9 +106,6 @@ function preprocessCustomSyntax(md) {
 
   md = md.replace(/:::banner\{type="(\w+)"\}\n([\s\S]*?):::/g, (_, type, body) =>
     `<div class="ws-banner ws-banner-${type}"><span class="ws-banner-icon">${getIcon(alertIconMap[type] || '')}</span><div class="ws-banner-body">\n\n${body.trim()}\n\n</div></div>`);
-
-  md = md.replace(/:::expand\{title="([^"]+)"\}\n([\s\S]*?):::/g, (_, title, body) =>
-    `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</div><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::steps\n([\s\S]*?):::/g, (_, body) => {
     // 按 "數字." 開頭分割成 steps，子列表和續行歸入上一個 step
@@ -232,7 +239,11 @@ marked.use({
         }
       }
       const titleAttr = title ? ` title="${title}"` : '';
-      return `<img src="${href}" alt="${text || ''}"${titleAttr}>`;
+      const img = `<img src="${href}" alt="${text || ''}"${titleAttr}>`;
+      if (title) {
+        return `<figure class="ws-figure">${img}<figcaption>${title}</figcaption></figure>`;
+      }
+      return img;
     },
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
@@ -471,8 +482,8 @@ function navigateNext() { loadChapter(currentIndex + 1); }
    Markdown Renderer
    ═══════════════════════════════════════════ */
 function renderMarkdown(md) {
-  md = preprocessCustomSyntax(md);
-  let html = marked.parse(md);
+  const preprocessed = preprocessCustomSyntax(md);
+  let html = marked.parse(preprocessed);
 
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
   const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
