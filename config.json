@@ -4,7 +4,7 @@
   "logo": "assets/logo.png",
   "footer": "© 2026 eCloudvalley Digital Technology",
   "workshops": [
-    "ecs-workshop",
+    "deploying-app-with-ecs-fargate",
     "writing-guide"
   ]
 }

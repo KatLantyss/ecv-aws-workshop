@@ -62,12 +62,12 @@ function preprocessCustomSyntax(md) {
     const postfix = (attrs.match(/postfix="([^"]+)"/) || [])[1] || '';
     const split   = (attrs.match(/split="([^"]+)"/)   || [])[1] || '';
     const dropdown = attrs.includes('dropdown');
-    if (!text.trim() && prefix) return `<div class="ws-btn-icon">${getIcon(prefix)}</div>`;
+    if (!text.trim() && prefix) return `<span class="ws-btn-icon">${getIcon(prefix)}</span>`;
     const pre  = prefix  ? `${getIcon(prefix)} `   : '';
     const post = postfix ? ` ${getIcon(postfix)}`   : '';
     const caret = dropdown ? ` ${CARET_SVG}` : '';
     if (split) {
-      return `<span class="ws-btn-split"><div class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</div><span class="ws-btn-divider"></span><div class="ws-btn ws-btn-${variant}">${getIcon(split)}</div></span>`;
+      return `<span class="ws-btn-split"><span class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</span><span class="ws-btn-divider"></span><span class="ws-btn ws-btn-${variant}">${getIcon(split)}</span></span>`;
     }
     return `<span class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</span>`;
   });
@@ -472,6 +472,8 @@ function renderMarkdown(md) {
 
   document.getElementById('content').innerHTML = html;
   document.getElementById('pageNav').innerHTML = navHtml;
+  buildTOC();
+  observeTOC();
   const el = document.getElementById('content');
   el.style.animation = 'none';
   requestAnimationFrame(() => {
@@ -546,6 +548,15 @@ function copyInline(el, text) {
   setTimeout(() => el.classList.remove('copied'), 1200);
 }
 
+// Copyable tooltip follows cursor
+document.addEventListener('mousemove', (e) => {
+  const el = e.target.closest('code.copyable');
+  if (el) {
+    el.style.setProperty('--tip-x', e.clientX + 'px');
+    el.style.setProperty('--tip-y', e.clientY + 'px');
+  }
+});
+
 // Mobile menu
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
@@ -560,6 +571,46 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') navigatePrev();
   if (e.key === 'ArrowRight') navigateNext();
 });
+
+/* ═══════════════════════════════════════════
+   Table of Contents (right side)
+   ═══════════════════════════════════════════ */
+function buildTOC() {
+  const toc = document.getElementById('toc');
+  const headings = document.querySelectorAll('#content h2, #content h3');
+  if (headings.length < 2) { toc.innerHTML = ''; return; }
+
+  // Ensure headings have IDs
+  headings.forEach(h => {
+    if (!h.id) h.id = h.textContent.trim().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fff-]/g, '').toLowerCase();
+  });
+
+  let html = '<div class="toc-title">目錄</div>';
+  headings.forEach(h => {
+    const cls = h.tagName === 'H3' ? ' class="toc-h3"' : '';
+    html += `<a href="#${h.id}"${cls} data-target="${h.id}">${h.textContent}</a>`;
+  });
+  toc.innerHTML = html;
+}
+
+let tocObserver = null;
+function observeTOC() {
+  if (tocObserver) tocObserver.disconnect();
+  const headings = document.querySelectorAll('#content h2[id], #content h3[id]');
+  if (!headings.length) return;
+
+  tocObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`.toc a[data-target="${entry.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+
+  headings.forEach(h => tocObserver.observe(h));
+}
 
 /* ═══════════════════════════════════════════
    Theme Toggle
