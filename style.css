@@ -456,3 +456,8 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
   font-family:'JetBrains Mono',monospace;background:rgba(0,0,0,.65);color:#fff;
   opacity:0;transition:opacity .15s ease;pointer-events:none;white-space:nowrap}
 .img-zoom-wrap:hover::after{opacity:1}
+
+/* ─── Mermaid ─── */
+.mermaid-wrap{margin:1.25rem 0;padding:1.25rem;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;text-align:center}
+.mermaid-wrap svg{max-width:100%;height:auto}

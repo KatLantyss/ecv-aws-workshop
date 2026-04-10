@@ -215,6 +215,10 @@ marked.use({
   gfm: true,
   renderer: {
     code({ text, lang }) {
+      if (lang === 'mermaid') {
+        const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
+        return `<div class="mermaid-wrap"><div class="mermaid" id="${id}">${text}</div></div>`;
+      }
       const highlighted = simpleHighlight(text);
       const langClass = lang ? ` class="language-${lang}"` : '';
       return `<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>`;
@@ -484,6 +488,7 @@ function renderMarkdown(md) {
 
   document.getElementById('content').innerHTML = html;
   document.getElementById('pageNav').innerHTML = navHtml;
+  if (typeof mermaid !== 'undefined') mermaid.run({ querySelector: '#content .mermaid' });
   initLightbox();
   buildTOC();
   observeTOC();
