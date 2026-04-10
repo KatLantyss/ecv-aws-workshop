@@ -5,6 +5,7 @@
   "footer": "© 2026 eCloudvalley Digital Technology",
   "workshops": [
     "deploying-app-with-ecs-fargate",
+    "use-kiro-boost-dev-ops",
     "writing-guide"
   ]
 }
