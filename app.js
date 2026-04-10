@@ -233,8 +233,17 @@ marked.use({
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
       if (href && !href.startsWith('http') && !href.startsWith('#') && !href.startsWith('mailto:')) {
+        // resolve relative paths (e.g. ./03-1-basic-spa/_index.md) against current chapter's dir
+        let resolvedHref = href;
+        if (href.startsWith('./') || href.startsWith('../')) {
+          const ch = chapters[currentIndex];
+          if (ch && ch.file) {
+            const dir = ch.file.substring(0, ch.file.lastIndexOf('/'));
+            resolvedHref = dir + '/' + href.replace(/^\.\//, '');
+          }
+        }
         const mdMatch = href.replace(/\.md$/, '').replace(/\/_index$/, '').replace(/^\.\//, '');
-        const idx = chapters.findIndex(c => c.id === mdMatch || c.file.includes(href));
+        const idx = chapters.findIndex(c => c.id === mdMatch || c.file === resolvedHref || c.file.includes(resolvedHref));
         if (idx >= 0) {
           const titleAttr = title ? ` title="${title}"` : '';
           return `<a href="#${currentWorkshop}/${chapters[idx].id}" onclick="loadChapter(${idx})"${titleAttr}>${text}</a>`;
