@@ -38,7 +38,7 @@ const CARET_SVG = '<span class="ws-caret"><svg viewBox="2 3 12 10" xmlns="http:/
 function preprocessCustomSyntax(md) {
   // 保護 code block（含巢狀 backtick），避免裡面的自訂語法被轉換
   const codeBlocks = [];
-  md = md.replace(/^(`{3,})([^\n]*)\n([\s\S]*?)^\1\s*$/gm, (match) => {
+  md = md.replace(/^([ \t]{0,3})(`{3,})([^\n]*)\n([\s\S]*?)^\1\2\s*$/gm, (match) => {
     codeBlocks.push(match);
     return `\x00CB${codeBlocks.length - 1}\x00`;
   });
@@ -107,7 +107,7 @@ function preprocessCustomSyntax(md) {
     for (const line of lines) {
       if (/^\d+\.\s/.test(line.trim())) {
         steps.push(line.replace(/^\s*\d+\.\s*/, ''));
-      } else if (steps.length > 0 && line.trim()) {
+      } else if (steps.length > 0) {
         steps[steps.length - 1] += '\n' + line;
       }
     }
@@ -130,8 +130,22 @@ function preprocessCustomSyntax(md) {
     return `<div class="ws-tabs" id="${id}"><div class="ws-tabs-header">${hdr}</div>${pnl}</div>`;
   });
 
-  // 還原 code block
-  md = md.replace(/\x00CB(\d+)\x00/g, (_, i) => codeBlocks[i]);
+  // 還原 code block：fenced block 直接轉 HTML，避免 marked.js CommonMark 規則
+  // 誤判不同 indent 的 closing fence
+  md = md.replace(/\x00CB(\d+)\x00/g, (_, i) => {
+    const block = codeBlocks[i];
+    const lines = block.trimEnd().split('\n');
+    const langMatch = lines[0].match(/^([ \t]{0,3})`{3,}(\S*)/);
+    if (!langMatch) return block; // inline code — 交給 marked.js 處理
+    const [, indent, lang] = langMatch;
+    const codeLines = lines.slice(1, -1);
+    const code = indent
+      ? codeLines.map(l => l.startsWith(indent) ? l.slice(indent.length) : l).join('\n')
+      : codeLines.join('\n');
+    const highlighted = simpleHighlight(code);
+    const langClass = lang ? ` class="language-${lang}"` : '';
+    return `\n\n<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>\n\n`;
+  });
 
   return md;
 }
@@ -285,6 +299,7 @@ async function init() {
     });
 
     workshops = (await Promise.all(fetches)).filter(Boolean);
+    workshops.sort((a, b) => (a.manifest.order ?? 999) - (b.manifest.order ?? 999));
 
     renderLanding();
     handleRoute();

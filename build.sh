@@ -89,6 +89,7 @@ if os.path.exists(manifest_path):
 
 # 合併：手動欄位優先，pages 永遠覆蓋
 manifest = {
+    'order': existing.get('order', 999),
     'title': existing.get('title') or meta.get('title', slug),
     'description': existing.get('description', ''),
     'badge': existing.get('badge', ''),
