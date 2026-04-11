@@ -1,9 +1,9 @@
 {
-  "order": 2,
+  "order": 0,
   "title": "Markdown 撰寫指南",
   "description": "本框架支援的所有 Markdown 語法與自訂元件的完整參考，含即時渲染範例。",
-  "badge": "Tutorial",
-  "level": "Easy",
+  "badge": "TUTORIAL",
+  "level": "入門",
   "duration": "5分鐘",
   "icon": "book-marked",
   "pages": [

@@ -30,6 +30,15 @@
 - **Icon**：自訂 `aws-*` icon（16x16 SVG）+ Lucide icon fallback
 - **索引**：`config.json` 列出 workshops，每個 workshop 的 `_manifest.json` 列出 pages
 - **build.sh**：掃描 `content/` 自動更新 `config.json` 和 `_manifest.json`，`_` 開頭的資料夾會被忽略
+- **主題**：支援 dark/light 切換，`localStorage` 持久化，`<meta name="theme-color">` 同步更新
+- **無障礙**：符合 [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines)，包含：
+  - Skip link、`aria-label`、`aria-expanded`、`aria-live`
+  - WAI-ARIA Tabs Pattern（`role="tablist/tab/tabpanel"`、鍵盤方向鍵導航）
+  - Expand 使用語義化 `<button>` + `aria-expanded`
+  - `prefers-reduced-motion` 全域支援
+  - `:focus-visible` 焦點樣式、`scroll-margin-top` heading 錨點
+  - `touch-action: manipulation`、`overscroll-behavior: contain`
+  - `env(safe-area-inset-*)` notch 安全區域
 
 ## 自訂 Markdown 語法
 
@@ -112,9 +121,8 @@ python3 -m http.server 8080
 
 ## TODO
 
-- RWD
-- 調整圖片大小,對其 圖片說明欄位
-- Mermaid Support, Drawio support
-- 使用 CodeCommit, CodePipeline, CodeBuild 同步所有內容（S3為主要版本）
+- 調整圖片大小、對齊圖片說明欄位
+- Mermaid Support、Drawio support
+- 使用 CodeCommit、CodePipeline、CodeBuild 同步所有內容（S3 為主要版本）
 - Lab Account 後台變更 / Cognito 身份驗證
-- Call Lambda/Eventbridge/API Gateway... 直接部署 CloudFormation 以及回傳回去 UI 特定資源
+- Call Lambda/Eventbridge/API Gateway… 直接部署 CloudFormation 以及回傳回去 UI 特定資源
