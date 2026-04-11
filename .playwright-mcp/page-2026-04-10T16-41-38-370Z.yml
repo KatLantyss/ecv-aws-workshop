@@ -1,0 +1,378 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - img "logo" [ref=e6]
+      - link "AWS Workshop" [ref=e7] [cursor=pointer]:
+        - /url: "#"
+    - button "Toggle menu" [ref=e8] [cursor=pointer]: ☰
+  - complementary [ref=e9]:
+    - generic [ref=e10]:
+      - link "← 回到首頁" [ref=e11] [cursor=pointer]:
+        - /url: "#"
+      - generic [ref=e12]: ECS 容器化服務實戰
+      - list [ref=e49]:
+        - listitem [ref=e50]:
+          - link "總覽" [ref=e51] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/index"
+        - listitem [ref=e52]:
+          - link "概念說明" [ref=e53] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/01-concepts"
+        - listitem [ref=e54]:
+          - link "Task 1 - 基礎環境建置" [ref=e55] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/02-cluster-setup"
+        - listitem [ref=e56]:
+          - link "Task 2 - 容器化應用" [ref=e57] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/03-containerize"
+        - listitem [ref=e58]:
+          - link "Task 3 - ECR 映像推送" [ref=e59] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/04-ecr"
+        - listitem [ref=e60]:
+          - link "Task 4 - 部署至 ECS" [ref=e61] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/05-deploy-app"
+        - listitem [ref=e62]:
+          - link "Task 5 - 應用升級" [ref=e63] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/06-upgrade-app"
+        - listitem [ref=e64]:
+          - link "Task 6 - 資源清除" [ref=e65] [cursor=pointer]:
+            - /url: "#deploying-app-with-ecs-fargate/07-cleanup"
+  - main [ref=e66]:
+    - article [ref=e67]:
+      - heading "Task 4 - 將 2048 遊戲部署至 ECS Fargate" [level=1] [ref=e68]
+      - paragraph [ref=e69]:
+        - generic [ref=e70]: 實作
+        - generic [ref=e71]: 約 20-25 分鐘
+      - paragraph [ref=e72]: 透過 ECS Console 建立 Task Definition 與 Service，將 2048 遊戲部署到 Fargate，並透過 ALB 存取。
+      - separator [ref=e73]
+      - heading "4.1 建立 Task Definition" [level=2] [ref=e74]
+      - paragraph [ref=e75]: Task Definition 定義了容器要怎麼跑 — 用哪個映像、多少 CPU/Memory、開哪個 Port。
+      - generic [ref=e76]:
+        - paragraph [ref=e79]:
+          - text: 開啟
+          - link "ECS Console" [ref=e80] [cursor=pointer]:
+            - /url: https://console.aws.amazon.com/ecs/
+          - text: → 左側選單點擊
+          - strong [ref=e81]: Task definitions
+        - paragraph [ref=e84]:
+          - text: 點擊
+          - generic [ref=e85] [cursor=pointer]:
+            - text: Create new task definition
+            - img [ref=e87]
+          - text: → 選擇 Create new task definition
+        - generic [ref=e90]:
+          - paragraph [ref=e91]:
+            - text: 在
+            - strong [ref=e92]: Task definition configuration
+            - text: 區塊：
+          - list [ref=e93]:
+            - listitem [ref=e94]:
+              - strong [ref=e95]: Task definition family
+              - text: ：輸入
+              - code [ref=e96] [cursor=pointer]: ecs-fargate-lab-app COPY
+        - generic [ref=e98]:
+          - paragraph [ref=e99]:
+            - text: 在
+            - strong [ref=e100]: Infrastructure requirements
+            - text: 區塊：
+          - list [ref=e101]:
+            - listitem [ref=e102]:
+              - strong [ref=e103]: Launch type
+              - text: ：選擇
+              - strong [ref=e104]: AWS Fargate
+            - listitem [ref=e105]:
+              - strong [ref=e106]: Operating system/Architecture
+              - text: ：Linux/X86_64
+            - listitem [ref=e107]:
+              - strong [ref=e108]: CPU
+              - text: ：
+              - code [ref=e109]: .25 vCPU
+            - listitem [ref=e110]:
+              - strong [ref=e111]: Memory
+              - text: ：
+              - code [ref=e112]: .5 GB
+            - listitem [ref=e113]:
+              - strong [ref=e114]: Task role
+              - text: ：選擇
+              - code [ref=e115]: ecs-fargate-lab-task-role
+            - listitem [ref=e116]:
+              - strong [ref=e117]: Task execution role
+              - text: ：選擇
+              - code [ref=e118]: ecs-fargate-lab-execution-role
+        - generic [ref=e120]:
+          - paragraph [ref=e121]:
+            - text: 在
+            - strong [ref=e122]: Container - 1
+            - text: 區塊：
+          - list [ref=e123]:
+            - listitem [ref=e124]:
+              - strong [ref=e125]: Name
+              - text: ：輸入
+              - code [ref=e126] [cursor=pointer]: web2048 COPY
+            - listitem [ref=e127]:
+              - strong [ref=e128]: Image URI
+              - text: ：貼上 ECR Repository URI +
+              - code [ref=e129] [cursor=pointer]: :nginx COPY
+              - text: （例如
+              - code [ref=e130] [cursor=pointer]: 123456789012.dkr.ecr.us-east-1.amazonaws.com/ecs-fargate-lab-app:nginx COPY
+              - text: ）
+            - listitem [ref=e131]:
+              - strong [ref=e132]: Container port
+              - text: ：
+              - code [ref=e133] [cursor=pointer]: 80 COPY
+            - listitem [ref=e134]:
+              - strong [ref=e135]: Protocol
+              - text: ：TCP
+        - generic [ref=e137]:
+          - paragraph [ref=e138]:
+            - text: 展開
+            - strong [ref=e139]: Logging
+            - text: 區塊：
+          - list [ref=e140]:
+            - listitem [ref=e141]:
+              - text: 確認
+              - strong [ref=e142]: Log collection
+              - text: 已啟用（使用 Amazon CloudWatch）
+            - listitem [ref=e143]: ECS 會自動建立 Log Group，保持預設設定即可
+        - paragraph [ref=e146]:
+          - text: 點擊
+          - generic [ref=e147] [cursor=pointer]: Create
+      - generic [ref=e148]:
+        - generic [ref=e149] [cursor=pointer]:
+          - img [ref=e151]
+          - text: executionRole vs taskRole 的差別
+        - list [ref=e153]:
+          - listitem [ref=e154]:
+            - strong [ref=e155]: Task execution role
+            - text: ：ECS Agent 使用，負責拉取 ECR 映像、寫入 CloudWatch Logs
+          - listitem [ref=e156]:
+            - strong [ref=e157]: Task role
+            - text: ：容器內的應用程式使用，存取 S3、RDS 等 AWS 服務（後續 Lab 會用到）
+      - separator [ref=e158]
+      - heading "4.2 建立 ECS Service" [level=2] [ref=e159]
+      - paragraph [ref=e160]: Service 會確保指定數量的 Task 持續運行，並與 ALB 整合分配流量。
+      - generic [ref=e161]:
+        - paragraph [ref=e164]:
+          - text: 開啟
+          - link "ECS Console" [ref=e165] [cursor=pointer]:
+            - /url: https://console.aws.amazon.com/ecs/
+          - text: →
+          - strong [ref=e166]: Clusters
+          - text: → 點擊
+          - code [ref=e167]: ecs-fargate-lab-cluster
+        - paragraph [ref=e170]:
+          - text: 在
+          - strong [ref=e171]: Services
+          - text: 分頁，點擊
+          - generic [ref=e172]:
+            - generic [ref=e173] [cursor=pointer]: Create
+            - img [ref=e176] [cursor=pointer]
+        - generic [ref=e179]:
+          - paragraph [ref=e180]:
+            - text: 在
+            - strong [ref=e181]: Service details
+            - text: 區塊：
+          - list [ref=e182]:
+            - listitem [ref=e183]:
+              - strong [ref=e184]: Task definition family
+              - text: ：選擇
+              - code [ref=e185]: ecs-fargate-lab-app
+            - listitem [ref=e186]:
+              - strong [ref=e187]: Task definition revision
+              - text: ：留空（自動使用最新版本）
+            - listitem [ref=e188]:
+              - strong [ref=e189]: Service name
+              - text: ：輸入
+              - code [ref=e190] [cursor=pointer]: ecs-fargate-lab-service COPY
+        - generic [ref=e192]:
+          - paragraph [ref=e193]:
+            - text: 在
+            - strong [ref=e194]: Environment
+            - text: 區塊（右上角應顯示 AWS Fargate）：
+          - list [ref=e195]:
+            - listitem [ref=e196]:
+              - strong [ref=e197]: Existing cluster
+              - text: ：已預選
+              - code [ref=e198]: ecs-fargate-lab-cluster
+        - generic [ref=e200]:
+          - paragraph [ref=e201]:
+            - text: 在
+            - strong [ref=e202]: Deployment configuration
+            - text: 區塊：
+          - list [ref=e203]:
+            - listitem [ref=e204]:
+              - strong [ref=e205]: Desired tasks
+              - text: ：
+              - code [ref=e206] [cursor=pointer]: 2 COPY
+        - generic [ref=e208]:
+          - paragraph [ref=e209]:
+            - text: 在
+            - strong [ref=e210]: Networking
+            - text: 區塊：
+          - list [ref=e211]:
+            - listitem [ref=e212]:
+              - strong [ref=e213]: VPC
+              - text: ：選擇
+              - code [ref=e214]: ecs-fargate-lab-vpc
+            - listitem [ref=e215]:
+              - strong [ref=e216]: Subnets
+              - text: ：選擇
+              - code [ref=e217]: ecs-fargate-lab-public-1
+              - text: 和
+              - code [ref=e218]: ecs-fargate-lab-public-2
+            - listitem [ref=e219]:
+              - strong [ref=e220]: Security group
+              - text: ：選擇
+              - strong [ref=e221]: Use an existing security group
+              - text: → 選擇 ECS Security Group（描述為 "ECS Tasks Security Group"）
+            - listitem [ref=e222]:
+              - strong [ref=e223]: Public IP
+              - text: ：勾選
+              - strong [ref=e224]: Turned on
+        - generic [ref=e226]:
+          - paragraph [ref=e227]:
+            - text: 在
+            - strong [ref=e228]: Load balancing
+            - text: 區塊：
+          - list [ref=e229]:
+            - listitem [ref=e230]:
+              - generic [ref=e231]:
+                - img [ref=e233]
+                - strong [ref=e236]: Use load balancing
+            - listitem [ref=e237]:
+              - strong [ref=e238]: Load balancer type
+              - text: ：選擇
+              - strong [ref=e239]: Application Load Balancer
+            - listitem [ref=e240]:
+              - strong [ref=e241]: Use an existing load balancer
+              - text: ：選擇
+              - code [ref=e242]: ecs-fargate-lab-alb
+            - listitem [ref=e243]:
+              - strong [ref=e244]: Use an existing listener
+              - text: ：選擇
+              - code [ref=e245]: 80:HTTP
+            - listitem [ref=e246]:
+              - strong [ref=e247]: Use an existing target group
+              - text: ：選擇
+              - code [ref=e248]: ecs-fargate-lab-tg
+        - paragraph [ref=e251]:
+          - text: 點擊
+          - generic [ref=e252] [cursor=pointer]: Create
+        - paragraph [ref=e255]: 等待 Deploy 完成並在上方出現：
+      - generic [ref=e256]:
+        - img [ref=e258]
+        - paragraph [ref=e262]: ecs-fargate-lab-service has been deployed successfully.
+      - generic [ref=e263]:
+        - img [ref=e265]
+        - paragraph [ref=e268]: Fargate Task 需要 Public IP 才能拉取 ECR 映像（除非已設定 VPC Endpoint 或 NAT Gateway）。設定 2 個 Desired tasks 會分布在不同 AZ，提供高可用性。
+      - separator [ref=e269]
+      - heading "4.3 監控部署狀態" [level=2] [ref=e270]
+      - generic [ref=e271]:
+        - paragraph [ref=e274]: 建立 Service 後會自動導行到進入到 Service 詳情頁
+        - paragraph [ref=e277]:
+          - text: 切換到
+          - strong [ref=e278]: Deployments
+          - text: 分頁，觀察部署進度
+        - paragraph [ref=e281]:
+          - text: 切換到
+          - strong [ref=e282]: Tasks
+          - text: 分頁，等待 2 個 Task 的狀態變為
+          - generic [ref=e283]:
+            - img [ref=e285]
+            - text: Running
+      - generic [ref=e288]:
+        - img [ref=e290]
+        - paragraph [ref=e293]:
+          - text: 部署約需 2-3 分鐘，等待 Task 啟動並通過 Health Check。如果 Task 反覆 Stopped，點擊 Task ID 查看
+          - strong [ref=e294]: Stopped reason
+          - text: 。
+      - generic [ref=e295]:
+        - generic [ref=e296] [cursor=pointer]:
+          - img [ref=e298]
+          - text: 常見問題排查
+        - generic:
+          - paragraph [ref=e300]:
+            - strong [ref=e301]: Task 啟動失敗？
+          - list [ref=e302]:
+            - listitem [ref=e303]: 點擊 Task ID → 查看 Stopped reason
+            - listitem [ref=e304]: 常見原因：ECR 映像拉取失敗（檢查 executionRole）、Health Check 失敗、Security Group 設定錯誤
+          - paragraph [ref=e305]:
+            - strong [ref=e306]: ALB 回傳 502 Bad Gateway？
+          - list [ref=e307]:
+            - listitem [ref=e308]: Target Group 中的 Task 尚未通過 Health Check，等待 1-2 分鐘後重試
+          - paragraph [ref=e309]:
+            - strong [ref=e310]: ALB 回傳 503？
+          - list [ref=e311]:
+            - listitem [ref=e312]: 確認 Service 的 Running tasks 數量大於 0
+      - separator [ref=e313]
+      - heading "4.4 透過 ALB 玩 2048 遊戲" [level=2] [ref=e314]
+      - generic [ref=e315]:
+        - paragraph [ref=e318]:
+          - text: 開啟
+          - link "EC2 Console" [ref=e319] [cursor=pointer]:
+            - /url: https://console.aws.amazon.com/ec2/
+          - text: →
+          - strong [ref=e320]: Load Balancers
+        - paragraph [ref=e323]:
+          - text: 點擊
+          - code [ref=e324]: ecs-fargate-lab-alb
+          - text: ，複製
+          - strong [ref=e325]: DNS name
+        - paragraph [ref=e328]:
+          - text: 在瀏覽器開啟
+          - code [ref=e329]: http://<ALB_DNS>
+        - paragraph [ref=e332]: 預期看到 2048 遊戲畫面，可用方向鍵試玩
+      - generic [ref=e333]:
+        - img [ref=e335]
+        - paragraph [ref=e339]: 2048 遊戲已成功部署至 AWS Fargate，透過 ALB 提供服務。兩個 Task 分布在不同 AZ，即使一個 AZ 故障，遊戲仍可正常運行。
+      - separator [ref=e340]
+      - heading "4.5 查看容器 Log" [level=2] [ref=e341]
+      - generic [ref=e342]:
+        - paragraph [ref=e345]:
+          - text: 開啟
+          - link "CloudWatch Console" [ref=e346] [cursor=pointer]:
+            - /url: https://console.aws.amazon.com/cloudwatch/
+          - text: → 左側選單
+          - strong [ref=e347]: Log groups
+        - paragraph [ref=e350]:
+          - text: 找到以
+          - code [ref=e351]: /ecs/ecs-fargate-lab-app
+          - text: 開頭的 Log Group（ECS 自動建立）
+        - paragraph [ref=e354]: 點擊最新的 Log stream
+        - paragraph [ref=e357]: 預期看到 Nginx 的存取日誌
+      - separator [ref=e358]
+      - heading "完成檢查" [level=2] [ref=e359]
+      - table [ref=e360]:
+        - rowgroup [ref=e361]:
+          - row "項目 驗證方式 預期結果" [ref=e362]:
+            - columnheader "項目" [ref=e363]
+            - columnheader "驗證方式" [ref=e364]
+            - columnheader "預期結果" [ref=e365]
+        - rowgroup [ref=e366]:
+          - row "Task Definition ECS Console → Task definitions ecs-fargate-lab-app:1" [ref=e367]:
+            - cell "Task Definition" [ref=e368]
+            - cell "ECS Console → Task definitions" [ref=e369]
+            - cell "ecs-fargate-lab-app:1" [ref=e370]
+          - 'row "Service 狀態 ECS Console → Cluster → Services Running tasks: 2" [ref=e371]':
+            - cell "Service 狀態" [ref=e372]
+            - cell "ECS Console → Cluster → Services" [ref=e373]
+            - 'cell "Running tasks: 2" [ref=e374]'
+          - row "2048 遊戲 瀏覽器開啟 ALB DNS 看到 2048 遊戲畫面" [ref=e375]:
+            - cell "2048 遊戲" [ref=e376]
+            - cell "瀏覽器開啟 ALB DNS" [ref=e377]
+            - cell "看到 2048 遊戲畫面" [ref=e378]
+          - row "容器 Log CloudWatch Logs 看到 Nginx 存取日誌" [ref=e379]:
+            - cell "容器 Log" [ref=e380]
+            - cell "CloudWatch Logs" [ref=e381]
+            - cell "看到 Nginx 存取日誌" [ref=e382]
+      - generic [ref=e383]:
+        - img [ref=e385]
+        - paragraph [ref=e389]: 2048 遊戲已成功部署，前往下一節為應用加上 S3 儲存功能。
+    - generic [ref=e391]:
+      - link "← 上一頁 Task 3 - ECR 映像推送" [ref=e392] [cursor=pointer]:
+        - /url: "#deploying-app-with-ecs-fargate/04-ecr"
+        - generic [ref=e393]: ← 上一頁
+        - generic [ref=e394]: Task 3 - ECR 映像推送
+      - link "下一頁 → Task 5 - 應用升級" [ref=e395] [cursor=pointer]:
+        - /url: "#deploying-app-with-ecs-fargate/06-upgrade-app"
+        - generic [ref=e396]: 下一頁 →
+        - generic [ref=e397]: Task 5 - 應用升級
+    - paragraph [ref=e399]: © 2026 eCloudvalley Digital Technology

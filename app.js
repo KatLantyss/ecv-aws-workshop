@@ -333,6 +333,7 @@ function showLanding() {
   document.getElementById('landing').style.display = '';
   document.getElementById('main').style.display = 'none';
   document.getElementById('sidebar').classList.remove('visible');
+  closeMobile();
   document.getElementById('breadcrumb').innerHTML = '';
   document.getElementById('progressText').textContent = '';
   document.getElementById('progressFill').style.width = '0';
@@ -564,9 +565,17 @@ document.addEventListener('mousemove', (e) => {
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
-menuToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('active'); });
+menuToggle.addEventListener('click', () => {
+  const isOpen = sidebar.classList.toggle('open');
+  overlay.classList.toggle('active', isOpen);
+  menuToggle.setAttribute('aria-expanded', isOpen);
+});
 overlay.addEventListener('click', closeMobile);
-function closeMobile() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
+function closeMobile() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('active');
+  menuToggle.setAttribute('aria-expanded', 'false');
+}
 
 // Keyboard nav (only in reader mode)
 document.addEventListener('keydown', (e) => {

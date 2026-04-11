@@ -1,0 +1,41 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - img "logo" [ref=e6]
+      - link "AWS Workshop" [ref=e7] [cursor=pointer]:
+        - /url: "#"
+    - button "Toggle menu" [ref=e8] [cursor=pointer]: ☰
+  - complementary [ref=e9]:
+    - generic [ref=e10]:
+      - link "← 回到首頁" [ref=e11] [cursor=pointer]:
+        - /url: "#"
+      - generic [ref=e12]: 目錄
+      - list
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - heading "AWS Workshop" [level=1] [ref=e15]
+      - paragraph [ref=e16]: eCloudvalley 雲端技術實戰工作坊
+    - generic [ref=e17]:
+      - link "HANDS-ON LAB 初級 ~ 中級 約 2-3 小時 ECS 容器化服務實戰 從零開始建構完整的 AWS ECS Fargate 容器化應用架構，整合 ECR、ALB、S3 與 RDS。 8 個章節" [ref=e18] [cursor=pointer]:
+        - /url: "#deploying-app-with-ecs-fargate"
+        - img [ref=e20]
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: HANDS-ON LAB
+            - generic [ref=e27]: 初級 ~ 中級
+            - generic [ref=e28]: 約 2-3 小時
+          - heading "ECS 容器化服務實戰" [level=2] [ref=e29]
+          - paragraph [ref=e30]: 從零開始建構完整的 AWS ECS Fargate 容器化應用架構，整合 ECR、ALB、S3 與 RDS。
+          - generic [ref=e32]: 8 個章節
+      - link "Tutorial Easy 5分鐘 Markdown 撰寫指南 本框架支援的所有 Markdown 語法與自訂元件的完整參考，含即時渲染範例。 6 個章節" [ref=e33] [cursor=pointer]:
+        - /url: "#writing-guide"
+        - img [ref=e35]
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: Tutorial
+            - generic [ref=e41]: Easy
+            - generic [ref=e42]: 5分鐘
+          - heading "Markdown 撰寫指南" [level=2] [ref=e43]
+          - paragraph [ref=e44]: 本框架支援的所有 Markdown 語法與自訂元件的完整參考，含即時渲染範例。
+          - generic [ref=e46]: 6 個章節
+    - paragraph [ref=e48]: © 2026 eCloudvalley Digital Technology
