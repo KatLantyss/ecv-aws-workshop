@@ -255,7 +255,7 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
   .page-nav{flex-direction:column}
   .landing-hero{padding:2rem 1rem}
   .landing-hero h1{font-size:1.6rem}
-  .card-grid{grid-template-columns:1fr;padding:0 1rem 2rem}
+  .card-grid{grid-template-columns:1fr;width:100%;max-width:100%;margin:0;padding:0 1rem 2rem}
   .ws-card{flex-direction:column;gap:.75rem}
   .ws-card-icon{width:40px;height:40px;border-radius:8px}
   .ws-alert{flex-direction:column;gap:.5rem;padding:.75rem}
