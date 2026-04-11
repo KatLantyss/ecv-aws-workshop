@@ -45,7 +45,7 @@ function preprocessCustomSyntax(md) {
   // ``text`` → 可複製的行內 code（在單 backtick 保護之前處理）
   md = md.replace(/``([^`]+)``/g, (_, text) => {
     const escaped = text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    return `<code class="copyable" onclick="copyInline(this,'${escaped}')">${text}</code>`;
+    return `<code class="copyable" role="button" tabindex="0" onclick="copyInline(this,'${escaped}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyInline(this,'${escaped}')}">${text}</code>`;
   });
   // 保護行內 code
   md = md.replace(/`[^`\n]+`/g, (match) => {
@@ -87,7 +87,7 @@ function preprocessCustomSyntax(md) {
 
   md = md.replace(/::video\{src="([^"]+)"\}/g, (_, src) => {
     const url = src.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
-    return `<div class="ws-video"><iframe src="${url}" allowfullscreen loading="lazy"></iframe></div>`;
+    return `<div class="ws-video"><iframe src="${url}" title="影片播放器" allowfullscreen loading="lazy"></iframe></div>`;
   });
 
   const alertIconMap = { info: 'aws-info', warning: 'aws-warning', success: 'aws-success', danger: 'aws-error' };
@@ -98,7 +98,7 @@ function preprocessCustomSyntax(md) {
     `<div class="ws-banner ws-banner-${type}"><span class="ws-banner-icon">${getIcon(alertIconMap[type] || '')}</span><div class="ws-banner-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::expand\{title="([^"]+)"\}\n([\s\S]*?):::/g, (_, title, body) =>
-    `<div class="ws-expand"><div class="ws-expand-header" onclick="toggleExpand(this)"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</div><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
+    `<div class="ws-expand"><button class="ws-expand-header" onclick="toggleExpand(this)" aria-expanded="false"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</button><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::steps\n([\s\S]*?):::/g, (_, body) => {
     // 按 "數字." 開頭分割成 steps，子列表和續行歸入上一個 step
@@ -123,11 +123,17 @@ function preprocessCustomSyntax(md) {
     for (let i = 0; i < parts.length; i += 2)
       tabs.push({ title: parts[i], content: (parts[i + 1] || '').trim() });
     const id = 'tabs-' + Math.random().toString(36).slice(2, 8);
-    const hdr = tabs.map((t, i) =>
-      `<button class="ws-tab-btn${i === 0 ? ' active' : ''}" onclick="switchTab('${id}',${i})">${t.title}</button>`).join('');
-    const pnl = tabs.map((t, i) =>
-      `<div class="ws-tab-panel${i === 0 ? ' active' : ''}">\n\n${t.content}\n\n</div>`).join('');
-    return `<div class="ws-tabs" id="${id}"><div class="ws-tabs-header">${hdr}</div>${pnl}</div>`;
+    const hdr = tabs.map((t, i) => {
+      const panelId = `${id}-panel-${i}`;
+      const tabId = `${id}-tab-${i}`;
+      return `<button class="ws-tab-btn" role="tab" id="${tabId}" aria-selected="${i === 0}" aria-controls="${panelId}" tabindex="${i === 0 ? 0 : -1}" onclick="switchTab('${id}',${i})">${t.title}</button>`;
+    }).join('');
+    const pnl = tabs.map((t, i) => {
+      const panelId = `${id}-panel-${i}`;
+      const tabId = `${id}-tab-${i}`;
+      return `<div class="ws-tab-panel" role="tabpanel" id="${panelId}" aria-labelledby="${tabId}"${i === 0 ? '' : ' hidden'}>\n\n${t.content}\n\n</div>`;
+    }).join('');
+    return `<div class="ws-tabs" id="${id}"><div class="ws-tabs-header" role="tablist" onkeydown="handleTabKeydown(event,'${id}')">${hdr}</div>${pnl}</div>`;
   });
 
   // 還原 code block：fenced block 直接轉 HTML，避免 marked.js CommonMark 規則
@@ -242,7 +248,7 @@ marked.use({
         }
       }
       const titleAttr = title ? ` title="${title}"` : '';
-      return `<img src="${href}" alt="${text || ''}"${titleAttr}>`;
+      return `<img src="${href}" alt="${text || ''}"${titleAttr} loading="lazy">`;
     },
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
@@ -278,7 +284,7 @@ async function init() {
     // logo: 圖片路徑或 emoji 文字
     const logoEl = document.getElementById('headerLogo');
     if (config.logo && (config.logo.endsWith('.png') || config.logo.endsWith('.svg') || config.logo.endsWith('.jpg') || config.logo.endsWith('.webp'))) {
-      logoEl.innerHTML = `<img src="${config.logo}" alt="logo">`;
+      logoEl.innerHTML = `<img src="${config.logo}" alt="logo" width="36" height="36">`;
     } else {
       logoEl.textContent = config.logo || '☁';
     }
@@ -330,7 +336,7 @@ function renderLanding() {
           ${m.level ? `<span class="ws-badge ws-badge-success">${m.level}</span>` : ''}
           ${m.duration ? `<span class="ws-badge ws-badge-default">${m.duration}</span>` : ''}
         </div>
-        <h2 class="ws-card-title">${m.title || ws.slug}</h2>
+        <span class="ws-card-title">${m.title || ws.slug}</span>
         <p class="ws-card-desc">${m.description || ''}</p>
         <div class="ws-card-meta">
           <span>${pageCount} 個章節</span>
@@ -345,8 +351,8 @@ function renderLanding() {
    View Switching
    ═══════════════════════════════════════════ */
 function showLanding() {
-  document.getElementById('landing').style.display = '';
-  document.getElementById('main').style.display = 'none';
+  document.getElementById('landing').removeAttribute('hidden');
+  document.getElementById('main').setAttribute('hidden', '');
   document.getElementById('sidebar').classList.remove('visible');
   closeMobile();
   document.getElementById('breadcrumb').innerHTML = '';
@@ -360,8 +366,8 @@ function showLanding() {
 }
 
 function showReader() {
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('main').style.display = '';
+  document.getElementById('landing').setAttribute('hidden', '');
+  document.getElementById('main').removeAttribute('hidden');
   document.getElementById('sidebar').classList.add('visible');
   document.getElementById('prevBtn').style.display = '';
   document.getElementById('nextBtn').style.display = '';
@@ -494,11 +500,14 @@ function renderMarkdown(md) {
   buildTOC();
   observeTOC();
   const el = document.getElementById('content');
-  el.style.animation = 'none';
-  requestAnimationFrame(() => {
-    el.style.animation = 'fadeIn .3s ease';
-    el.addEventListener('animationend', () => { el.style.animation = ''; }, { once: true });
-  });
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!prefersReduced) {
+    el.style.animation = 'none';
+    requestAnimationFrame(() => {
+      el.style.animation = 'fadeIn .3s ease';
+      el.addEventListener('animationend', () => { el.style.animation = ''; }, { once: true });
+    });
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -530,13 +539,40 @@ window.addEventListener('hashchange', handleRoute);
 /* ═══════════════════════════════════════════
    UI Interactions
    ═══════════════════════════════════════════ */
-function toggleExpand(header) { header.parentElement.classList.toggle('open'); }
+function toggleExpand(header) {
+  const isOpen = header.parentElement.classList.toggle('open');
+  header.setAttribute('aria-expanded', isOpen);
+}
 
 function switchTab(id, index) {
   const c = document.getElementById(id);
   if (!c) return;
-  c.querySelectorAll('.ws-tab-btn').forEach((b, i) => b.classList.toggle('active', i === index));
-  c.querySelectorAll('.ws-tab-panel').forEach((p, i) => p.classList.toggle('active', i === index));
+  c.querySelectorAll('.ws-tab-btn').forEach((b, i) => {
+    const selected = i === index;
+    b.setAttribute('aria-selected', selected);
+    b.setAttribute('tabindex', selected ? '0' : '-1');
+  });
+  c.querySelectorAll('.ws-tab-panel').forEach((p, i) => {
+    if (i === index) { p.removeAttribute('hidden'); }
+    else { p.setAttribute('hidden', ''); }
+  });
+}
+
+function handleTabKeydown(e, id) {
+  const c = document.getElementById(id);
+  if (!c) return;
+  const tabs = Array.from(c.querySelectorAll('.ws-tab-btn'));
+  const current = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+  let next = -1;
+  if (e.key === 'ArrowRight') next = (current + 1) % tabs.length;
+  else if (e.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+  else if (e.key === 'Home') next = 0;
+  else if (e.key === 'End') next = tabs.length - 1;
+  if (next >= 0) {
+    e.preventDefault();
+    switchTab(id, next);
+    tabs[next].focus();
+  }
 }
 
 function copyToClipboard(text) {
@@ -592,9 +628,11 @@ function closeMobile() {
   menuToggle.setAttribute('aria-expanded', 'false');
 }
 
-// Keyboard nav (only in reader mode)
+// Keyboard nav (only in reader mode, skip when inside inputs)
 document.addEventListener('keydown', (e) => {
   if (!currentWorkshop) return;
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
   if (e.key === 'ArrowLeft') navigatePrev();
   if (e.key === 'ArrowRight') navigateNext();
 });
@@ -647,6 +685,12 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('ws-theme', next);
   updateThemeIcon();
+  updateThemeColor(next);
+}
+
+function updateThemeColor(theme) {
+  const meta = document.getElementById('metaThemeColor');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#07090f' : '#f8f9fa');
 }
 
 function updateThemeIcon() {

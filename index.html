@@ -3,20 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07090f" id="metaThemeColor">
 <title>AWS Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
 <link href="https://fonts.cdnfonts.com/css/amazon-ember" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="https://fonts.cdnfonts.com/css/amazon-ember" as="style">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
 (function(){
   const saved = localStorage.getItem('ws-theme');
-  document.documentElement.setAttribute('data-theme', saved || 'light');
+  const theme = saved || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  var meta = document.getElementById('metaThemeColor');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#07090f' : '#f8f9fa');
 })();
 </script>
 </head>
 <body>
+
+<a class="skip-link" href="#content">跳至主要內容</a>
 
 <!-- ═══ Header ═══ -->
 <div class="header">
@@ -47,19 +56,19 @@
 </aside>
 
 <!-- ═══ Landing page (card grid) ═══ -->
-<main class="landing" id="landing">
+<div class="landing" id="landing" role="main">
   <div class="landing-hero">
     <h1 id="landingTitle">ECV AWS Workshop</h1>
     <p id="landingSubtitle">eCloudvalley 雲端技術實戰工作坊</p>
   </div>
   <div class="card-grid" id="cardGrid"></div>
   <footer class="footer" id="landingFooter"></footer>
-</main>
+</div>
 
 <!-- ═══ Workshop reader ═══ -->
-<main class="main" id="main" style="display:none">
+<main class="main" id="main" hidden>
   <article class="content" id="content">
-    <div class="loading">載入中...</div>
+    <div class="loading" role="status" aria-live="polite">載入中…</div>
   </article>
   <nav class="toc" id="toc"></nav>
   <div class="content" id="pageNav"></div>
