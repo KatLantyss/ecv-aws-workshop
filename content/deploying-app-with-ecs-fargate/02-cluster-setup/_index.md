@@ -13,7 +13,7 @@ order: 2
 
 ## 1.1 認識 CloudFormation 模板
 
-本工作坊提供了一份 CloudFormation 模板 [::button[ecs-fargate-lab-infra.yaml]{variant="link" prefix="arrow-down-to-line"}](ecs-fargate-lab-infra.yaml)，它會建立以下資源：
+本工作坊提供了一份 CloudFormation 模板 [::button[ecs-fargate-lab-infra.yaml]{variant="default" prefix="arrow-down-to-line"}](ecs-fargate-lab-infra.yaml)，它會建立以下資源：
 
 | 資源類型 | 資源名稱 | 說明 |
 |----------|----------|------|
@@ -71,24 +71,24 @@ Internet ──▶ ALB SG (Port 80) ──▶ ECS SG (Port 80) ──▶ RDS SG 
 :::steps
 1. 開啟 [CloudFormation Console](https://console.aws.amazon.com/cloudformation/)，確認右上角區域為 `us-east-1`
 
-2. 點擊 ::button[Create stack]{variant="link" dropdown} → 選擇 **With new resources (standard)**
+2. 點擊 ::button[Create stack]{variant="default" postfix="aws-expand"} → 選擇 **With new resources (standard)**
 
 3. 在 **Create stacks** 頁面：
    - 選擇 **Upload a template file**
-   - 點擊 ::button[Choose file]{variant="link" prefix="arrow-up-to-line"} 上傳 `ecs-fargate-lab-infra.yaml`
-   - 點擊 ::button[Next]{variant="primary"}
+   - 點擊 ::button[Choose file]{variant="default" prefix="arrow-up-to-line"} 上傳 `ecs-fargate-lab-infra.yaml`
+   - 點擊 ::button[Next]{variant="action"}
 
 4. 在 **Specify stack details** 頁面：
    - **Stack name**：輸入 ``ecs-fargate-lab``
    - **DBPassword**：輸入資料庫密碼（至少 8 個字元，例如 ``WorkshopPass123``）
-   - 點擊 ::button[Next]{variant="primary"}
+   - 點擊 ::button[Next]{variant="action"}
 
 5. 在 **Configure stack options** 頁面：
    - 捲到最下方，勾選 ::status[I acknowledge that AWS CloudFormation might create IAM resources with custom names.]{type="none" icon="square-check"}
-   - 點擊 ::button[Next]{variant="primary"}
+   - 點擊 ::button[Next]{variant="action"}
 
 6. 在 **Review** 頁面：
-   - 點擊 ::button[Submit]{variant="primary"}
+   - 點擊 ::button[Submit]{variant="action"}
 :::
 
 :::alert{type="warning"}

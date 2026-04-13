@@ -200,7 +200,7 @@ sudo docker push $ECR_REPO:node
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-app`
 
-2. 點擊 ::button[Create new revision]{variant="primary" dropdown}
+2. 點擊 ::button[Create new revision]{variant="action" postfix="aws-expand"}
 
 3. 在 **Container - 1** 區塊：
    - 將 **Image URI** 的 tag 從 `:nginx` 改為 ``:node``（例如 `123456789012.dkr.ecr.us-east-1.amazonaws.com/ecs-fargate-lab-app:node`）
@@ -214,7 +214,7 @@ sudo docker push $ECR_REPO:node
 | ``DB_PASSWORD`` | Task 1 設定的資料庫密碼 |
 | ``DB_NAME`` | ``workshopdb`` |
 
-4. 點擊 ::button[Create]{variant="primary"}
+4. 點擊 ::button[Create]{variant="action"}
 :::
 
 :::alert{type="warning"}
@@ -228,10 +228,10 @@ sudo docker push $ECR_REPO:node
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster`
 2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-service`
-3. 點擊 ::button[Update]{variant="link" split="aws-expand"} → 選擇 **Quick service update**
+3. 點擊 ::button[Update]{variant="default" split="aws-expand"} → 選擇 **Quick service update**
 4. 在 **Task definition revision** 欄位，選擇最新的 revision（數字最大的）
 5. 勾選 **Force new deployment**
-6. 點擊 ::button[Update]{variant="primary"}
+6. 點擊 ::button[Update]{variant="action"}
 :::
 
 等待部署完成（約 2-3 分鐘），在 **Deployments** 分頁確認新版本已完成。
@@ -304,7 +304,7 @@ aws s3 cp leaderboard.js s3://$S3_BUCKET/public/leaderboard.js
 
 3. 重啟 ECS Task 以載入新內容
    - 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster` → **Tasks** 分頁
-   - 勾選任一 Task，點擊 ::button[Stop]{variant="primary"}
+   - 勾選任一 Task，點擊 ::button[Stop]{variant="action"}
    - 等待新 Task 變為 ::status[Running]{type="success" icon="aws-success"}
 
 4. 在瀏覽器開啟 `http://<ALB_DNS>`，確認分頁標題已變為「2048 - S3 Edition」

@@ -33,8 +33,6 @@ function getIcon(name) {
 /* ═══════════════════════════════════════════
    Markdown Custom Syntax Preprocessor
    ═══════════════════════════════════════════ */
-const CARET_SVG = '<span class="ws-caret"><svg viewBox="2 3 12 10" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path d="m8 11 4-6H4l4 6Z"></path></svg></span>';
-
 function preprocessCustomSyntax(md) {
   // 保護 code block（含巢狀 backtick），避免裡面的自訂語法被轉換
   const codeBlocks = [];
@@ -45,7 +43,9 @@ function preprocessCustomSyntax(md) {
   // ``text`` → 可複製的行內 code（在單 backtick 保護之前處理）
   md = md.replace(/``([^`]+)``/g, (_, text) => {
     const escaped = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    return `<code class="copyable" role="button" tabindex="0" onclick="copyInline(this,'${escaped}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyInline(this,'${escaped}')}">${text}</code>`;
+    const html = `<code class="copyable" role="button" tabindex="0" onclick="copyInline(this,'${escaped}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyInline(this,'${escaped}')}">${text}</code>`;
+    codeBlocks.push(html);
+    return `\x00CB${codeBlocks.length - 1}\x00`;
   });
   // 保護行內 code
   md = md.replace(/`[^`\n]+`/g, (match) => {
@@ -77,19 +77,17 @@ function preprocessCustomSyntax(md) {
   });
 
   md = md.replace(/::button\[([^\]]*)\]\{([^}]*)\}/g, (_, text, attrs) => {
-    const variant = (attrs.match(/variant="([^"]+)"/) || [])[1] || 'primary';
+    const variant = (attrs.match(/variant="([^"]+)"/) || [])[1] || 'action';
     const prefix  = (attrs.match(/prefix="([^"]+)"/)  || [])[1] || '';
     const postfix = (attrs.match(/postfix="([^"]+)"/) || [])[1] || '';
     const split   = (attrs.match(/split="([^"]+)"/)   || [])[1] || '';
-    const dropdown = attrs.includes('dropdown');
     if (!text.trim() && prefix) return `<span class="ws-btn-icon">${getIcon(prefix)}</span>`;
     const pre  = prefix  ? `${getIcon(prefix)} `   : '';
     const post = postfix ? ` ${getIcon(postfix)}`   : '';
-    const caret = dropdown ? ` ${CARET_SVG}` : '';
     if (split) {
-      return `<span class="ws-btn-split"><span class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</span><span class="ws-btn-divider"></span><span class="ws-btn ws-btn-${variant}">${getIcon(split)}</span></span>`;
+      return `<span class="ws-btn-split"><span class="ws-btn ws-btn-${variant}">${pre}${text}${post}</span><span class="ws-btn-divider"></span><span class="ws-btn ws-btn-${variant}">${getIcon(split)}</span></span>`;
     }
-    return `<span class="ws-btn ws-btn-${variant}">${pre}${text}${post}${caret}</span>`;
+    return `<span class="ws-btn ws-btn-${variant}">${pre}${text}${post}</span>`;
   });
 
   md = md.replace(/::badge\[([^\]]+)\]\{([^}]+)\}/g, (_, text, attrs) => {
@@ -158,8 +156,11 @@ function preprocessCustomSyntax(md) {
 
   // 還原 code block：fenced block 直接轉 HTML，避免 marked.js CommonMark 規則
   // 誤判不同 indent 的 closing fence
+  // 注意：copyable HTML（以 < 開頭）保留 placeholder，在 marked.parse 之後才還原
   md = md.replace(/\x00CB(\d+)\x00/g, (_, i) => {
     const block = codeBlocks[i];
+    // 已經是 HTML（copyable code）— 保留 placeholder，讓 marked 不干擾
+    if (block.startsWith('<')) return `\x00CB${i}\x00`;
     const lines = block.trimEnd().split('\n');
     const langMatch = lines[0].match(/^([ \t]{0,3})`{3,}(\S*)/);
     if (!langMatch) return block; // inline code — 交給 marked.js 處理
@@ -173,6 +174,8 @@ function preprocessCustomSyntax(md) {
     return `\n\n<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>\n\n`;
   });
 
+  // 儲存 codeBlocks 供 marked.parse 之後還原
+  preprocessCustomSyntax._blocks = codeBlocks;
   return md;
 }
 
@@ -503,6 +506,12 @@ function navigateNext() { loadChapter(currentIndex + 1); }
 function renderMarkdown(md) {
   md = preprocessCustomSyntax(md);
   let html = marked.parse(md);
+
+  // 還原 copyable HTML placeholder（在 marked 解析 table 等結構之後）
+  const blocks = preprocessCustomSyntax._blocks;
+  if (blocks) {
+    html = html.replace(/\x00CB(\d+)\x00/g, (_, i) => blocks[i] || '');
+  }
 
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
   const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;

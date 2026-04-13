@@ -31,14 +31,19 @@
 - **索引**：`config.json` 列出 workshops，每個 workshop 的 `_manifest.json` 列出 pages
 - **build.sh**：掃描 `content/` 自動更新 `config.json` 和 `_manifest.json`，`_` 開頭的資料夾會被忽略
 - **主題**：支援 dark/light 切換，`localStorage` 持久化，`<meta name="theme-color">` 同步更新
+- **圖片**：預設 85% 寬度置中，支援自訂寬度 `{width="60%"}`、Caption（`"說明文字"`）、點擊放大（Lightbox）
 - **無障礙**：符合 [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines)，包含：
-  - Skip link、`aria-label`、`aria-expanded`、`aria-live`
+  - Skip link、`aria-label`、`aria-expanded`、`aria-live`、`aria-modal`
   - WAI-ARIA Tabs Pattern（`role="tablist/tab/tabpanel"`、鍵盤方向鍵導航）
   - Expand 使用語義化 `<button>` + `aria-expanded`
+  - 圖片放大使用語義化 `<button>` + Lightbox `inert` 背景隔離
   - `prefers-reduced-motion` 全域支援
   - `:focus-visible` 焦點樣式、`scroll-margin-top` heading 錨點
   - `touch-action: manipulation`、`overscroll-behavior: contain`
   - `env(safe-area-inset-*)` notch 安全區域
+  - `text-wrap:balance` heading 防孤字
+- **SEO**：`<meta name="description">`、Open Graph tags（`og:title`、`og:description`、`og:type`、`og:locale`）
+- **效能**：font preconnect/preload、`loading="lazy"` 圖片、明確列出 transition 屬性（無 `transition: all`）
 
 ## 自訂 Markdown 語法
 
@@ -48,12 +53,11 @@
 |------|------|
 | `::badge[文字]{type="info"}` | 標籤，type: info/success/warning/danger/default |
 | `::status[文字]{type="success" icon="circle-check"}` | 狀態文字，帶 icon + 顏色 |
-| `::button[文字]{variant="primary"}` | 按鈕，variant: primary/link/normal |
-| `::button[文字]{variant="link" prefix="aws-new-tab"}` | 按鈕帶前方 icon |
-| `::button[文字]{variant="link" postfix="aws-new-tab"}` | 按鈕帶後方 icon |
-| `::button[文字]{variant="link" dropdown}` | 下拉按鈕 |
-| `::button[文字]{variant="primary" split="aws-expand"}` | Split 按鈕 |
-| `::button[]{variant="link" prefix="aws-refresh"}` | 純 icon 按鈕 |
+| `::button[文字]{variant="action"}` | 按鈕，variant: action/default/disabled |
+| `::button[文字]{variant="default" prefix="aws-new-tab"}` | 按鈕帶前方 icon |
+| `::button[文字]{variant="default" postfix="aws-new-tab"}` | 按鈕帶後方 icon |
+| `::button[文字]{variant="action" split="aws-expand"}` | Split 按鈕 |
+| `::button[]{variant="default" prefix="aws-refresh"}` | 純 icon 按鈕 |
 | `::video{src="https://youtube.com/watch?v=ID"}` | YouTube 嵌入 |
 | ` ``可複製文字`` ` | 可複製行內 code（雙 backtick） |
 
@@ -66,6 +70,17 @@
 | `:::steps ... :::` | 自動編號步驟 |
 | `:::tabs ... :::` + `::tab[標題]` | 分頁 |
 | `:::button-row ... :::` | 按鈕列 |
+
+### 圖片
+
+| 語法 | 說明 |
+|------|------|
+| `![alt](img.png)` | 基本圖片，預設 85% 寬度置中 |
+| `![alt](img.png "說明文字")` | 圖片 + Caption |
+| `![alt](img.png){width="60%"}` | 自訂寬度 |
+| `![alt](img.png "說明文字"){width="60%"}` | Caption + 自訂寬度 |
+
+所有圖片點擊可放大（Lightbox），按 Escape 或點擊背景關閉。
 
 ### 可用 AWS Icon
 
@@ -118,10 +133,8 @@ python3 -m http.server 8080
 
 資料夾名稱加 `_` 前綴（如 `_my-draft`）會被 build 忽略。
 
-
 ## TODO
 
-- 調整圖片大小、對齊圖片說明欄位
 - Mermaid Support、Drawio support
 - 使用 CodeCommit、CodePipeline、CodeBuild 同步所有內容（S3 為主要版本）
 - Lab Account 後台變更 / Cognito 身份驗證

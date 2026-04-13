@@ -18,7 +18,7 @@ Task Definition 定義了容器要怎麼跑 — 用哪個映像、多少 CPU/Mem
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → 左側選單點擊 **Task definitions**
 
-2. 點擊 ::button[Create new task definition]{variant="primary" dropdown} → 選擇 Create new task definition
+2. 點擊 ::button[Create new task definition]{variant="action" postfix="aws-expand"} → 選擇 Create new task definition
 
 3. 在 **Task definition configuration** 區塊：
    - **Task definition family**：輸入 ``ecs-fargate-lab-app``
@@ -41,7 +41,7 @@ Task Definition 定義了容器要怎麼跑 — 用哪個映像、多少 CPU/Mem
    - 確認 **Log collection** 已啟用（使用 Amazon CloudWatch）
    - ECS 會自動建立 Log Group，保持預設設定即可
 
-7. 點擊 ::button[Create]{variant="primary"}
+7. 點擊 ::button[Create]{variant="action"}
 :::
 
 :::expand{title="executionRole vs taskRole 的差別"}
@@ -58,7 +58,7 @@ Service 會確保指定數量的 Task 持續運行，並與 ALB 整合分配流�
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → 點擊 `ecs-fargate-lab-cluster`
 
-2. 在 **Services** 分頁，點擊 ::button[Create]{variant="primary" split="aws-expand"}
+2. 在 **Services** 分頁，點擊 ::button[Create]{variant="action" split="aws-expand"}
 
 3. 在 **Service details** 區塊：
    - **Task definition family**：選擇 `ecs-fargate-lab-app`
@@ -84,7 +84,7 @@ Service 會確保指定數量的 Task 持續運行，並與 ALB 整合分配流�
    - **Use an existing listener**：選擇 `80:HTTP`
    - **Use an existing target group**：選擇 `ecs-fargate-lab-tg`
 
-8. 點擊 ::button[Create]{variant="primary"}
+8. 點擊 ::button[Create]{variant="action"}
 
 9. 等待 Deploy 完成並在上方出現：
 
