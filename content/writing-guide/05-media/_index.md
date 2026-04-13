@@ -17,8 +17,38 @@ content/
         └── architecture.png
 ```
 
+### 基本用法
+
 ```markdown
 ![架構圖說明](architecture.png)
+```
+
+圖片預設置中顯示，最大寬度 85%。點擊可放大檢視原圖（Lightbox）。
+
+### 圖片說明（Caption）
+
+在 URL 後加上引號文字，會渲染為圖片下方的說明文字：
+
+```markdown
+![alt](architecture.png "圖 1：系統架構總覽")
+```
+
+### 自訂寬度
+
+在圖片語法後加上 `{width="值"}` 可覆蓋預設寬度：
+
+```markdown
+![](screenshot.png){width="100%"}
+![](diagram.png){width="60%"}
+![](icon.png){width="200px"}
+```
+
+### 完整語法
+
+Caption 和寬度可以同時使用：
+
+```markdown
+![alt 文字](image.png "說明文字"){width="60%"}
 ```
 
 :::alert{type="info"}
@@ -27,7 +57,7 @@ content/
 
 實際效果：
 
-![架構圖範例](guidance-arch.png)
+![架構圖範例](guidance-arch.png "這是一張架構圖範例"){width="85%"}
 
 也支援外部圖片 URL：
 

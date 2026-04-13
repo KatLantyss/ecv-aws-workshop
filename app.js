@@ -44,7 +44,7 @@ function preprocessCustomSyntax(md) {
   });
   // ``text`` → 可複製的行內 code（在單 backtick 保護之前處理）
   md = md.replace(/``([^`]+)``/g, (_, text) => {
-    const escaped = text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const escaped = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     return `<code class="copyable" role="button" tabindex="0" onclick="copyInline(this,'${escaped}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyInline(this,'${escaped}')}">${text}</code>`;
   });
   // 保護行內 code
@@ -55,6 +55,26 @@ function preprocessCustomSyntax(md) {
 
   md = md.replace(/:::button-row\n(.*?)\n:::/g, (_, inner) =>
     `<div class="ws-btn-row">${inner.trim()}</div>`);
+
+  // Images with custom attrs: ![alt](url){width="60%"} or ![alt](url "caption"){width="400px"}
+  md = md.replace(/!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]+)\})?/g, (match, alt, urlPart, attrs) => {
+    // Parse url and optional title: url "title"
+    const urlMatch = urlPart.match(/^(\S+?)(?:\s+"([^"]*)")?$/);
+    if (!urlMatch) return match;
+    let [, href, title] = urlMatch;
+    // Resolve relative paths
+    if (href && !href.startsWith('http') && !href.startsWith('/')) {
+      const ch = chapters[currentIndex];
+      if (ch && ch.file) {
+        const dir = ch.file.substring(0, ch.file.lastIndexOf('/'));
+        href = dir + '/' + href;
+      }
+    }
+    const width = attrs ? (attrs.match(/width="([^"]+)"/) || [])[1] : '';
+    const style = width ? ` style="max-width:${width}"` : '';
+    const caption = title ? `<figcaption>${title}</figcaption>` : '';
+    return `<figure class="ws-figure"${style}><button class="ws-figure-btn" type="button" aria-label="放大圖片" onclick="openLightbox(this.querySelector('img'))"><img src="${href}" alt="${alt || ''}" loading="lazy"></button>${caption}</figure>`;
+  });
 
   md = md.replace(/::button\[([^\]]*)\]\{([^}]*)\}/g, (_, text, attrs) => {
     const variant = (attrs.match(/variant="([^"]+)"/) || [])[1] || 'primary';
@@ -247,8 +267,9 @@ marked.use({
           href = dir + '/' + href;
         }
       }
-      const titleAttr = title ? ` title="${title}"` : '';
-      return `<img src="${href}" alt="${text || ''}"${titleAttr} loading="lazy">`;
+      const alt = text || '';
+      const caption = title ? `<figcaption>${title}</figcaption>` : '';
+      return `<figure class="ws-figure"><button class="ws-figure-btn" type="button" aria-label="放大圖片" onclick="openLightbox(this.querySelector('img'))"><img src="${href}" alt="${alt}" loading="lazy"></button>${caption}</figure>`;
     },
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
@@ -573,6 +594,38 @@ function handleTabKeydown(e, id) {
     switchTab(id, next);
     tabs[next].focus();
   }
+}
+
+function openLightbox(img) {
+  const lb = document.createElement('div');
+  lb.className = 'ws-lightbox';
+  lb.setAttribute('role', 'dialog');
+  lb.setAttribute('aria-label', '圖片預覽');
+  lb.setAttribute('aria-modal', 'true');
+  const lbImg = document.createElement('img');
+  lbImg.src = img.src;
+  lbImg.alt = img.alt || '放大預覽';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'ws-lightbox-close';
+  closeBtn.setAttribute('aria-label', '關閉');
+  closeBtn.textContent = '✕';
+  closeBtn.addEventListener('click', () => closeLightbox(lb));
+  lb.appendChild(lbImg);
+  lb.appendChild(closeBtn);
+  lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(lb); });
+  document.addEventListener('keydown', lb._escHandler = function(e) {
+    if (e.key === 'Escape') closeLightbox(lb);
+  });
+  // Inert background
+  document.querySelectorAll('body > :not(.ws-lightbox)').forEach(el => el.setAttribute('inert', ''));
+  document.body.appendChild(lb);
+  closeBtn.focus();
+}
+
+function closeLightbox(lb) {
+  document.querySelectorAll('[inert]').forEach(el => el.removeAttribute('inert'));
+  if (lb._escHandler) document.removeEventListener('keydown', lb._escHandler);
+  lb.remove();
 }
 
 function copyToClipboard(text) {
