@@ -16,7 +16,6 @@ const ICONS = {
 function getIcon(name) {
   if (ICONS[name]) return ICONS[name];
   if (typeof lucide !== 'undefined') {
-    // Lucide icon names are PascalCase internally, try both
     const key = name.replace(/-./g, m => m[1].toUpperCase()).replace(/^./, m => m.toUpperCase());
     const iconData = lucide.icons[key] || lucide.icons[name];
     if (iconData) {
@@ -34,20 +33,17 @@ function getIcon(name) {
    Markdown Custom Syntax Preprocessor
    ═══════════════════════════════════════════ */
 function preprocessCustomSyntax(md) {
-  // 保護 code block（含巢狀 backtick），避免裡面的自訂語法被轉換
   const codeBlocks = [];
   md = md.replace(/^([ \t]{0,3})(`{3,})([^\n]*)\n([\s\S]*?)^\1\2\s*$/gm, (match) => {
     codeBlocks.push(match);
     return `\x00CB${codeBlocks.length - 1}\x00`;
   });
-  // ``text`` → 可複製的行內 code（在單 backtick 保護之前處理）
   md = md.replace(/``([^`]+)``/g, (_, text) => {
     const escaped = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     const html = `<code class="copyable" role="button" tabindex="0" onclick="copyInline(this,'${escaped}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyInline(this,'${escaped}')}">${text}</code>`;
     codeBlocks.push(html);
     return `\x00CB${codeBlocks.length - 1}\x00`;
   });
-  // 保護行內 code
   md = md.replace(/`[^`\n]+`/g, (match) => {
     codeBlocks.push(match);
     return `\x00CB${codeBlocks.length - 1}\x00`;
@@ -56,13 +52,10 @@ function preprocessCustomSyntax(md) {
   md = md.replace(/:::button-row\n(.*?)\n:::/g, (_, inner) =>
     `<div class="ws-btn-row">${inner.trim()}</div>`);
 
-  // Images with custom attrs: ![alt](url){width="60%"} or ![alt](url "caption"){width="400px"}
   md = md.replace(/!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]+)\})?/g, (match, alt, urlPart, attrs) => {
-    // Parse url and optional title: url "title"
     const urlMatch = urlPart.match(/^(\S+?)(?:\s+"([^"]*)")?$/);
     if (!urlMatch) return match;
     let [, href, title] = urlMatch;
-    // Resolve relative paths
     if (href && !href.startsWith('http') && !href.startsWith('/')) {
       const ch = chapters[currentIndex];
       if (ch && ch.file) {
@@ -95,7 +88,6 @@ function preprocessCustomSyntax(md) {
     return `<span class="ws-badge ws-badge-${type}">${text}</span>`;
   });
 
-  // Status text: ::status[text]{type="success" icon="circle-check"}
   md = md.replace(/::status\[([^\]]+)\]\{([^}]*)\}/g, (_, text, attrs) => {
     const type = (attrs.match(/type="([^"]+)"/) || [])[1] || 'info';
     const icon = (attrs.match(/icon="([^"]+)"/) || [])[1] || '';
@@ -119,7 +111,6 @@ function preprocessCustomSyntax(md) {
     `<div class="ws-expand"><button class="ws-expand-header" onclick="toggleExpand(this)" aria-expanded="false"><span class="ws-expand-arrow">${getIcon('aws-expand')}</span>${title}</button><div class="ws-expand-body">\n\n${body.trim()}\n\n</div></div>`);
 
   md = md.replace(/:::steps\n([\s\S]*?):::/g, (_, body) => {
-    // 按 "數字." 開頭分割成 steps，子列表和續行歸入上一個 step
     const lines = body.trim().split('\n');
     const steps = [];
     for (const line of lines) {
@@ -154,16 +145,12 @@ function preprocessCustomSyntax(md) {
     return `<div class="ws-tabs" id="${id}"><div class="ws-tabs-header" role="tablist" onkeydown="handleTabKeydown(event,'${id}')">${hdr}</div>${pnl}</div>`;
   });
 
-  // 還原 code block：fenced block 直接轉 HTML，避免 marked.js CommonMark 規則
-  // 誤判不同 indent 的 closing fence
-  // 注意：copyable HTML（以 < 開頭）保留 placeholder，在 marked.parse 之後才還原
   md = md.replace(/\x00CB(\d+)\x00/g, (_, i) => {
     const block = codeBlocks[i];
-    // 已經是 HTML（copyable code）— 保留 placeholder，讓 marked 不干擾
     if (block.startsWith('<')) return `\x00CB${i}\x00`;
     const lines = block.trimEnd().split('\n');
     const langMatch = lines[0].match(/^([ \t]{0,3})`{3,}(\S*)/);
-    if (!langMatch) return block; // inline code — 交給 marked.js 處理
+    if (!langMatch) return block;
     const [, indent, lang] = langMatch;
     const codeLines = lines.slice(1, -1);
     const code = indent
@@ -177,7 +164,6 @@ function preprocessCustomSyntax(md) {
     return `\n\n<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>\n\n`;
   });
 
-  // 儲存 codeBlocks 供 marked.parse 之後還原
   preprocessCustomSyntax._blocks = codeBlocks;
   return md;
 }
@@ -189,7 +175,6 @@ function simpleHighlight(code) {
   const KW = new Set(['import','from','def','return','class','function','const','let','var',
     'if','else','for','while','async','await','export','default','new','try','catch','throw']);
   const out = [];
-  // 逐 token 處理，避免 regex 互相干擾
   const re = /((?<![:\w])\/\/[^\n]*|(?<=^|\s)#[^\n]*|"[^"]*"|'[^']*'|\b\d+\b|\b[a-zA-Z_]\w*\b|[^\s]|\s+)/g;
   let m;
   const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -214,10 +199,12 @@ function simpleHighlight(code) {
    State
    ═══════════════════════════════════════════ */
 let config = null;
-let workshops = [];       // [{slug, manifest, dir}]
+let workshops = [];
 let currentWorkshop = null;
 let currentIndex = 0;
 let chapters = [];
+let currentUser = null;
+let workshopCredentials = null;
 
 /* ═══════════════════════════════════════════
    Helpers
@@ -246,12 +233,11 @@ function buildChapterId(filePath, workshopDir) {
 
 function getDepth(filePath, workshopDir) {
   let rel = filePath.replace(workshopDir + '/', '');
-  // _index.md 代表資料夾本身，不算子層
-  if (rel.endsWith('/_index.md')) {
-    rel = rel.replace(/\/[^/]+$/, '');
-  }
+  if (rel.endsWith('/_index.md')) rel = rel.replace(/\/[^/]+$/, '');
   return (rel.match(/\//g) || []).length;
 }
+
+function getUserPrefix() { return currentUser || ''; }
 
 /* ═══════════════════════════════════════════
    Configure marked (once)
@@ -261,9 +247,7 @@ marked.use({
   gfm: true,
   renderer: {
     code({ text, lang }) {
-      if (lang === 'mermaid') {
-        return `<pre class="mermaid">${text}</pre>`;
-      }
+      if (lang === 'mermaid') return `<pre class="mermaid">${text}</pre>`;
       const highlighted = simpleHighlight(text);
       const langClass = lang ? ` class="language-${lang}"` : '';
       return `<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>`;
@@ -271,10 +255,7 @@ marked.use({
     image({ href, title, text }) {
       if (href && !href.startsWith('http') && !href.startsWith('/')) {
         const ch = chapters[currentIndex];
-        if (ch && ch.file) {
-          const dir = ch.file.substring(0, ch.file.lastIndexOf('/'));
-          href = dir + '/' + href;
-        }
+        if (ch && ch.file) href = ch.file.substring(0, ch.file.lastIndexOf('/')) + '/' + href;
       }
       const alt = text || '';
       const caption = title ? `<figcaption>${title}</figcaption>` : '';
@@ -287,13 +268,10 @@ marked.use({
         const idx = chapters.findIndex(c => c.id === mdMatch || c.file.includes(href));
         if (idx >= 0) {
           const titleAttr = title ? ` title="${title}"` : '';
-          return `<a href="#${currentWorkshop}/${chapters[idx].id}" onclick="loadChapter(${idx})"${titleAttr}>${text}</a>`;
+          return `<a href="#${currentWorkshop}/${chapters[idx].id}" onclick="event.preventDefault();router.go('chapter',{index:${idx}})"${titleAttr}>${text}</a>`;
         }
         const ch = chapters[currentIndex];
-        if (ch && ch.file) {
-          const dir = ch.file.substring(0, ch.file.lastIndexOf('/'));
-          href = dir + '/' + href;
-        }
+        if (ch && ch.file) href = ch.file.substring(0, ch.file.lastIndexOf('/')) + '/' + href;
       }
       const titleAttr = title ? ` title="${title}"` : '';
       const external = href && href.startsWith('http') ? ' target="_blank" rel="noopener noreferrer"' : '';
@@ -303,194 +281,304 @@ marked.use({
 });
 
 /* ═══════════════════════════════════════════
-   Init — load config & build landing
+   Router — single source of truth for navigation
+   
+   Views: home | login | reader
+   Hash patterns:
+     (empty)              → home
+     #login/{slug}        → login
+     #{slug}              → reader (first chapter)
+     #{slug}/{chapterId}  → reader (specific chapter)
    ═══════════════════════════════════════════ */
-async function init() {
-  try {
-    config = await fetch('config.json').then(r => r.json());
-    document.getElementById('headerTitle').textContent = config.title;
-    document.title = config.title;
-    document.getElementById('loginTitle').textContent = config.title;
+const router = {
+  _busy: false,
 
-    // logo: 圖片路徑或 emoji 文字
-    const logoEl = document.getElementById('headerLogo');
-    const loginLogoEl = document.getElementById('loginLogo');
-    if (config.logo && (config.logo.endsWith('.png') || config.logo.endsWith('.svg') || config.logo.endsWith('.jpg') || config.logo.endsWith('.webp'))) {
-      logoEl.innerHTML = `<img src="${config.logo}" alt="logo" width="36" height="36">`;
-      loginLogoEl.innerHTML = `<img src="${config.logo}" alt="logo" style="width:64px;height:64px;object-fit:contain">`;
+  // Set hash without triggering hashchange handler (to avoid loops)
+  _setHash(hash, replace) {
+    router._silent = true;
+    if (replace) {
+      history.replaceState(null, '', hash ? '#' + hash : window.location.pathname);
     } else {
-      logoEl.textContent = config.logo || '☁';
-      loginLogoEl.textContent = config.logo || '☁';
+      window.location.hash = hash;
     }
-    document.getElementById('landingTitle').textContent = config.title;
-    document.getElementById('landingSubtitle').textContent = config.subtitle || '';
-    document.getElementById('landingFooter').innerHTML = `<p>${config.footer || ''}</p>`;
-    document.getElementById('footer').innerHTML = `<p>${config.footer || ''}</p>`;
+    // hashchange fires async, reset flag after it would have fired
+    setTimeout(() => { router._silent = false; }, 0);
+  },
 
-    // config.workshops: ["folder-name", ...]
-    const slugs = config.workshops || [];
-    const fetches = slugs.map(async (slug) => {
-      const dir = 'content/' + slug;
+  // Parse current hash into a route object
+  parseHash(hash) {
+    if (!hash) return { view: 'home' };
+    if (hash.startsWith('login/')) return { view: 'login', slug: hash.slice(6) };
+    const slash = hash.indexOf('/');
+    if (slash === -1) return { view: 'reader', slug: hash, chapterId: null };
+    return { view: 'reader', slug: hash.slice(0, slash), chapterId: hash.slice(slash + 1) };
+  },
+
+  // Main entry — called on hashchange and initial load
+  async resolve() {
+    if (router._silent || router._busy) return;
+    const route = router.parseHash(window.location.hash.slice(1));
+    switch (route.view) {
+      case 'home':  router.showHome(); break;
+      case 'login': await router.showLogin(route.slug); break;
+      case 'reader': await router.showWorkshop(route.slug, route.chapterId); break;
+    }
+  },
+
+  // ─── Home view ───
+  showHome() {
+    currentWorkshop = null;
+    chapters = [];
+    currentUser = null;
+    workshopCredentials = null;
+    updateUserUI();
+    setView('home');
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('progressText').textContent = '';
+    document.getElementById('progressFill').style.width = '0';
+    document.getElementById('prevBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    document.body.classList.remove('workshop-mode');
+    document.title = config ? config.title : 'Workshop';
+    closeMobile();
+    updateThemeIcon();
+  },
+
+  // ─── Login view ───
+  async showLogin(slug) {
+    const ws = workshops.find(w => w.slug === slug);
+    if (!ws) { router._setHash('', true); router.showHome(); return; }
+
+    workshopCredentials = await loadWorkshopCredentials(ws.dir);
+    setView('login');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginCode').value = '';
+    document.getElementById('loginError').textContent = '';
+    document.getElementById('breadcrumb').innerHTML = '';
+    document.getElementById('progressText').textContent = '';
+    document.getElementById('progressFill').style.width = '0';
+    document.getElementById('prevBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    document.body.classList.remove('workshop-mode');
+    closeMobile();
+    document.getElementById('loginUser').focus();
+  },
+
+  // ─── Workshop/reader view ───
+  async showWorkshop(slug, chapterId) {
+    const ws = workshops.find(w => w.slug === slug);
+    if (!ws) { router._setHash('', true); router.showHome(); return; }
+
+    // Auth check
+    const authed = await checkWorkshopAuth(slug, ws.dir);
+    if (!authed) {
+      // Redirect to login — replace current hash so back goes to previous page
+      router._setHash('login/' + slug, true);
+      await router.showLogin(slug);
+      return;
+    }
+
+    // Already loaded — just switch chapter
+    if (currentWorkshop === slug && chapters.length) {
+      const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : 0;
+      if (idx >= 0) displayChapter(idx);
+      setView('reader');
+      return;
+    }
+
+    // Load workshop
+    router._busy = true;
+    currentWorkshop = slug;
+    chapters = [];
+    const files = ws.manifest.pages || [];
+
+    const results = await Promise.all(files.map(async f => {
+      const path = ws.dir + '/' + f;
       try {
-        const res = await fetch(dir + '/_manifest.json');
+        const res = await fetch(path);
         if (!res.ok) return null;
-        return { slug, manifest: await res.json(), dir };
+        const md = await res.text();
+        const { frontMatter, body } = parseFrontMatter(md);
+        const id = frontMatter.id || buildChapterId(path, ws.dir);
+        return { id, title: frontMatter.title || f.replace(/\/_index\.md$|\.md$/, ''), file: path, order: frontMatter.order ?? 999, depth: getDepth(path, ws.dir), isIndex: f.endsWith('_index.md'), body };
       } catch { return null; }
-    });
+    }));
 
-    workshops = (await Promise.all(fetches)).filter(Boolean);
-    workshops.sort((a, b) => (a.manifest.order ?? 999) - (b.manifest.order ?? 999));
+    chapters = results.filter(Boolean);
+    router._busy = false;
 
-    renderLanding();
-    handleRoute();
-  } catch (e) {
-    console.error('init error:', e);
-    document.getElementById('landing').innerHTML =
-      '<p style="color:var(--danger);text-align:center;padding:4rem">無法載入 config.json</p>';
-  }
-}
+    document.getElementById('sidebarLabel').textContent = ws.manifest.title || slug;
+    buildSidebar();
+    setView('reader');
 
-/* ═══════════════════════════════════════════
-   Landing — Card Grid
-   ═══════════════════════════════════════════ */
-function renderLanding() {
-  const grid = document.getElementById('cardGrid');
-  if (!workshops.length) {
-    grid.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:2rem;grid-column:1/-1">尚未找到任何 Workshop。</p>';
-    return;
-  }
-  grid.innerHTML = workshops.map(ws => {
-    const m = ws.manifest;
-    const pageCount = (m.pages || []).length;
-    return `<a class="ws-card" href="#${ws.slug}" onclick="enterWorkshop('${ws.slug}');return false">
-      <div class="ws-card-icon">${getIcon(m.icon) || m.icon || '📘'}</div>
-      <div class="ws-card-body">
-        <div class="ws-card-badges">
-          ${m.badge ? `<span class="ws-badge ws-badge-info">${m.badge}</span>` : ''}
-          ${m.level ? `<span class="ws-badge ws-badge-success">${m.level}</span>` : ''}
-          ${m.duration ? `<span class="ws-badge ws-badge-default">${m.duration}</span>` : ''}
-        </div>
-        <span class="ws-card-title">${m.title || ws.slug}</span>
-        <p class="ws-card-desc">${m.description || ''}</p>
-        <div class="ws-card-meta">
-          <span>${pageCount} 個章節</span>
-          <span class="ws-card-arrow">${getIcon('aws-arrow-right')}</span>
-        </div>
-      </div>
-    </a>`;
-  }).join('');
-}
-
-/* ═══════════════════════════════════════════
-   View Switching
-   ═══════════════════════════════════════════ */
-function showLanding() {
-  document.getElementById('landing').removeAttribute('hidden');
-  document.getElementById('main').setAttribute('hidden', '');
-  document.getElementById('sidebar').classList.remove('visible');
-  hideLoginScreen();
-  enterWorkshop._pending = null;
-  closeMobile();
-  document.getElementById('breadcrumb').innerHTML = '';
-  document.getElementById('progressText').textContent = '';
-  document.getElementById('progressFill').style.width = '0';
-  document.getElementById('prevBtn').style.display = 'none';
-  document.getElementById('nextBtn').style.display = 'none';
-  document.body.classList.remove('workshop-mode');
-  document.title = config.title;
-  updateThemeIcon();
-}
-
-function showReader() {
-  document.getElementById('landing').setAttribute('hidden', '');
-  document.getElementById('main').removeAttribute('hidden');
-  document.getElementById('sidebar').classList.add('visible');
-  document.getElementById('prevBtn').style.display = '';
-  document.getElementById('nextBtn').style.display = '';
-  document.body.classList.add('workshop-mode');
-  updateThemeIcon();
-}
-
-function goHome() {
-  currentWorkshop = null;
-  chapters = [];
-  window.location.hash = '';
-  showLanding();
-}
-
-/* ═══════════════════════════════════════════
-   Workshop Loader
-   ═══════════════════════════════════════════ */
-async function enterWorkshop(slug, chapterId) {
-  if (currentWorkshop === slug && chapters.length) {
     const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : 0;
-    if (idx >= 0) loadChapter(idx);
-    showReader(); // Ensure reader view is visible when navigating back
+    displayChapter(idx >= 0 ? idx : 0);
+  },
+
+  // ─── Navigate (push history) ───
+  go(action, params) {
+    switch (action) {
+      case 'home':
+        router._setHash('', false);
+        router.showHome();
+        break;
+      case 'workshop':
+        router._setHash(params.slug, false);
+        router.showWorkshop(params.slug, null);
+        break;
+      case 'chapter':
+        if (params.index >= 0 && params.index < chapters.length) {
+          const ch = chapters[params.index];
+          router._setHash(currentWorkshop + '/' + ch.id, false);
+          displayChapter(params.index);
+        }
+        break;
+      case 'login':
+        router._setHash('login/' + params.slug, false);
+        router.showLogin(params.slug);
+        break;
+    }
+  }
+};
+
+// ─── View switcher (mutually exclusive) ───
+function setView(name) {
+  document.getElementById('landing')[name === 'home' ? 'removeAttribute' : 'setAttribute']('hidden', '');
+  document.getElementById('main')[name === 'reader' ? 'removeAttribute' : 'setAttribute']('hidden', '');
+  document.getElementById('loginScreen')[name === 'login' ? 'removeAttribute' : 'setAttribute']('hidden', '');
+  document.getElementById('sidebar').classList[name === 'reader' ? 'add' : 'remove']('visible');
+  if (name === 'reader') {
+    document.getElementById('prevBtn').style.display = '';
+    document.getElementById('nextBtn').style.display = '';
+    document.body.classList.add('workshop-mode');
+  } else {
+    document.body.classList.remove('workshop-mode');
+  }
+  updateThemeIcon();
+}
+
+window.addEventListener('hashchange', () => router.resolve());
+
+/* ═══════════════════════════════════════════
+   Auth
+   ═══════════════════════════════════════════ */
+async function loadWorkshopCredentials(workshopDir) {
+  try {
+    const res = await fetch(workshopDir + '/credentials.json');
+    if (res.ok) return await res.json();
+  } catch {}
+  return null;
+}
+
+function getStoredUser(slug) {
+  try { return JSON.parse(localStorage.getItem('ws-user-' + slug)); } catch { return null; }
+}
+
+function setStoredUser(slug, session) {
+  localStorage.setItem('ws-user-' + slug, JSON.stringify(session));
+}
+
+function clearStoredUser(slug) {
+  localStorage.removeItem('ws-user-' + slug);
+}
+
+function updateUserUI() {
+  const badge = document.getElementById('headerUser');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (currentUser) {
+    badge.textContent = currentUser;
+    badge.removeAttribute('hidden');
+    logoutBtn.removeAttribute('hidden');
+  } else {
+    badge.setAttribute('hidden', '');
+    logoutBtn.setAttribute('hidden', '');
+  }
+}
+
+async function checkWorkshopAuth(slug, workshopDir) {
+  const creds = await loadWorkshopCredentials(workshopDir);
+  workshopCredentials = creds;
+  if (!creds || !creds.eventCode || !creds.users || !creds.users.length) {
+    currentUser = null;
+    updateUserUI();
+    return true;
+  }
+  const session = getStoredUser(slug);
+  if (session && session.eventCode === creds.eventCode && creds.users.includes(session.username)) {
+    currentUser = session.username;
+    updateUserUI();
+    return true;
+  }
+  currentUser = null;
+  clearStoredUser(slug);
+  updateUserUI();
+  return false;
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const code = document.getElementById('loginCode').value.trim();
+  const errorEl = document.getElementById('loginError');
+  const slug = router.parseHash(window.location.hash.slice(1)).slug;
+
+  if (!workshopCredentials || !slug) {
+    errorEl.textContent = '系統錯誤：無法載入驗證資料';
+    return;
+  }
+  if (code !== workshopCredentials.eventCode) {
+    errorEl.textContent = '活動代碼錯誤';
+    document.getElementById('loginCode').value = '';
+    document.getElementById('loginCode').focus();
+    return;
+  }
+  if (!workshopCredentials.users.includes(username)) {
+    errorEl.textContent = '此 Username 不在本次活動名單中';
+    document.getElementById('loginUser').focus();
     return;
   }
 
-  const ws = workshops.find(w => w.slug === slug);
-  if (!ws) return;
+  currentUser = username;
+  setStoredUser(slug, { username, eventCode: code });
+  updateUserUI();
+  // Replace login hash with workshop hash — back button skips login
+  router._setHash(slug, true);
+  router.showWorkshop(slug, null);
+}
 
-  const dir = ws.dir;
+function handleLogout() {
+  if (currentWorkshop) clearStoredUser(currentWorkshop);
+  currentUser = null;
+  workshopCredentials = null;
+  updateUserUI();
+  router.go('home');
+}
 
-  // Prevent concurrent loads
-  const loadId = Symbol();
-  enterWorkshop._current = loadId;
-
-  currentWorkshop = slug;
-  chapters = [];
-  const files = ws.manifest.pages || [];
-
-  // 並行載入所有 md
-  const results = await Promise.all(files.map(async f => {
-    const path = dir + '/' + f;
-    try {
-      const res = await fetch(path);
-      if (!res.ok) return null;
-      const md = await res.text();
-      const { frontMatter, body } = parseFrontMatter(md);
-      const id = frontMatter.id || buildChapterId(path, dir);
-      return {
-        id,
-        title: frontMatter.title || f.replace(/\/_index\.md$|\.md$/, ''),
-        file: path,
-        order: frontMatter.order ?? 999,
-        depth: getDepth(path, dir),
-        isIndex: f.endsWith('_index.md'),
-        body
-      };
-    } catch { return null; }
-  }));
-
-  chapters = results.filter(Boolean);
-
-  // Abort if a newer navigation started while we were loading
-  if (enterWorkshop._current !== loadId) return;
-
-  document.getElementById('sidebarLabel').textContent = ws.manifest.title || slug;
-  buildSidebar();
-  showReader();
-
-  const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : -1;
-  loadChapter(idx >= 0 ? idx : 0);
+function cancelLogin() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    router.go('home');
+  }
 }
 
 /* ═══════════════════════════════════════════
-   Sidebar & Navigation
+   Workshop Content — sidebar, chapters, markdown
    ═══════════════════════════════════════════ */
 function buildSidebar() {
   document.getElementById('sidebarNav').innerHTML = chapters.map((ch, i) => {
     const indent = ch.depth > 0 ? ` style="padding-left:${ch.depth * 1.2 + 0.75}rem"` : '';
-    return `<li><a href="#${currentWorkshop}/${ch.id}" onclick="loadChapter(${i});closeMobile()"${indent}>${ch.title}</a></li>`;
+    return `<li><a href="#${currentWorkshop}/${ch.id}" onclick="event.preventDefault();router.go('chapter',{index:${i}});closeMobile()"${indent}>${ch.title}</a></li>`;
   }).join('');
 }
 
-async function loadChapter(index) {
+async function displayChapter(index) {
   if (index < 0 || index >= chapters.length) return;
   currentIndex = index;
   const ch = chapters[index];
-  window.location.hash = currentWorkshop + '/' + ch.id;
+
+  // Update hash silently (no history push — caller decides push vs replace)
+  router._setHash(currentWorkshop + '/' + ch.id, true);
 
   document.querySelectorAll('.sidebar-nav a').forEach((a, i) =>
     a.classList.toggle('active', i === index));
@@ -498,7 +586,7 @@ async function loadChapter(index) {
   const ws = workshops.find(w => w.slug === currentWorkshop);
   const wsTitle = ws ? (ws.manifest.title || currentWorkshop) : currentWorkshop;
   document.getElementById('breadcrumb').innerHTML =
-    `<a href="#" onclick="goHome();return false" style="color:var(--text-dim);text-decoration:none">${config.title}</a>` +
+    `<a href="#" onclick="event.preventDefault();router.go('home')" style="color:var(--text-dim);text-decoration:none">${config.title}</a>` +
     ` <span>/</span> <span>${wsTitle}</span>` +
     ` <span>/</span> <span class="current">${ch.title}</span>`;
   document.title = ch.title + ' — ' + wsTitle;
@@ -518,8 +606,10 @@ async function loadChapter(index) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function navigatePrev() { loadChapter(currentIndex - 1); }
-function navigateNext() { loadChapter(currentIndex + 1); }
+function navigatePrev() { if (currentIndex > 0) router.go('chapter', { index: currentIndex - 1 }); }
+function navigateNext() { if (currentIndex < chapters.length - 1) router.go('chapter', { index: currentIndex + 1 }); }
+
+function goHome() { router.go('home'); }
 
 /* ═══════════════════════════════════════════
    Markdown Renderer
@@ -528,27 +618,21 @@ function renderMarkdown(md) {
   md = preprocessCustomSyntax(md);
   let html = marked.parse(md);
 
-  // 還原 copyable HTML placeholder（在 marked 解析 table 等結構之後）
   const blocks = preprocessCustomSyntax._blocks;
-  if (blocks) {
-    html = html.replace(/\x00CB(\d+)\x00/g, (_, i) => blocks[i] || '');
-  }
+  if (blocks) html = html.replace(/\x00CB(\d+)\x00/g, (_, i) => blocks[i] || '');
 
-  // Replace {{prefix}} with current user's prefix
   const prefix = getUserPrefix();
-  if (prefix) {
-    html = html.replace(/\{\{prefix\}\}/g, prefix);
-  }
+  if (prefix) html = html.replace(/\{\{prefix\}\}/g, prefix);
 
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
   const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
   let navHtml = '<div class="page-nav">';
   navHtml += prev
-    ? `<a class="page-nav-btn prev" href="#${currentWorkshop}/${prev.id}" onclick="loadChapter(${currentIndex - 1})"><span class="label">← 上一頁</span><span class="title">${prev.title}</span></a>`
+    ? `<a class="page-nav-btn prev" href="#${currentWorkshop}/${prev.id}" onclick="event.preventDefault();router.go('chapter',{index:${currentIndex - 1}})"><span class="label">← 上一頁</span><span class="title">${prev.title}</span></a>`
     : '<div class="page-nav-btn disabled"></div>';
   navHtml += next
-    ? `<a class="page-nav-btn next" href="#${currentWorkshop}/${next.id}" onclick="loadChapter(${currentIndex + 1})"><span class="label">下一頁 →</span><span class="title">${next.title}</span></a>`
+    ? `<a class="page-nav-btn next" href="#${currentWorkshop}/${next.id}" onclick="event.preventDefault();router.go('chapter',{index:${currentIndex + 1}})"><span class="label">下一頁 →</span><span class="title">${next.title}</span></a>`
     : '<div class="page-nav-btn disabled"></div>';
   navHtml += '</div>';
 
@@ -569,30 +653,6 @@ function renderMarkdown(md) {
 }
 
 /* ═══════════════════════════════════════════
-   Routing — hash-based: #workshop-slug/chapter-id
-   ═══════════════════════════════════════════ */
-function handleRoute() {
-  const hash = window.location.hash.slice(1);
-  if (!hash) { showLanding(); return; }
-
-  const slashIdx = hash.indexOf('/');
-  if (slashIdx === -1) {
-    enterWorkshop(hash);
-  } else {
-    const slug = hash.slice(0, slashIdx);
-    const chapterId = hash.slice(slashIdx + 1);
-    if (slug === currentWorkshop && chapters.length) {
-      const idx = chapters.findIndex(c => c.id === chapterId);
-      if (idx >= 0 && idx !== currentIndex) loadChapter(idx);
-    } else {
-      enterWorkshop(slug, chapterId);
-    }
-  }
-}
-
-window.addEventListener('hashchange', handleRoute);
-
-/* ═══════════════════════════════════════════
    UI Interactions
    ═══════════════════════════════════════════ */
 function toggleExpand(header) {
@@ -604,13 +664,11 @@ function switchTab(id, index) {
   const c = document.getElementById(id);
   if (!c) return;
   c.querySelectorAll('.ws-tab-btn').forEach((b, i) => {
-    const selected = i === index;
-    b.setAttribute('aria-selected', selected);
-    b.setAttribute('tabindex', selected ? '0' : '-1');
+    b.setAttribute('aria-selected', i === index);
+    b.setAttribute('tabindex', i === index ? '0' : '-1');
   });
   c.querySelectorAll('.ws-tab-panel').forEach((p, i) => {
-    if (i === index) { p.removeAttribute('hidden'); }
-    else { p.setAttribute('hidden', ''); }
+    if (i === index) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
   });
 }
 
@@ -624,11 +682,7 @@ function handleTabKeydown(e, id) {
   else if (e.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
   else if (e.key === 'Home') next = 0;
   else if (e.key === 'End') next = tabs.length - 1;
-  if (next >= 0) {
-    e.preventDefault();
-    switchTab(id, next);
-    tabs[next].focus();
-  }
+  if (next >= 0) { e.preventDefault(); switchTab(id, next); tabs[next].focus(); }
 }
 
 function openLightbox(img) {
@@ -651,7 +705,6 @@ function openLightbox(img) {
   document.addEventListener('keydown', lb._escHandler = function(e) {
     if (e.key === 'Escape') closeLightbox(lb);
   });
-  // Inert background
   document.querySelectorAll('body > :not(.ws-lightbox)').forEach(el => el.setAttribute('inert', ''));
   document.body.appendChild(lb);
   closeBtn.focus();
@@ -664,16 +717,10 @@ function closeLightbox(lb) {
 }
 
 function copyToClipboard(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(text);
-  }
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
   const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
   document.body.removeChild(ta);
   return Promise.resolve();
 }
@@ -691,32 +738,28 @@ function copyInline(el, text) {
   setTimeout(() => el.classList.remove('copied'), 1200);
 }
 
-// Copyable tooltip follows cursor
 document.addEventListener('mousemove', (e) => {
   const el = e.target.closest('code.copyable');
-  if (el) {
-    el.style.setProperty('--tip-x', e.clientX + 'px');
-    el.style.setProperty('--tip-y', e.clientY + 'px');
-  }
+  if (el) { el.style.setProperty('--tip-x', e.clientX + 'px'); el.style.setProperty('--tip-y', e.clientY + 'px'); }
 });
 
 // Mobile menu
 const menuToggle = document.getElementById('menuToggle');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('overlay');
+const sidebarEl = document.getElementById('sidebar');
+const overlayEl = document.getElementById('overlay');
 menuToggle.addEventListener('click', () => {
-  const isOpen = sidebar.classList.toggle('open');
-  overlay.classList.toggle('active', isOpen);
+  const isOpen = sidebarEl.classList.toggle('open');
+  overlayEl.classList.toggle('active', isOpen);
   menuToggle.setAttribute('aria-expanded', isOpen);
 });
-overlay.addEventListener('click', closeMobile);
+overlayEl.addEventListener('click', closeMobile);
 function closeMobile() {
-  sidebar.classList.remove('open');
-  overlay.classList.remove('active');
+  sidebarEl.classList.remove('open');
+  overlayEl.classList.remove('active');
   menuToggle.setAttribute('aria-expanded', 'false');
 }
 
-// Keyboard nav (only in reader mode, skip when inside inputs)
+// Keyboard nav
 document.addEventListener('keydown', (e) => {
   if (!currentWorkshop) return;
   const tag = e.target.tagName;
@@ -726,18 +769,15 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ═══════════════════════════════════════════
-   Table of Contents (right side)
+   Table of Contents
    ═══════════════════════════════════════════ */
 function buildTOC() {
   const toc = document.getElementById('toc');
   const headings = document.querySelectorAll('#content h2, #content h3');
   if (headings.length < 2) { toc.innerHTML = ''; return; }
-
-  // Ensure headings have IDs
   headings.forEach(h => {
     if (!h.id) h.id = h.textContent.trim().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fff-]/g, '').toLowerCase();
   });
-
   let html = '<div class="toc-title">目錄</div>';
   headings.forEach(h => {
     const cls = h.tagName === 'H3' ? ' class="toc-h3"' : '';
@@ -751,7 +791,6 @@ function observeTOC() {
   if (tocObserver) tocObserver.disconnect();
   const headings = document.querySelectorAll('#content h2[id], #content h3[id]');
   if (!headings.length) return;
-
   tocObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -761,7 +800,6 @@ function observeTOC() {
       }
     });
   }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
-
   headings.forEach(h => tocObserver.observe(h));
 }
 
@@ -774,7 +812,6 @@ function toggleTheme() {
   localStorage.setItem('ws-theme', next);
   updateThemeIcon();
   updateThemeColor(next);
-  // Re-render mermaid with new theme
   mermaidReady = false;
   renderMermaid();
 }
@@ -796,10 +833,9 @@ function updateThemeIcon() {
 let mermaidReady = false;
 function initMermaid() {
   if (mermaidReady || typeof mermaid === 'undefined') return;
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   mermaid.initialize({
     startOnLoad: false,
-    theme: isDark ? 'dark' : 'default',
+    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
     fontFamily: "'Amazon Ember', system-ui, sans-serif",
     securityLevel: 'loose'
   });
@@ -809,174 +845,85 @@ function initMermaid() {
 async function renderMermaid() {
   const els = document.querySelectorAll('#content pre.mermaid');
   if (!els.length) return;
-  // 首次渲染時保存原始語法
-  els.forEach(el => {
-    if (!el.dataset.source) el.dataset.source = el.textContent;
-  });
-  // Re-init with current theme
+  els.forEach(el => { if (!el.dataset.source) el.dataset.source = el.textContent; });
   mermaidReady = false;
   initMermaid();
-  // 還原原始語法再重新渲染
-  els.forEach(el => {
-    el.removeAttribute('data-processed');
-    el.innerHTML = el.dataset.source;
-  });
+  els.forEach(el => { el.removeAttribute('data-processed'); el.innerHTML = el.dataset.source; });
+  try { await mermaid.run({ nodes: els }); } catch (e) { console.warn('Mermaid render error:', e); }
+}
+
+/* ═══════════════════════════════════════════
+   Init & Landing
+   ═══════════════════════════════════════════ */
+function renderLanding() {
+  const grid = document.getElementById('cardGrid');
+  if (!workshops.length) {
+    grid.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:2rem;grid-column:1/-1">尚未找到任何 Workshop。</p>';
+    return;
+  }
+  grid.innerHTML = workshops.map(ws => {
+    const m = ws.manifest;
+    const pageCount = (m.pages || []).length;
+    return `<a class="ws-card" href="#${ws.slug}" onclick="event.preventDefault();router.go('workshop',{slug:'${ws.slug}'})">
+      <div class="ws-card-icon">${getIcon(m.icon) || m.icon || '📘'}</div>
+      <div class="ws-card-body">
+        <div class="ws-card-badges">
+          ${m.badge ? `<span class="ws-badge ws-badge-info">${m.badge}</span>` : ''}
+          ${m.level ? `<span class="ws-badge ws-badge-success">${m.level}</span>` : ''}
+          ${m.duration ? `<span class="ws-badge ws-badge-default">${m.duration}</span>` : ''}
+        </div>
+        <span class="ws-card-title">${m.title || ws.slug}</span>
+        <p class="ws-card-desc">${m.description || ''}</p>
+        <div class="ws-card-meta">
+          <span>${pageCount} 個章節</span>
+          <span class="ws-card-arrow">${getIcon('aws-arrow-right')}</span>
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+async function init() {
   try {
-    await mermaid.run({ nodes: els });
+    config = await fetch('config.json').then(r => r.json());
+    document.getElementById('headerTitle').textContent = config.title;
+    document.title = config.title;
+    document.getElementById('loginTitle').textContent = config.title;
+
+    const logoEl = document.getElementById('headerLogo');
+    const loginLogoEl = document.getElementById('loginLogo');
+    if (config.logo && /\.(png|svg|jpg|webp)$/.test(config.logo)) {
+      logoEl.innerHTML = `<img src="${config.logo}" alt="logo" width="36" height="36">`;
+      loginLogoEl.innerHTML = `<img src="${config.logo}" alt="logo" style="width:64px;height:64px;object-fit:contain">`;
+    } else {
+      logoEl.textContent = config.logo || '☁';
+      loginLogoEl.textContent = config.logo || '☁';
+    }
+    document.getElementById('landingTitle').textContent = config.title;
+    document.getElementById('landingSubtitle').textContent = config.subtitle || '';
+    document.getElementById('landingFooter').innerHTML = `<p>${config.footer || ''}</p>`;
+    document.getElementById('footer').innerHTML = `<p>${config.footer || ''}</p>`;
+
+    const slugs = config.workshops || [];
+    const fetches = slugs.map(async (slug) => {
+      const dir = 'content/' + slug;
+      try {
+        const res = await fetch(dir + '/_manifest.json');
+        if (!res.ok) return null;
+        return { slug, manifest: await res.json(), dir };
+      } catch { return null; }
+    });
+
+    workshops = (await Promise.all(fetches)).filter(Boolean);
+    workshops.sort((a, b) => (a.manifest.order ?? 999) - (b.manifest.order ?? 999));
+
+    renderLanding();
+    router.resolve();
   } catch (e) {
-    console.warn('Mermaid render error:', e);
+    console.error('init error:', e);
+    document.getElementById('landing').innerHTML =
+      '<p style="color:var(--danger);text-align:center;padding:4rem">無法載入 config.json</p>';
   }
 }
 
-/* ═══════════════════════════════════════════
-   Auth — per-workshop credentials.json login
-   ═══════════════════════════════════════════ */
-let workshopCredentials = null; // credentials for current workshop
-let currentUser = null;
-
-async function loadWorkshopCredentials(workshopDir) {
-  try {
-    const res = await fetch(workshopDir + '/credentials.json');
-    if (res.ok) return await res.json();
-  } catch {}
-  return null;
-}
-
-function getStoredUser(slug) {
-  return localStorage.getItem('ws-user-' + slug);
-}
-
-function setStoredUser(slug, username) {
-  localStorage.setItem('ws-user-' + slug, username);
-}
-
-function clearStoredUser(slug) {
-  localStorage.removeItem('ws-user-' + slug);
-}
-
-function showLoginScreen() {
-  const screen = document.getElementById('loginScreen');
-  screen.removeAttribute('hidden');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginCode').value = '';
-  document.getElementById('loginError').textContent = '';
-  document.getElementById('loginUser').focus();
-}
-
-function hideLoginScreen() {
-  document.getElementById('loginScreen').setAttribute('hidden', '');
-}
-
-function updateUserUI() {
-  const badge = document.getElementById('headerUser');
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (currentUser) {
-    badge.textContent = currentUser;
-    badge.removeAttribute('hidden');
-    logoutBtn.removeAttribute('hidden');
-  } else {
-    badge.setAttribute('hidden', '');
-    logoutBtn.setAttribute('hidden', '');
-  }
-}
-
-async function handleLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('loginUser').value.trim().toLowerCase();
-  const code = document.getElementById('loginCode').value.trim();
-  const errorEl = document.getElementById('loginError');
-
-  if (!workshopCredentials) {
-    errorEl.textContent = '系統錯誤：無法載入驗證資料';
-    return;
-  }
-
-  // Validate event code
-  if (code !== workshopCredentials.eventCode) {
-    errorEl.textContent = '活動代碼錯誤';
-    document.getElementById('loginCode').value = '';
-    document.getElementById('loginCode').focus();
-    return;
-  }
-
-  // Validate username
-  if (!workshopCredentials.users.includes(username)) {
-    errorEl.textContent = '此 Username 不在本次活動名單中';
-    document.getElementById('loginUser').focus();
-    return;
-  }
-
-  currentUser = username;
-  // Use pending slug for storage key since currentWorkshop isn't set yet
-  const pendingSlug = enterWorkshop._pending ? enterWorkshop._pending.slug : currentWorkshop;
-  if (pendingSlug) {
-    setStoredUser(pendingSlug, JSON.stringify({ username, eventCode: code }));
-  }
-  hideLoginScreen();
-  updateUserUI();
-  errorEl.textContent = '';
-
-  // Resume pending workshop navigation
-  if (enterWorkshop._pending) {
-    const { slug, chapterId } = enterWorkshop._pending;
-    enterWorkshop._pending = null;
-    enterWorkshop(slug, chapterId);
-  }
-}
-
-function handleLogout() {
-  if (currentWorkshop) clearStoredUser(currentWorkshop);
-  currentUser = null;
-  workshopCredentials = null;
-  updateUserUI();
-  goHome();
-}
-
-function cancelLogin() {
-  enterWorkshop._pending = null;
-  workshopCredentials = null;
-  hideLoginScreen();
-  goHome();
-}
-
-function getUserPrefix() {
-  return currentUser || '';
-}
-
-// Called when entering a workshop — checks if login is required
-async function checkWorkshopAuth(slug, workshopDir) {
-  const creds = await loadWorkshopCredentials(workshopDir);
-  workshopCredentials = creds;
-
-  if (!creds || !creds.eventCode || !creds.users || creds.users.length === 0) {
-    // No credentials file or no event code — public workshop
-    currentUser = null;
-    updateUserUI();
-    return true;
-  }
-
-  // Check stored login — must match both username and current event code
-  const stored = getStoredUser(slug);
-  if (stored) {
-    try {
-      const session = JSON.parse(stored);
-      if (session.eventCode === creds.eventCode && creds.users.includes(session.username)) {
-        currentUser = session.username;
-        updateUserUI();
-        return true;
-      }
-    } catch {}
-  }
-
-  // Invalid or expired session — need login
-  currentUser = null;
-  clearStoredUser(slug);
-  updateUserUI();
-  showLoginScreen();
-  return false;
-}
-
-/* ═══════════════════════════════════════════
-   Boot
-   ═══════════════════════════════════════════ */
 init();
