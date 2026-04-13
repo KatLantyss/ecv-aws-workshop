@@ -12,13 +12,17 @@
 ├── build.sh            # 自動掃描 content/ 產生索引
 ├── deploy.sh           # S3 + CloudFront 部署腳本
 ├── assets/             # 全站靜態資源（logo 等）
+├── infra/              # 講師用 CloudFormation（不部署到 S3）
+│   └── ecs-fargate-lab-infra.yaml
 └── content/            # Workshop 內容
     └── my-workshop/
         ├── _manifest.json   # Workshop metadata（卡片資訊）
+        ├── credentials.json # 選填，有此檔案的 workshop 需要登入
         ├── _index.md        # Workshop 首頁
         ├── 01-chapter/
         │   ├── _index.md    # 章節頁面
-        │   └── diagram.png  # 圖片放頁面資料夾
+        │   ├── diagram.png  # 圖片放頁面資料夾
+        │   └── ecs-fargate-lab-user.yaml  # 學員下載的 template
         └── cleanup.md
 ```
 

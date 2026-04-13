@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: ECS Fargate Workshop - VPC, ALB, ECS Cluster, ECR, S3, RDS
+Description: >
+  ECS Fargate Workshop - Shared Infrastructure (Instructor deploys once).
+  Creates VPC, ALB, ECS Cluster, ECR, RDS, IAM Roles shared by all students.
 
 Parameters:
   DBPassword:
@@ -118,7 +120,7 @@ Resources:
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: ALB Security Group
+      GroupDescription: ALB Security Group - shared
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -129,7 +131,7 @@ Resources:
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: ECS Tasks Security Group
+      GroupDescription: ECS Tasks Security Group - shared
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -140,66 +142,13 @@ Resources:
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: RDS Security Group
+      GroupDescription: RDS Security Group - shared
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref ECSSecurityGroup
-
-  # ==================== Command Host ====================
-  CommandHostRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: ecs-fargate-lab-command-host-role
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
-        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-
-  CommandHostInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Roles:
-        - !Ref CommandHostRole
-
-  CommandHostSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Command Host Security Group
-      VpcId: !Ref VPC
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
-
-  CommandHost:
-    Type: AWS::EC2::Instance
-    Properties:
-      InstanceType: t3.micro
-      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
-      SubnetId: !Ref PublicSubnet1
-      SecurityGroupIds:
-        - !Ref CommandHostSecurityGroup
-      IamInstanceProfile: !Ref CommandHostInstanceProfile
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          yum update -y
-          yum install -y docker git
-          systemctl enable docker
-          systemctl start docker
-      Tags:
-        - Key: Name
-          Value: ecs-fargate-lab-command-host
 
   # ==================== ALB ====================
   ALB:
@@ -213,28 +162,18 @@ Resources:
       SecurityGroups:
         - !Ref ALBSecurityGroup
 
-  TargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      Name: ecs-fargate-lab-tg
-      Port: 80
-      Protocol: HTTP
-      VpcId: !Ref VPC
-      TargetType: ip
-      HealthCheckPath: /
-      HealthCheckIntervalSeconds: 30
-      HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 3
-
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref ALB
       Port: 80
       Protocol: HTTP
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref TargetGroup
+      DefaultAction:
+        - Type: fixed-response
+          FixedResponseConfig:
+            StatusCode: '404'
+            ContentType: text/plain
+            MessageBody: 'No lab environment found. Please start your lab first.'
 
   # ==================== ECS Cluster ====================
   ECSCluster:
@@ -261,11 +200,11 @@ Resources:
             "rules": [
               {
                 "rulePriority": 1,
-                "description": "Keep only 5 images",
+                "description": "Keep only 30 images",
                 "selection": {
                   "tagStatus": "any",
                   "countType": "imageCountMoreThan",
-                  "countNumber": 5
+                  "countNumber": 30
                 },
                 "action": { "type": "expire" }
               }
@@ -316,29 +255,17 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:ListBucket
-                Resource:
-                  - !GetAtt S3Bucket.Arn
-                  - !Sub '${S3Bucket.Arn}/*'
-
-  # ==================== S3 ====================
-  S3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:ListAllMyBuckets
+                Resource: '*'
 
   # ==================== RDS ====================
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: RDS subnet group
+      DBSubnetGroupDescription: RDS subnet group - shared
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -354,7 +281,6 @@ Resources:
       AllocatedStorage: 20
       MasterUsername: admin
       MasterUserPassword: !Ref DBPassword
-      DBName: workshopdb
       DBSubnetGroupName: !Ref DBSubnetGroup
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
@@ -363,31 +289,69 @@ Resources:
       BackupRetentionPeriod: 0
 
 Outputs:
-  CommandHostSessionUrl:
-    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${CommandHost}?region=${AWS::Region}'
-  Region:
-    Value: !Ref AWS::Region
-  ECSClusterName:
-    Value: !Ref ECSCluster
-  ECRRepositoryUri:
-    Value: !GetAtt ECRRepository.RepositoryUri
-  ALBDnsName:
-    Value: !GetAtt ALB.DNSName
-  S3BucketName:
-    Value: !Ref S3Bucket
-  RDSEndpoint:
-    Value: !GetAtt RDSInstance.Endpoint.Address
-  ECSTaskExecutionRoleArn:
-    Value: !GetAtt ECSTaskExecutionRole.Arn
-  ECSTaskRoleArn:
-    Value: !GetAtt ECSTaskRole.Arn
-  PublicSubnet1:
-    Value: !Ref PublicSubnet1
-  PublicSubnet2:
-    Value: !Ref PublicSubnet2
-  ECSSecurityGroup:
-    Value: !Ref ECSSecurityGroup
-  TargetGroupArn:
-    Value: !Ref TargetGroup
   VPCId:
     Value: !Ref VPC
+    Export:
+      Name: ecs-fargate-lab-VPCId
+  PublicSubnet1:
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: ecs-fargate-lab-PublicSubnet1
+  PublicSubnet2:
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: ecs-fargate-lab-PublicSubnet2
+  PrivateSubnet1:
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: ecs-fargate-lab-PrivateSubnet1
+  PrivateSubnet2:
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: ecs-fargate-lab-PrivateSubnet2
+  ECSClusterName:
+    Value: !Ref ECSCluster
+    Export:
+      Name: ecs-fargate-lab-ClusterName
+  ECSClusterArn:
+    Value: !GetAtt ECSCluster.Arn
+    Export:
+      Name: ecs-fargate-lab-ClusterArn
+  ECRRepositoryUri:
+    Value: !GetAtt ECRRepository.RepositoryUri
+    Export:
+      Name: ecs-fargate-lab-ECRUri
+  ALBArn:
+    Value: !Ref ALB
+    Export:
+      Name: ecs-fargate-lab-ALBArn
+  ALBDnsName:
+    Value: !GetAtt ALB.DNSName
+    Export:
+      Name: ecs-fargate-lab-ALBDns
+  ALBListenerArn:
+    Value: !Ref ALBListener
+    Export:
+      Name: ecs-fargate-lab-ListenerArn
+  ECSSecurityGroup:
+    Value: !Ref ECSSecurityGroup
+    Export:
+      Name: ecs-fargate-lab-ECSSg
+  ALBSecurityGroup:
+    Value: !Ref ALBSecurityGroup
+    Export:
+      Name: ecs-fargate-lab-ALBSg
+  ECSTaskExecutionRoleArn:
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Export:
+      Name: ecs-fargate-lab-ExecRoleArn
+  ECSTaskRoleArn:
+    Value: !GetAtt ECSTaskRole.Arn
+    Export:
+      Name: ecs-fargate-lab-TaskRoleArn
+  RDSEndpoint:
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: ecs-fargate-lab-RDSEndpoint
+  Region:
+    Value: !Ref AWS::Region

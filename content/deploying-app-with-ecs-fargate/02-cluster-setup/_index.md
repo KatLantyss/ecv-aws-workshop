@@ -3,84 +3,70 @@ title: Task 1 - 基礎環境建置
 order: 2
 ---
 
-# Task 1 - 部署基礎環境與 ECS 叢集建置
+# Task 1 - 部署個人 Lab 環境
 
-::badge[實作]{type="info"} ::badge[約 15-20 分鐘]{type="default"}
+::badge[實作]{type="info"} ::badge[約 10 分鐘]{type="default"}
 
-使用 CloudFormation Console 一鍵部署本工作坊所需的所有基礎設施，包含 VPC、ECS Cluster、ALB、ECR、S3、RDS。
+講師已預先部署共用基礎設施（VPC、ECS Cluster、ALB、ECR、RDS）。本步驟將部署個人 Lab 資源，包含 Command Host、S3 Bucket 和 ALB 路由規則。
 
 ---
 
-## 1.1 認識 CloudFormation 模板
+## 1.1 共用基礎設施
 
-本工作坊提供了一份 CloudFormation 模板 [::button[ecs-fargate-lab-infra.yaml]{variant="default" prefix="arrow-down-to-line"}](ecs-fargate-lab-infra.yaml)，它會建立以下資源：
+以下資源由講師事先建立，所有學員共用：
 
 | 資源類型 | 資源名稱 | 說明 |
 |----------|----------|------|
 | VPC | ecs-fargate-lab-vpc | CIDR: 10.0.0.0/16 |
-| Public Subnet x2 | ecs-fargate-lab-public-1/2 | 跨 2 個 AZ，放置 ALB 與 Fargate Tasks |
+| Public Subnet x2 | ecs-fargate-lab-public-1/2 | 跨 2 個 AZ |
 | Private Subnet x2 | ecs-fargate-lab-private-1/2 | 跨 2 個 AZ，放置 RDS |
-| Internet Gateway | ecs-fargate-lab-igw | 讓 Public Subnet 可存取 Internet |
-| ALB | ecs-fargate-lab-alb | 負載平衡器，監聽 Port 80 |
-| Target Group | ecs-fargate-lab-tg | 目標群組，Health Check Path: / |
-| ECS Cluster | ecs-fargate-lab-cluster | Fargate Capacity Provider |
-| ECR Repository | ecs-fargate-lab-app | 啟用 Image Scanning |
-| S3 Bucket | (自動命名) | AES256 加密，封鎖公開存取 |
-| RDS MySQL | ecs-fargate-lab-db | db.t3.micro，MySQL 8.0 |
-| IAM Roles | execution-role / task-role / command-host-role | ECS 角色與 Command Host 角色 |
-| Security Groups | ALB / ECS / RDS / Command Host | 分層安全群組 |
-| Command Host | ecs-fargate-lab-command-host | t3.micro，預裝 Docker、Git，透過 Session Manager 連線 |
-
-### 安全群組規則
-
-```
-Internet ──▶ ALB SG (Port 80) ──▶ ECS SG (Port 80) ──▶ RDS SG (Port 3306)
-```
-
-- **ALB Security Group**：允許來自 Internet 的 HTTP (80) 流量
-- **ECS Security Group**：僅允許來自 ALB SG 的 Port 80 流量
-- **RDS Security Group**：僅允許來自 ECS SG 的 Port 3306 流量
+| ALB | ecs-fargate-lab-alb | 共用負載平衡器 |
+| ECS Cluster | ecs-fargate-lab-cluster | 共用 Fargate Cluster |
+| ECR Repository | ecs-fargate-lab-app | 共用映像儲存庫 |
+| RDS MySQL | ecs-fargate-lab-db | 共用資料庫 |
+| IAM Roles | execution-role / task-role | 共用 ECS 角色 |
 
 :::alert{type="info"}
-這種分層安全群組設計確保每一層只接受來自上一層的流量，是 AWS 安全最佳實踐。
-:::
-
-### IAM Role 設計
-
-模板建立了三組 IAM Role：
-
-:::expand{title="Command Host Role"}
-- 用途：Command Host EC2 使用，透過 Session Manager 連線並操作 AWS 服務
-- 附加政策：`AmazonSSMManagedInstanceCore`、`AmazonEC2ContainerRegistryPowerUser`、`AmazonECS_FullAccess`、`AmazonS3FullAccess`
-:::
-
-:::expand{title="ECS Task Execution Role"}
-- 用途：ECS Agent 使用，負責拉取 ECR 映像和寫入 CloudWatch Logs
-- 附加政策：`AmazonECSTaskExecutionRolePolicy`（AWS 託管政策）
-:::
-
-:::expand{title="ECS Task Role"}
-- 用途：容器內應用程式使用，存取 S3 等 AWS 服務
-- 自訂政策：允許 `s3:GetObject`、`s3:PutObject`、`s3:ListBucket`
+以上資源無需手動建立，已由講師部署就緒。個人 Lab 資源會引用這些共用基礎設施。
 :::
 
 ---
 
-## 1.2 透過 Console 部署 CloudFormation Stack
+## 1.2 個人 Lab 資源
+
+下載個人 Lab CloudFormation 模板：
+
+[::button[ecs-fargate-lab-user.yaml]{variant="default" prefix="arrow-down-to-line"}](ecs-fargate-lab-user.yaml)
+
+此模板會建立以下個人專屬資源：
+
+| 資源類型 | 資源名稱 | 說明 |
+|----------|----------|------|
+| Command Host | {{prefix}}-command-host | t3.micro，預裝 Docker、Git |
+| S3 Bucket | {{prefix}}-ecs-fargate-lab-* | 個人 S3 儲存桶 |
+| Target Group | {{prefix}}-tg | 個人 ALB 目標群組 |
+| Listener Rule | — | 將流量路由到個人 Target Group |
+| Security Group | {{prefix}}-command-host-sg | Command Host 安全群組 |
+| IAM Role | {{prefix}}-command-host-role | Command Host 角色 |
+
+---
+
+## 1.3 透過 Console 部署個人 Lab
 
 :::steps
-1. 開啟 [CloudFormation Console](https://console.aws.amazon.com/cloudformation/)，確認右上角區域為 `us-east-1`
+1. 開啟 [CloudFormation Console](https://console.aws.amazon.com/cloudformation/)，確認右上角區域為 ``us-east-1``
 
 2. 點擊 ::button[Create stack]{variant="default" postfix="aws-expand"} → 選擇 **With new resources (standard)**
 
 3. 在 **Create stacks** 頁面：
    - 選擇 **Upload a template file**
-   - 點擊 ::button[Choose file]{variant="default" prefix="arrow-up-to-line"} 上傳 `ecs-fargate-lab-infra.yaml`
+   - 點擊 ::button[Choose file]{variant="default" prefix="arrow-up-to-line"} 上傳 `ecs-fargate-lab-user.yaml`
    - 點擊 ::button[Next]{variant="action"}
 
 4. 在 **Specify stack details** 頁面：
-   - **Stack name**：輸入 ``ecs-fargate-lab``
-   - **DBPassword**：輸入資料庫密碼（至少 8 個字元，例如 ``WorkshopPass123``）
+   - **Stack name**：輸入 ``{{prefix}}-ecs-fargate-lab``
+   - **UserPrefix**：輸入 ``{{prefix}}``
+   - **InfraStackName**：保持預設值 `ecs-fargate-lab`
    - 點擊 ::button[Next]{variant="action"}
 
 5. 在 **Configure stack options** 頁面：
@@ -92,61 +78,57 @@ Internet ──▶ ALB SG (Port 80) ──▶ ECS SG (Port 80) ──▶ RDS SG 
 :::
 
 :::alert{type="warning"}
-資料庫密碼請記住，後續 Task 5 整合 RDS 時會用到。正式環境應使用 AWS Secrets Manager 管理密碼。
+**Stack name** 和 **UserPrefix** 務必填入個人 username ``{{prefix}}``，避免與其他學員衝突。
 :::
 
 ---
 
-## 1.3 等待部署完成
+## 1.4 等待部署完成
 
-部署約需 **5-10 分鐘**，主要等待 RDS 建立。
+部署約需 **2-3 分鐘**。
 
 :::steps
-1. 在 CloudFormation Console 中，點擊剛建立的 `ecs-fargate-lab` Stack
-2. 切換到 **Events** 分頁，可以即時查看建立進度
+1. 在 CloudFormation Console 中，點擊剛建立的 `{{prefix}}-ecs-fargate-lab` Stack
+2. 切換到 **Events** 分頁，查看建立進度
 3. 等待 Stack 狀態變為 ::status[CREATE_COMPLETE]{type="success" icon="aws-success"}
 :::
 
-:::alert{type="danger"}
-如果狀態變為 ::status[CREATE_FAILED]{type="danger" icon="aws-error"} 或 ::status[ROLLBACK_COMPLETE]{type="danger" icon="aws-error"}，請切換到 **Events** 分頁查看失敗原因。
-:::
-
 :::expand{title="常見失敗原因"}
-- 密碼不符合要求（至少 8 字元）
-- 區域中已存在同名資源（如 ecs-fargate-lab-cluster）
-- IAM 權限不足
+- UserPrefix 包含大寫字母或特殊字元（只允許小寫英數和 `-`）
+- 區域中已存在同名資源（其他學員用了相同的 prefix）
+- 講師的基礎設施 Stack 尚未部署完成
 - 如需重試，請先刪除失敗的 Stack 再重新建立
 :::
 
 ---
 
-## 1.4 記錄 Stack 輸出值
-
-部署完成後，需要記錄後續 Lab 會用到的資源資訊。
+## 1.5 記錄 Stack 輸出值
 
 :::steps
-1. 在 CloudFormation Console 中，點擊 `ecs-fargate-lab` Stack
+1. 在 CloudFormation Console 中，點擊 `{{prefix}}-ecs-fargate-lab` Stack
 2. 切換到 **Outputs** 分頁
 3. 記錄以下關鍵輸出值：
 :::
 
 | Output Key | 說明 | 用途 |
 |------------|------|------|
-| CommandHostSessionUrl | Session Manager 連線 URL | 連線至 Command Host |
+| CommandHostSessionUrl | Session Manager 連線 URL | 連線至個人 Command Host |
 | ECRRepositoryUri | ECR 映像儲存庫 URI | Task 3 推送映像 |
 | ALBDnsName | ALB DNS 名稱 | Task 4 驗證應用 |
-| S3BucketName | S3 Bucket 名稱 | Task 5 應用升級 |
+| S3BucketName | 個人 S3 Bucket 名稱 | Task 5 應用升級 |
 | RDSEndpoint | RDS 連線端點 | Task 5 應用升級 |
+| ECSSecurityGroup | ECS 安全群組 ID | Task 4 建立 Service |
+| TargetGroupArn | 個人 Target Group ARN | Task 4 建立 Service |
 
 :::alert{type="info"}
 建議將這些值複製到一個文字檔中備用，後續 Lab 會頻繁使用。
 :::
 
-同時在 Command Host 終端機設定環境變數，方便後續操作：
+在 Command Host 終端機設定環境變數：
 
 :::steps
-1. 在 CloudFormation Outputs 中，點擊 **CommandHostSessionUrl** 的連結，開啟 Session Manager 終端機
-2. 在終端機中執行以下指令設定環境變數：
+1. 在 Outputs 中，點擊 **CommandHostSessionUrl** 的連結，開啟 Session Manager 終端機
+2. 執行以下指令設定環境變數：
 :::
 
 ```bash
@@ -154,17 +136,16 @@ export ECR_REPO=<貼上 ECRRepositoryUri>
 export ALB_DNS=<貼上 ALBDnsName>
 export S3_BUCKET=<貼上 S3BucketName>
 export RDS_ENDPOINT=<貼上 RDSEndpoint>
-export DB_PASSWORD=<先前設定的資料庫密碼>
 ```
 
 ---
 
-## 1.5 驗證資源建立
+## 1.6 驗證資源建立
 
 ### 確認 Command Host
 
 :::steps
-1. 在 CloudFormation Outputs 中，點擊 **CommandHostSessionUrl** 的連結
+1. 在 Outputs 中，點擊 **CommandHostSessionUrl** 的連結
 2. 預期開啟 Session Manager 終端機畫面
 3. 執行以下指令確認工具已安裝：
 
@@ -173,37 +154,20 @@ docker --version && git --version && aws --version
 ```
 :::
 
-### 確認 ECS Cluster
+### 確認 ECS Cluster（共用）
 
 :::steps
-1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/)
-2. 左側選單點擊 **Clusters**
-3. 確認 `ecs-fargate-lab-cluster` 存在且狀態為 ::status[Active]{type="success" icon="aws-success"}
+1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters**
+2. 確認 `ecs-fargate-lab-cluster` 存在且狀態為 ::status[Active]{type="success" icon="aws-success"}
 :::
 
-### 確認 ALB
+### 確認 ALB（共用）
 
 :::steps
-1. 開啟 [EC2 Console](https://console.aws.amazon.com/ec2/) → 左側選單 **Load Balancers**
+1. 開啟 [EC2 Console](https://console.aws.amazon.com/ec2/) → **Load Balancers**
 2. 確認 `ecs-fargate-lab-alb` 存在且狀態為 ::status[Active]{type="success" icon="aws-success"}
-3. 複製 ALB 的 **DNS name**，在瀏覽器開啟 `http://<ALB_DNS>`
-4. 預期看到 **503** 回應（因為尚未部署任何 Service）
-:::
-
-### 確認 RDS
-
-:::steps
-1. 開啟 [RDS Console](https://console.aws.amazon.com/rds/) → 左側選單 **Databases**
-2. 確認 `ecs-fargate-lab-db` 存在且狀態為 ::status[Available]{type="success" icon="aws-success"}
-3. 記下 **Endpoint** 值，後續 Task 5 會用到
-:::
-
-### 確認 S3
-
-:::steps
-1. 開啟 [S3 Console](https://console.aws.amazon.com/s3/)
-2. 找到 workshop 建立的 Bucket（名稱由 CloudFormation 自動產生）
-3. 確認 **Block all public access** 為 On
+3. 在瀏覽器開啟 `http://<ALB_DNS>`
+4. 預期看到 **404** 回應（尚未部署任何 Service）
 :::
 
 ---
@@ -212,11 +176,12 @@ docker --version && git --version && aws --version
 
 | 項目 | 驗證方式 | 預期結果 |
 |------|----------|----------|
-| Stack 狀態 | CloudFormation Console | ::status[CREATE_COMPLETE]{type="success" icon="aws-success"} |
+| 個人 Stack 狀態 | CloudFormation Console | ::status[CREATE_COMPLETE]{type="success" icon="aws-success"} |
+| Command Host | Session Manager | 可連線，Docker/Git 已安裝 |
 | ECS Cluster | ECS Console | ::status[Active]{type="success" icon="aws-success"} |
-| ALB | 瀏覽器開啟 ALB DNS | HTTP 503 |
-| Outputs | CloudFormation Outputs 分頁 | 所有值已記錄 |
+| ALB | 瀏覽器 | HTTP 404 |
+| Outputs | CloudFormation Outputs | 所有值已記錄 |
 
 :::alert{type="success"}
-基礎環境就緒，前往下一節建置容器映像。
+個人 Lab 環境就緒，前往下一節建置容器映像。
 :::

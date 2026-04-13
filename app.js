@@ -310,13 +310,17 @@ async function init() {
     config = await fetch('config.json').then(r => r.json());
     document.getElementById('headerTitle').textContent = config.title;
     document.title = config.title;
+    document.getElementById('loginTitle').textContent = config.title;
 
     // logo: 圖片路徑或 emoji 文字
     const logoEl = document.getElementById('headerLogo');
+    const loginLogoEl = document.getElementById('loginLogo');
     if (config.logo && (config.logo.endsWith('.png') || config.logo.endsWith('.svg') || config.logo.endsWith('.jpg') || config.logo.endsWith('.webp'))) {
       logoEl.innerHTML = `<img src="${config.logo}" alt="logo" width="36" height="36">`;
+      loginLogoEl.innerHTML = `<img src="${config.logo}" alt="logo" style="width:64px;height:64px;object-fit:contain">`;
     } else {
       logoEl.textContent = config.logo || '☁';
+      loginLogoEl.textContent = config.logo || '☁';
     }
     document.getElementById('landingTitle').textContent = config.title;
     document.getElementById('landingSubtitle').textContent = config.subtitle || '';
@@ -384,6 +388,8 @@ function showLanding() {
   document.getElementById('landing').removeAttribute('hidden');
   document.getElementById('main').setAttribute('hidden', '');
   document.getElementById('sidebar').classList.remove('visible');
+  hideLoginScreen();
+  enterWorkshop._pending = null;
   closeMobile();
   document.getElementById('breadcrumb').innerHTML = '';
   document.getElementById('progressText').textContent = '';
@@ -419,15 +425,21 @@ async function enterWorkshop(slug, chapterId) {
   if (currentWorkshop === slug && chapters.length) {
     const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : 0;
     if (idx >= 0) loadChapter(idx);
+    showReader(); // Ensure reader view is visible when navigating back
     return;
   }
 
   const ws = workshops.find(w => w.slug === slug);
   if (!ws) return;
 
+  const dir = ws.dir;
+
+  // Prevent concurrent loads
+  const loadId = Symbol();
+  enterWorkshop._current = loadId;
+
   currentWorkshop = slug;
   chapters = [];
-  const dir = ws.dir;
   const files = ws.manifest.pages || [];
 
   // 並行載入所有 md
@@ -452,6 +464,9 @@ async function enterWorkshop(slug, chapterId) {
   }));
 
   chapters = results.filter(Boolean);
+
+  // Abort if a newer navigation started while we were loading
+  if (enterWorkshop._current !== loadId) return;
 
   document.getElementById('sidebarLabel').textContent = ws.manifest.title || slug;
   buildSidebar();
@@ -519,6 +534,12 @@ function renderMarkdown(md) {
     html = html.replace(/\x00CB(\d+)\x00/g, (_, i) => blocks[i] || '');
   }
 
+  // Replace {{prefix}} with current user's prefix
+  const prefix = getUserPrefix();
+  if (prefix) {
+    html = html.replace(/\{\{prefix\}\}/g, prefix);
+  }
+
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
   const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
 
@@ -556,13 +577,11 @@ function handleRoute() {
 
   const slashIdx = hash.indexOf('/');
   if (slashIdx === -1) {
-    // Just a workshop slug — enter it
     enterWorkshop(hash);
   } else {
     const slug = hash.slice(0, slashIdx);
     const chapterId = hash.slice(slashIdx + 1);
     if (slug === currentWorkshop && chapters.length) {
-      // Already loaded, just switch chapter
       const idx = chapters.findIndex(c => c.id === chapterId);
       if (idx >= 0 && idx !== currentIndex) loadChapter(idx);
     } else {
@@ -807,6 +826,154 @@ async function renderMermaid() {
   } catch (e) {
     console.warn('Mermaid render error:', e);
   }
+}
+
+/* ═══════════════════════════════════════════
+   Auth — per-workshop credentials.json login
+   ═══════════════════════════════════════════ */
+let workshopCredentials = null; // credentials for current workshop
+let currentUser = null;
+
+async function loadWorkshopCredentials(workshopDir) {
+  try {
+    const res = await fetch(workshopDir + '/credentials.json');
+    if (res.ok) return await res.json();
+  } catch {}
+  return null;
+}
+
+function getStoredUser(slug) {
+  return localStorage.getItem('ws-user-' + slug);
+}
+
+function setStoredUser(slug, username) {
+  localStorage.setItem('ws-user-' + slug, username);
+}
+
+function clearStoredUser(slug) {
+  localStorage.removeItem('ws-user-' + slug);
+}
+
+function showLoginScreen() {
+  const screen = document.getElementById('loginScreen');
+  screen.removeAttribute('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginCode').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginUser').focus();
+}
+
+function hideLoginScreen() {
+  document.getElementById('loginScreen').setAttribute('hidden', '');
+}
+
+function updateUserUI() {
+  const badge = document.getElementById('headerUser');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (currentUser) {
+    badge.textContent = currentUser;
+    badge.removeAttribute('hidden');
+    logoutBtn.removeAttribute('hidden');
+  } else {
+    badge.setAttribute('hidden', '');
+    logoutBtn.setAttribute('hidden', '');
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const code = document.getElementById('loginCode').value.trim();
+  const errorEl = document.getElementById('loginError');
+
+  if (!workshopCredentials) {
+    errorEl.textContent = '系統錯誤：無法載入驗證資料';
+    return;
+  }
+
+  // Validate event code
+  if (code !== workshopCredentials.eventCode) {
+    errorEl.textContent = '活動代碼錯誤';
+    document.getElementById('loginCode').value = '';
+    document.getElementById('loginCode').focus();
+    return;
+  }
+
+  // Validate username
+  if (!workshopCredentials.users.includes(username)) {
+    errorEl.textContent = '此 Username 不在本次活動名單中';
+    document.getElementById('loginUser').focus();
+    return;
+  }
+
+  currentUser = username;
+  // Use pending slug for storage key since currentWorkshop isn't set yet
+  const pendingSlug = enterWorkshop._pending ? enterWorkshop._pending.slug : currentWorkshop;
+  if (pendingSlug) {
+    setStoredUser(pendingSlug, JSON.stringify({ username, eventCode: code }));
+  }
+  hideLoginScreen();
+  updateUserUI();
+  errorEl.textContent = '';
+
+  // Resume pending workshop navigation
+  if (enterWorkshop._pending) {
+    const { slug, chapterId } = enterWorkshop._pending;
+    enterWorkshop._pending = null;
+    enterWorkshop(slug, chapterId);
+  }
+}
+
+function handleLogout() {
+  if (currentWorkshop) clearStoredUser(currentWorkshop);
+  currentUser = null;
+  workshopCredentials = null;
+  updateUserUI();
+  goHome();
+}
+
+function cancelLogin() {
+  enterWorkshop._pending = null;
+  workshopCredentials = null;
+  hideLoginScreen();
+  goHome();
+}
+
+function getUserPrefix() {
+  return currentUser || '';
+}
+
+// Called when entering a workshop — checks if login is required
+async function checkWorkshopAuth(slug, workshopDir) {
+  const creds = await loadWorkshopCredentials(workshopDir);
+  workshopCredentials = creds;
+
+  if (!creds || !creds.eventCode || !creds.users || creds.users.length === 0) {
+    // No credentials file or no event code — public workshop
+    currentUser = null;
+    updateUserUI();
+    return true;
+  }
+
+  // Check stored login — must match both username and current event code
+  const stored = getStoredUser(slug);
+  if (stored) {
+    try {
+      const session = JSON.parse(stored);
+      if (session.eventCode === creds.eventCode && creds.users.includes(session.username)) {
+        currentUser = session.username;
+        updateUserUI();
+        return true;
+      }
+    } catch {}
+  }
+
+  // Invalid or expired session — need login
+  currentUser = null;
+  clearStoredUser(slug);
+  updateUserUI();
+  showLoginScreen();
+  return false;
 }
 
 /* ═══════════════════════════════════════════

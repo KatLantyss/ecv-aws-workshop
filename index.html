@@ -47,6 +47,8 @@
   </div>
   <div class="header-right">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+    <span class="header-user" id="headerUser" hidden></span>
+    <button class="header-btn" id="logoutBtn" onclick="handleLogout()" hidden>登出</button>
     <button class="header-btn" id="prevBtn" onclick="navigatePrev()">← 上一頁</button>
     <button class="header-btn" id="nextBtn" onclick="navigateNext()">下一頁 →</button>
   </div>
@@ -82,6 +84,30 @@
 </main>
 
 <div class="overlay" id="overlay"></div>
+
+<!-- ═══ Login Screen ═══ -->
+<div class="login-screen" id="loginScreen" hidden>
+  <div class="login-card">
+    <div class="login-logo" id="loginLogo">☁</div>
+    <h1 class="login-title" id="loginTitle">AWS Workshop</h1>
+    <p class="login-subtitle">請輸入講師提供的帳號與活動代碼</p>
+    <form class="login-form" id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
+      <div class="login-field">
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" name="username" required autocomplete="username" spellcheck="false" placeholder="例如 ws-01…">
+      </div>
+      <div class="login-field">
+        <label for="loginCode">Event Code</label>
+        <input type="text" id="loginCode" name="eventcode" required autocomplete="off" spellcheck="false" placeholder="講師提供的活動代碼…">
+      </div>
+      <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+      <button class="login-btn" type="submit">進入 Workshop</button>
+    </form>
+    <p class="login-hint">沒有帳號或活動代碼？請聯繫講師取得。</p>
+    <a class="login-back" href="#" onclick="cancelLogin();return false">← 返回首頁</a>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

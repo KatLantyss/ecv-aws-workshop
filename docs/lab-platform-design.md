@@ -60,10 +60,39 @@ DynamoDB（記錄每個學員的 stack 狀態和 output）
 - Workshop 內容中的資源名稱用變數語法，自動替換為學員的 prefix
 - 下載 CloudFormation template 時自動帶入 prefix
 
-### 5. CloudFormation 參數化
-- 現有 template 加上 `UserPrefix` 參數
-- 所有 resource name 改為 `!Sub "${UserPrefix}-original-name"`
-- Output 也帶 prefix
+### 5. CloudFormation 拆分（已完成）
+
+已將原本的單一 template 拆成兩份：
+
+**`ecs-fargate-lab-infra.yaml`（講師建一次）**
+- VPC、Subnet、IGW、Route Table
+- ALB + Listener（default 404，per-user 用 Listener Rule 路由）
+- ECS Cluster
+- ECR Repository（共用，學員各自 push 不同 tag）
+- RDS Instance（共用，學員各自建 database）
+- Security Groups（ALB SG、ECS SG、RDS SG）
+- IAM Roles（Execution Role、Task Role）
+- 所有 output 透過 CloudFormation Export 供 Lab template 引用
+
+**`ecs-fargate-lab-user.yaml`（per-user，帶 `UserPrefix` 參數）**
+- Command Host EC2（per-user，各自的 Docker 環境）
+- S3 Bucket（per-user）
+- ALB Target Group + Listener Rule（per-user 路由）
+- 透過 `Fn::ImportValue` 引用 Infra stack 的 output
+- 刪除此 stack 只影響該學員的資源，不動共用基礎設施
+
+**學員在 Console 手動操作（教學核心，不在 template 裡）：**
+- Task Definition
+- ECS Service
+- Docker build + push
+
+**Quota 影響：**
+- VPC：1 個（不再是 per-user）
+- ALB：1 個（共用）
+- RDS：1 個（共用）
+- EC2：20 個 t3.micro（per-user Command Host）
+- S3 Bucket：20 個（per-user）
+- ALB Target Group：20 個（quota 預設 100，夠用）
 
 ### 6. 講師管理工具
 - 批次建立/刪除 Cognito 學員帳號（CLI 腳本）
@@ -73,9 +102,9 @@ DynamoDB（記錄每個學員的 stack 狀態和 output）
 
 ## 建議實作順序
 
-1. CloudFormation 參數化（5）— 最小改動，立即解決 resource 衝突
+1. ~~CloudFormation 拆分（5）~~ ✅ 已完成 — infra.yaml + user.yaml
 2. 認證系統（1）+ 資料層（3）— 後端基礎設施
-3. Lab 生命週期 API（2）— 核心功能
+3. Lab 生命週期 API（2）— 核心功能（Start Lab 建 user stack、End Lab 刪 user stack）
 4. 前端整合（4）— 串接 UI
 5. 講師管理工具（6）— 運維輔助
 
