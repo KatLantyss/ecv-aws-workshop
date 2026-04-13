@@ -6,7 +6,7 @@
 
 ```
 ├── index.html          # 單頁應用入口
-├── app.js              # 核心邏輯（路由、Markdown 渲染、自訂語法）
+├── app.js              # 核心邏輯（Router、Markdown 渲染、自訂語法、Auth）
 ├── style.css           # 樣式（dark/light theme）
 ├── config.json         # 網站設定（title、workshops 列表）
 ├── build.sh            # 自動掃描 content/ 產生索引
@@ -14,6 +14,8 @@
 ├── assets/             # 全站靜態資源（logo 等）
 ├── infra/              # 講師用 CloudFormation（不部署到 S3）
 │   └── ecs-fargate-lab-infra.yaml
+├── docs/               # 設計文件
+│   └── lab-platform-design.md
 └── content/            # Workshop 內容
     └── my-workshop/
         ├── _manifest.json   # Workshop metadata（卡片資訊）
@@ -28,9 +30,18 @@
 
 ## 核心機制
 
-- **路由**：hash-based SPA，格式 `#workshop-slug/chapter-id`
+- **Router**：集中式 state machine，三個 view（home/login/reader）互斥切換
+  - Hash patterns：`(空)` → 首頁、`#login/{slug}` → 登入、`#{slug}/{chapterId}` → 閱讀
+  - 所有導航經過 `router.go(action, params)`，統一管理 hash 和 history
+  - `hashchange` 只觸發 `router.resolve()`，避免散落的 hash 操作互相衝突
+- **認證**：per-workshop 的 event code 機制
+  - Workshop 目錄下放 `credentials.json` → 進入時需要登入
+  - 沒有 `credentials.json` → 公開 workshop，不需要登入
+  - 登入狀態存 `localStorage`（per-workshop），event code 變更時自動失效
+  - `{{prefix}}` 變數在 markdown 渲染時自動替換為登入的 username
 - **Markdown**：使用 marked.js v15 渲染，支援 GFM
 - **自訂語法**：`preprocessCustomSyntax()` 在 marked 之前處理 `::` / `:::` 語法
+- **Mermaid**：支援 `mermaid` code block，自動偵測 dark/light 主題
 - **Icon**：自訂 `aws-*` icon（16x16 SVG）+ Lucide icon fallback
 - **索引**：`config.json` 列出 workshops，每個 workshop 的 `_manifest.json` 列出 pages
 - **build.sh**：掃描 `content/` 自動更新 `config.json` 和 `_manifest.json`，`_` 開頭的資料夾會被忽略
@@ -86,11 +97,40 @@
 
 所有圖片點擊可放大（Lightbox），按 Escape 或點擊背景關閉。
 
+### Mermaid 圖表
+
+使用 `mermaid` code block，支援所有 Mermaid 圖表類型。切換主題時自動重新渲染。
+
 ### 可用 AWS Icon
 
 `aws-sign-out`、`aws-new-tab`、`aws-refresh`、`aws-expand`、`aws-info`、`aws-success`、`aws-warning`、`aws-error`、`aws-copy`、`aws-arrow-right`
 
 所有 [Lucide](https://lucide.dev/icons) icon 也可直接使用。
+
+## 認證機制
+
+在 workshop 目錄下放置 `credentials.json` 即可啟用登入保護：
+
+```json
+{
+  "eventCode": "ECS-2026-TPE",
+  "users": ["ws-01", "ws-02", "ws-03"]
+}
+```
+
+- `eventCode`：活動代碼，講師提供給學員。變更後所有 session 自動失效。
+- `users`：允許登入的 username 列表。
+- 登入後 `{{prefix}}` 變數會替換為 username，用於顯示個人化的資源名稱。
+- 沒有 `credentials.json` 的 workshop 為公開，不需要登入。
+
+## CloudFormation 拆分
+
+多人共用同一 AWS 帳號時，IaC 拆分為兩份避免資源衝突：
+
+- `infra/ecs-fargate-lab-infra.yaml`：講師部署一次的共用基礎設施（VPC、ALB、ECS Cluster、ECR、RDS）
+- `content/.../ecs-fargate-lab-user.yaml`：每個學員各自部署（Command Host、S3 Bucket、ALB Target Group），帶 `UserPrefix` 參數
+
+詳見 `docs/lab-platform-design.md`。
 
 ## Front Matter
 
@@ -134,12 +174,12 @@ python3 -m http.server 8080
 2. 建立 `content/my-workshop/_manifest.json`（填 title、description 等）
 3. 新增章節 `.md` 檔或子資料夾
 4. 執行 `./build.sh`
+5. （選填）新增 `content/my-workshop/credentials.json` 啟用登入保護
 
 資料夾名稱加 `_` 前綴（如 `_my-draft`）會被 build 忽略。
 
 ## TODO
 
 - Drawio support
-- 使用 CodeCommit、CodePipeline、CodeBuild 同步所有內容（S3 為主要版本）
-- Lab Account 後台變更 / Cognito 身份驗證
-- Call Lambda/Eventbridge/API Gateway… 直接部署 CloudFormation 以及回傳回去 UI 特定資源
+- Lab Platform 後端（Cognito + API Gateway + Lambda），詳見 `docs/lab-platform-design.md`
+- 使用 CodePipeline 同步所有內容（S3 為主要版本）

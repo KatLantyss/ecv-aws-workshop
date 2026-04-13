@@ -42,12 +42,12 @@ order: 2
 
 | 資源類型 | 資源名稱 | 說明 |
 |----------|----------|------|
-| Command Host | {{prefix}}-command-host | t3.micro，預裝 Docker、Git |
-| S3 Bucket | {{prefix}}-ecs-fargate-lab-* | 個人 S3 儲存桶 |
-| Target Group | {{prefix}}-tg | 個人 ALB 目標群組 |
+| Command Host | ecs-fargate-lab-{{prefix}}-command-host | t3.micro，預裝 Docker、Git |
+| S3 Bucket | ecs-fargate-lab-{{prefix}}-* | 個人 S3 儲存桶 |
+| Target Group | ecs-fargate-lab-{{prefix}}-tg | 個人 ALB 目標群組 |
 | Listener Rule | — | 將流量路由到個人 Target Group |
-| Security Group | {{prefix}}-command-host-sg | Command Host 安全群組 |
-| IAM Role | {{prefix}}-command-host-role | Command Host 角色 |
+| Security Group | ecs-fargate-lab-{{prefix}}-command-host-sg | Command Host 安全群組 |
+| IAM Role | ecs-fargate-lab-{{prefix}}-command-host-role | Command Host 角色 |
 
 ---
 
@@ -64,9 +64,10 @@ order: 2
    - 點擊 ::button[Next]{variant="action"}
 
 4. 在 **Specify stack details** 頁面：
-   - **Stack name**：輸入 ``{{prefix}}-ecs-fargate-lab``
+   - **Stack name**：輸入 ``ecs-fargate-lab-{{prefix}}``
    - **UserPrefix**：輸入 ``{{prefix}}``
-   - **InfraStackName**：保持預設值 `ecs-fargate-lab`
+   - **LabName**：保持預設值 `ecs-fargate-lab`
+   - **ListenerRulePriority**：輸入講師分配的數字（例如座位號碼）
    - 點擊 ::button[Next]{variant="action"}
 
 5. 在 **Configure stack options** 頁面：
@@ -78,7 +79,7 @@ order: 2
 :::
 
 :::alert{type="warning"}
-**Stack name** 和 **UserPrefix** 務必填入個人 username ``{{prefix}}``，避免與其他學員衝突。
+**UserPrefix** 務必填入個人 username ``{{prefix}}``，**ListenerRulePriority** 務必填入講師分配的數字，避免與其他學員衝突。
 :::
 
 ---
@@ -88,13 +89,14 @@ order: 2
 部署約需 **2-3 分鐘**。
 
 :::steps
-1. 在 CloudFormation Console 中，點擊剛建立的 `{{prefix}}-ecs-fargate-lab` Stack
+1. 在 CloudFormation Console 中，點擊剛建立的 `ecs-fargate-lab-{{prefix}}` Stack
 2. 切換到 **Events** 分頁，查看建立進度
 3. 等待 Stack 狀態變為 ::status[CREATE_COMPLETE]{type="success" icon="aws-success"}
 :::
 
 :::expand{title="常見失敗原因"}
 - UserPrefix 包含大寫字母或特殊字元（只允許小寫英數和 `-`）
+- ListenerRulePriority 與其他學員重複
 - 區域中已存在同名資源（其他學員用了相同的 prefix）
 - 講師的基礎設施 Stack 尚未部署完成
 - 如需重試，請先刪除失敗的 Stack 再重新建立
@@ -105,7 +107,7 @@ order: 2
 ## 1.5 記錄 Stack 輸出值
 
 :::steps
-1. 在 CloudFormation Console 中，點擊 `{{prefix}}-ecs-fargate-lab` Stack
+1. 在 CloudFormation Console 中，點擊 `ecs-fargate-lab-{{prefix}}` Stack
 2. 切換到 **Outputs** 分頁
 3. 記錄以下關鍵輸出值：
 :::

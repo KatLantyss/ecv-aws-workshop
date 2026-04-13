@@ -11,10 +11,16 @@ Parameters:
     ConstraintDescription: Lowercase alphanumeric and hyphens only
     Description: Unique prefix for this student (e.g. ws-07)
 
-  InfraStackName:
+  LabName:
     Type: String
     Default: ecs-fargate-lab
-    Description: Name of the shared infrastructure stack
+    Description: Lab name used as resource naming prefix and for importing shared infrastructure exports
+
+  ListenerRulePriority:
+    Type: Number
+    MinValue: 1
+    MaxValue: 50000
+    Description: Unique priority for this student's ALB Listener Rule (e.g. student 7 = priority 7)
 
 Resources:
 
@@ -22,7 +28,7 @@ Resources:
   CommandHostRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub '${UserPrefix}-command-host-role'
+      RoleName: !Sub '${LabName}-${UserPrefix}-command-host-role'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -39,17 +45,17 @@ Resources:
   CommandHostInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      InstanceProfileName: !Sub '${UserPrefix}-command-host-profile'
+      InstanceProfileName: !Sub '${LabName}-${UserPrefix}-command-host-profile'
       Roles:
         - !Ref CommandHostRole
 
   CommandHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub '${UserPrefix} Command Host SG'
-      GroupName: !Sub '${UserPrefix}-command-host-sg'
+      GroupDescription: !Sub '${LabName}-${UserPrefix} Command Host SG'
+      GroupName: !Sub '${LabName}-${UserPrefix}-command-host-sg'
       VpcId:
-        Fn::ImportValue: !Sub '${InfraStackName}-VPCId'
+        Fn::ImportValue: !Sub '${LabName}-VPCId'
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
@@ -60,7 +66,7 @@ Resources:
       InstanceType: t3.micro
       ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
       SubnetId:
-        Fn::ImportValue: !Sub '${InfraStackName}-PublicSubnet1'
+        Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
       SecurityGroupIds:
         - !Ref CommandHostSecurityGroup
       IamInstanceProfile: !Ref CommandHostInstanceProfile
@@ -73,9 +79,9 @@ Resources:
           systemctl start docker
       Tags:
         - Key: Name
-          Value: !Sub '${UserPrefix}-command-host'
+          Value: !Sub '${LabName}-${UserPrefix}-command-host'
         - Key: Workshop
-          Value: ecs-fargate-lab
+          Value: !Ref LabName
         - Key: User
           Value: !Ref UserPrefix
 
@@ -83,7 +89,7 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${UserPrefix}-ecs-fargate-lab-${AWS::AccountId}'
+      BucketName: !Sub '${LabName}-${UserPrefix}-${AWS::AccountId}'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -95,7 +101,7 @@ Resources:
         RestrictPublicBuckets: true
       Tags:
         - Key: Workshop
-          Value: ecs-fargate-lab
+          Value: !Ref LabName
         - Key: User
           Value: !Ref UserPrefix
 
@@ -103,11 +109,11 @@ Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub '${UserPrefix}-tg'
+      Name: !Sub '${LabName}-${UserPrefix}-tg'
       Port: 80
       Protocol: HTTP
       VpcId:
-        Fn::ImportValue: !Sub '${InfraStackName}-VPCId'
+        Fn::ImportValue: !Sub '${LabName}-VPCId'
       TargetType: ip
       HealthCheckPath: /
       HealthCheckIntervalSeconds: 30
@@ -118,12 +124,8 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       ListenerArn:
-        Fn::ImportValue: !Sub '${InfraStackName}-ListenerArn'
-      Priority: !Select
-        - 0
-        - !Split
-          - '-'
-          - !Select [1, !Split ['ws-', !Ref UserPrefix]]
+        Fn::ImportValue: !Sub '${LabName}-ListenerArn'
+      Priority: !Ref ListenerRulePriority
       Conditions:
         - Field: http-header
           HttpHeaderConfig:
@@ -148,28 +150,28 @@ Outputs:
   # Pass-through from infra stack for convenience
   ECSClusterName:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-ClusterName'
+      Fn::ImportValue: !Sub '${LabName}-ClusterName'
   ECRRepositoryUri:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-ECRUri'
+      Fn::ImportValue: !Sub '${LabName}-ECRUri'
   ALBDnsName:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-ALBDns'
+      Fn::ImportValue: !Sub '${LabName}-ALBDns'
   RDSEndpoint:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-RDSEndpoint'
+      Fn::ImportValue: !Sub '${LabName}-RDSEndpoint'
   ECSTaskExecutionRoleArn:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-ExecRoleArn'
+      Fn::ImportValue: !Sub '${LabName}-ExecRoleArn'
   ECSTaskRoleArn:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-TaskRoleArn'
+      Fn::ImportValue: !Sub '${LabName}-TaskRoleArn'
   PublicSubnet1:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-PublicSubnet1'
+      Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
   PublicSubnet2:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-PublicSubnet2'
+      Fn::ImportValue: !Sub '${LabName}-PublicSubnet2'
   ECSSecurityGroup:
     Value:
-      Fn::ImportValue: !Sub '${InfraStackName}-ECSSg'
+      Fn::ImportValue: !Sub '${LabName}-ECSSg'

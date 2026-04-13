@@ -547,6 +547,11 @@ button,a,.ws-tab-btn,.ws-expand-header{touch-action:manipulation;-webkit-tap-hig
 .login-back{display:inline-block;margin-top:.75rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;transition:color .15s ease}
 .login-back:hover{color:var(--accent)}
 
-/* ─── Header user badge ─── */
-.header-user{font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--accent);
-  padding:.3rem .6rem;border-radius:4px;background:var(--accent-dim);font-weight:600}
+/* ─── Sidebar user footer ─── */
+.sidebar-footer{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;
+  border-top:1px solid var(--border);gap:.5rem}
+.sidebar-user{font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--accent);
+  font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-logout{font-size:.75rem;color:var(--text-dim);background:none;border:1px solid var(--border);
+  border-radius:4px;padding:.25rem .6rem;cursor:pointer;white-space:nowrap;transition:var(--transition)}
+.sidebar-logout:hover{color:var(--danger);border-color:var(--danger)}

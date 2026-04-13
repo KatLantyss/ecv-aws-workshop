@@ -484,14 +484,12 @@ function clearStoredUser(slug) {
 
 function updateUserUI() {
   const badge = document.getElementById('headerUser');
-  const logoutBtn = document.getElementById('logoutBtn');
+  const footer = document.getElementById('sidebarFooter');
   if (currentUser) {
     badge.textContent = currentUser;
-    badge.removeAttribute('hidden');
-    logoutBtn.removeAttribute('hidden');
+    footer.removeAttribute('hidden');
   } else {
-    badge.setAttribute('hidden', '');
-    logoutBtn.setAttribute('hidden', '');
+    footer.setAttribute('hidden', '');
   }
 }
 
