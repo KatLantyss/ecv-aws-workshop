@@ -221,6 +221,12 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
   transition:background .15s ease;backdrop-filter:blur(4px)}
 .ws-lightbox-close:hover{background:rgba(255,255,255,.3)}
 
+/* Mermaid diagrams */
+.content pre.mermaid{background:transparent;border:none;text-align:center;padding:1rem 0;overflow-x:auto}
+.content pre.mermaid svg{max-width:100%;height:auto}
+.content pre.mermaid .edgeLabel,.content pre.mermaid .edgeLabel *{background-color:var(--bg) !important;background:var(--bg) !important}
+.content pre.mermaid .edgeLabel rect,.content pre.mermaid .labelBkg{fill:var(--bg) !important;stroke:none !important}
+
 /* Tables */
 .content table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.88rem}
 .content th{background:var(--surface2);font-weight:600;color:var(--text-bright);text-align:left;

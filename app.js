@@ -169,6 +169,9 @@ function preprocessCustomSyntax(md) {
     const code = indent
       ? codeLines.map(l => l.startsWith(indent) ? l.slice(indent.length) : l).join('\n')
       : codeLines.join('\n');
+    if (lang === 'mermaid') {
+      return `\n\n<pre class="mermaid">${code}</pre>\n\n`;
+    }
     const highlighted = simpleHighlight(code);
     const langClass = lang ? ` class="language-${lang}"` : '';
     return `\n\n<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>\n\n`;
@@ -258,6 +261,9 @@ marked.use({
   gfm: true,
   renderer: {
     code({ text, lang }) {
+      if (lang === 'mermaid') {
+        return `<pre class="mermaid">${text}</pre>`;
+      }
       const highlighted = simpleHighlight(text);
       const langClass = lang ? ` class="language-${lang}"` : '';
       return `<pre><button class="copy-btn" onclick="copyCode(this)" aria-label="複製">${getIcon('aws-copy')}</button><code${langClass}>${highlighted}</code></pre>`;
@@ -529,6 +535,7 @@ function renderMarkdown(md) {
   document.getElementById('pageNav').innerHTML = navHtml;
   buildTOC();
   observeTOC();
+  renderMermaid();
   const el = document.getElementById('content');
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!prefersReduced) {
@@ -748,6 +755,9 @@ function toggleTheme() {
   localStorage.setItem('ws-theme', next);
   updateThemeIcon();
   updateThemeColor(next);
+  // Re-render mermaid with new theme
+  mermaidReady = false;
+  renderMermaid();
 }
 
 function updateThemeColor(theme) {
@@ -759,6 +769,44 @@ function updateThemeIcon() {
   const btn = document.getElementById('themeToggle');
   if (!btn) return;
   btn.innerHTML = getIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'moon' : 'sun');
+}
+
+/* ═══════════════════════════════════════════
+   Mermaid
+   ═══════════════════════════════════════════ */
+let mermaidReady = false;
+function initMermaid() {
+  if (mermaidReady || typeof mermaid === 'undefined') return;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: isDark ? 'dark' : 'default',
+    fontFamily: "'Amazon Ember', system-ui, sans-serif",
+    securityLevel: 'loose'
+  });
+  mermaidReady = true;
+}
+
+async function renderMermaid() {
+  const els = document.querySelectorAll('#content pre.mermaid');
+  if (!els.length) return;
+  // 首次渲染時保存原始語法
+  els.forEach(el => {
+    if (!el.dataset.source) el.dataset.source = el.textContent;
+  });
+  // Re-init with current theme
+  mermaidReady = false;
+  initMermaid();
+  // 還原原始語法再重新渲染
+  els.forEach(el => {
+    el.removeAttribute('data-processed');
+    el.innerHTML = el.dataset.source;
+  });
+  try {
+    await mermaid.run({ nodes: els });
+  } catch (e) {
+    console.warn('Mermaid render error:', e);
+  }
 }
 
 /* ═══════════════════════════════════════════

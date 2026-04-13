@@ -135,7 +135,7 @@ python3 -m http.server 8080
 
 ## TODO
 
-- Mermaid Support、Drawio support
+- Drawio support
 - 使用 CodeCommit、CodePipeline、CodeBuild 同步所有內容（S3 為主要版本）
 - Lab Account 後台變更 / Cognito 身份驗證
 - Call Lambda/Eventbridge/API Gateway… 直接部署 CloudFormation 以及回傳回去 UI 特定資源

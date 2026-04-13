@@ -77,3 +77,29 @@ Caption 和寬度可以同時使用：
 效果：
 
 ::video{src="https://www.youtube.com/watch?v=mUL0ABssVKo"}
+
+## Mermaid 圖表
+
+支援 [Mermaid](https://mermaid.js.org/) 語法，用 fenced code block 標記 `mermaid` 語言即可：
+
+````markdown
+```mermaid
+graph LR
+    A[使用者] --> B[CloudFront]
+    B --> C[S3]
+    B --> D[API Gateway]
+    D --> E[Lambda]
+```
+````
+
+效果：
+
+```mermaid
+graph LR
+    A[使用者] --> B[CloudFront]
+    B --> C[S3]
+    B --> D[API Gateway]
+    D --> E[Lambda]
+```
+
+支援所有 Mermaid 圖表類型，包括 flowchart、sequence diagram、class diagram、state diagram、ER diagram 等。切換 dark/light 主題時圖表會自動重新渲染。
