@@ -205,6 +205,7 @@ let currentIndex = 0;
 let chapters = [];
 let currentUser = null;
 let workshopCredentials = null;
+let _entrySlug = null;
 
 /* ═══════════════════════════════════════════
    Helpers
@@ -237,7 +238,7 @@ function getDepth(filePath, workshopDir) {
   return (rel.match(/\//g) || []).length;
 }
 
-function getUserPrefix() { return currentUser || ''; }
+function getUsername() { return currentUser || ''; }
 
 /* ═══════════════════════════════════════════
    Configure marked (once)
@@ -283,12 +284,12 @@ marked.use({
 /* ═══════════════════════════════════════════
    Router — single source of truth for navigation
    
-   Views: dashboard | join | login | reader
+   Views: dashboard | join | reader
    Hash patterns:
-     (empty)              → dashboard (instructor, password required)
-     #join                → join (student, enter event code)
-     #join/{eventCode}    → join (student, pre-filled event code)
-     #login/{slug}        → login (student, enter username)
+     (empty)              → join (unified entry)
+     #join                → join (unified entry)
+     #join/{eventCode}    → join (pre-filled event code)
+     #admin               → dashboard (admin, password required)
      #{slug}              → reader (first chapter)
      #{slug}/{chapterId}  → reader (specific chapter)
    ═══════════════════════════════════════════ */
@@ -516,7 +517,7 @@ function updateUserUI() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (currentUser) {
     badge.textContent = currentUser;
-    logoutBtn.innerHTML = getIcon('aws-sign-out') + '登出';
+    logoutBtn.innerHTML = getIcon('aws-sign-out');
     footer.removeAttribute('hidden');
   } else {
     footer.setAttribute('hidden', '');
@@ -554,7 +555,6 @@ function handleLogout() {
 /* ═══════════════════════════════════════════
    Join (Event Code → find workshop)
    ═══════════════════════════════════════════ */
-let _entrySlug = null;
 
 function handleUnifiedEntry(e) {
   e.preventDefault();
@@ -575,28 +575,31 @@ async function resolveEventCode(code) {
     return;
   }
 
-  for (const ws of workshops) {
+  // Parallel fetch all credentials
+  const results = await Promise.all(workshops.map(async ws => {
     const creds = await loadWorkshopCredentials(ws.dir);
-    if (creds && creds.eventCode === code) {
-      workshopCredentials = creds;
-      _entrySlug = ws.slug;
-      // Reveal step 2
-      document.getElementById('entryStep1').querySelector('input').disabled = true;
-      document.getElementById('entryStep1').querySelector('button').disabled = true;
-      document.getElementById('entryWorkshopName').textContent = ws.manifest.title || ws.slug;
-      document.getElementById('entryStep2').classList.remove('entry-step-hidden');
-      document.getElementById('loginUser').value = '';
-      document.getElementById('loginError').textContent = '';
-      document.getElementById('loginUser').focus();
-      return;
-    }
+    return creds && creds.eventCode === code ? { ws, creds } : null;
+  }));
+  const match = results.find(Boolean);
+
+  if (match) {
+    workshopCredentials = match.creds;
+    _entrySlug = match.ws.slug;
+    document.getElementById('entryStep1').querySelector('input').disabled = true;
+    document.getElementById('entryStep1').querySelector('button').disabled = true;
+    document.getElementById('entryWorkshopName').textContent = match.ws.manifest.title || match.ws.slug;
+    document.getElementById('entryStep2').classList.remove('entry-step-hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginError').textContent = '';
+    document.getElementById('loginUser').focus();
+    return;
   }
   errorEl.textContent = '無效的代碼';
 }
 
 function handleUnifiedLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const username = document.getElementById('loginUser').value.trim();
   const errorEl = document.getElementById('loginError');
 
   if (!workshopCredentials || !_entrySlug) {
@@ -640,6 +643,21 @@ function handleAdminLogout() {
    Workshop Content — sidebar, chapters, markdown
    ═══════════════════════════════════════════ */
 function buildSidebar() {
+  const isAdmin = sessionStorage.getItem('ws-admin') === config?.adminPassword;
+  const backEl = document.querySelector('.sidebar-back');
+  if (backEl) {
+    if (isAdmin) {
+      backEl.textContent = '← 返回總覽';
+      backEl.style.display = '';
+      backEl.onclick = function(e) {
+        e.preventDefault();
+        router._setHash('admin', false);
+        router.showDashboard();
+      };
+    } else {
+      backEl.style.display = 'none';
+    }
+  }
   document.getElementById('sidebarNav').innerHTML = chapters.map((ch, i) => {
     const indent = ch.depth > 0 ? ` style="padding-left:${ch.depth * 1.2 + 0.75}rem"` : '';
     return `<li><a href="#${currentWorkshop}/${ch.id}" onclick="event.preventDefault();router.go('chapter',{index:${i}});closeMobile()"${indent}>${ch.title}</a></li>`;
@@ -659,10 +677,13 @@ async function displayChapter(index) {
 
   const ws = workshops.find(w => w.slug === currentWorkshop);
   const wsTitle = ws ? (ws.manifest.title || currentWorkshop) : currentWorkshop;
+  const isAdmin = sessionStorage.getItem('ws-admin') === config?.adminPassword;
+  const rootLink = isAdmin
+    ? `<a href="#" onclick="event.preventDefault();router.go('home')" style="color:var(--text-dim);text-decoration:none">${config.title}</a> <span>/</span> `
+    : '';
+  const wsLink = `<a href="#" onclick="event.preventDefault();router.go('chapter',{index:0})" style="color:var(--text-dim);text-decoration:none">${wsTitle}</a>`;
   document.getElementById('breadcrumb').innerHTML =
-    `<a href="#" onclick="event.preventDefault();router.go('home')" style="color:var(--text-dim);text-decoration:none">${config.title}</a>` +
-    ` <span>/</span> <span>${wsTitle}</span>` +
-    ` <span>/</span> <span class="current">${ch.title}</span>`;
+    rootLink + wsLink + ` <span>/</span> <span class="current">${ch.title}</span>`;
   document.title = ch.title + ' — ' + wsTitle;
 
   const pct = ((index + 1) / chapters.length * 100).toFixed(0);
@@ -688,6 +709,9 @@ function goHome() {
   if (isAdmin) {
     router._setHash('admin', false);
     router.showDashboard();
+  } else if (currentWorkshop) {
+    // Student: go back to first chapter of current workshop
+    router.go('chapter', { index: 0 });
   } else {
     router.go('join');
   }
@@ -703,7 +727,7 @@ function renderMarkdown(md) {
   const blocks = preprocessCustomSyntax._blocks;
   if (blocks) html = html.replace(/\x00CB(\d+)\x00/g, (_, i) => blocks[i] || '');
 
-  const prefix = getUserPrefix();
+  const prefix = getUsername();
   if (prefix) html = html.replace(/\{\{USERNAME\}\}/g, prefix);
 
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
@@ -768,6 +792,7 @@ function handleTabKeydown(e, id) {
 }
 
 function openLightbox(img) {
+  if (document.querySelector('.ws-lightbox')) return;
   const lb = document.createElement('div');
   lb.className = 'ws-lightbox';
   lb.setAttribute('role', 'dialog');
@@ -799,12 +824,7 @@ function closeLightbox(lb) {
 }
 
 function copyToClipboard(text) {
-  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
-  const ta = document.createElement('textarea');
-  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-  document.body.removeChild(ta);
-  return Promise.resolve();
+  return navigator.clipboard.writeText(text);
 }
 
 function copyCode(btn) {

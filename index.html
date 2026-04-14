@@ -5,21 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#07090f" id="metaThemeColor">
 <meta name="description" content="eCloudvalley 雲端技術實戰工作坊 — AWS 容器化、Serverless、基礎架構等 Hands-on Lab">
-<meta property="og:title" content="ECV AWS Workshop">
+<meta property="og:title" content="ECV Workshop">
 <meta property="og:description" content="eCloudvalley 雲端技術實戰工作坊 — AWS Hands-on Lab">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
+<meta property="og:url" content="">
+<meta property="og:image" content="">
 <title>ECV Workshop</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
 <link href="https://fonts.cdnfonts.com/css/amazon-ember" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="preload" href="https://fonts.cdnfonts.com/css/amazon-ember" as="style">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" crossorigin="anonymous"></script>
 <script>
 (function(){
   const saved = localStorage.getItem('ws-theme');
@@ -35,7 +36,7 @@
 <a class="skip-link" href="#content">跳至主要內容</a>
 
 <!-- ═══ Header ═══ -->
-<div class="header">
+<header class="header">
   <div class="header-progress"><div class="header-progress-fill" id="progressFill"></div></div>
   <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">☰</button>
   <div class="header-logo">
@@ -52,7 +53,7 @@
     <button class="header-btn" id="prevBtn" onclick="navigatePrev()">← 上一頁</button>
     <button class="header-btn" id="nextBtn" onclick="navigateNext()">下一頁 →</button>
   </div>
-</div>
+</header>
 
 <!-- ═══ Sidebar (workshop reader mode) ═══ -->
 <aside class="sidebar" id="sidebar">
@@ -62,13 +63,16 @@
     <ul class="sidebar-nav" id="sidebarNav"></ul>
   </div>
   <div class="sidebar-footer" id="sidebarFooter" hidden>
-    <span class="sidebar-user" id="headerUser"></span>
-    <button class="sidebar-logout" id="logoutBtn" onclick="handleLogout()"></button>
+    <div class="sidebar-footer-user">
+      <svg class="sidebar-footer-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 14c0-3 2.5-4.5 5.5-4.5s5.5 1.5 5.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="sidebar-user" id="headerUser"></span>
+    </div>
+    <button class="sidebar-logout" id="logoutBtn" onclick="handleLogout()" aria-label="登出"></button>
   </div>
 </aside>
 
 <!-- ═══ Landing page (card grid) ═══ -->
-<div class="landing" id="landing" role="main">
+<div class="landing" id="landing" hidden>
   <div class="landing-hero">
     <h1 id="landingTitle">ECV Workshop</h1>
     <p id="landingSubtitle">eCloudvalley 雲端技術實戰工作坊</p>
@@ -114,7 +118,7 @@
         <div class="entry-step2-badge">
           <span class="entry-step2-icon">✓</span>
           <span class="entry-workshop-name" id="entryWorkshopName"></span>
-          <button class="entry-change-btn" onclick="entryReset()">變更</button>
+          <button class="entry-change-btn" onclick="entryReset()" aria-label="變更活動代碼">變更</button>
         </div>
         <form class="entry-form" id="entryUserForm" onsubmit="handleUnifiedLogin(event)" autocomplete="off">
           <label class="entry-label" for="loginUser">Username</label>

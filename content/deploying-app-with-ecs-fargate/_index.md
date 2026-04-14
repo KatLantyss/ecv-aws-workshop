@@ -5,7 +5,7 @@ order: 0
 
 # AWS ECS 容器化服務實戰工作坊
 
-::badge[HANDS-ON LAB]{type="info"} ::badge[約 2-3 小時]{type="default"} ::badge[初級 ~ 中級]{type="success"}
+::badge[AWS]{type="info"} ::badge[約 2-3 小時]{type="default"} 
 
 情境設定：一款線上遊戲 — **Web 2048** 即將上線，預期會有大量玩家透過網路存取。開發團隊希望專注在遊戲開發上，不想花時間管理基礎設施，也不想預先投入大量資金，但需要確保應用在部署後能夠彈性擴展。
 

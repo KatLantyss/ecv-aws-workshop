@@ -287,8 +287,8 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
   .ws-alert{flex-direction:column;gap:.5rem;padding:.75rem}
   .ws-banner{flex-direction:column;gap:.5rem;padding:.75rem}
   .ws-expand-header{font-size:.82rem;padding:.6rem .75rem}
-  .ws-expand-body{padding:0 .75rem}
-  .ws-expand.open .ws-expand-body{padding:.75rem}
+  .ws-expand-body>*{padding:0 .75rem}
+  .ws-expand.open .ws-expand-body>*{padding:.75rem}
   .ws-steps{--ws-step-size:24px}
   .ws-step::before{font-size:.65rem}
   .ws-step{padding-bottom:1rem}
@@ -388,8 +388,10 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .ws-expand-arrow{transition:transform .2s ease;color:var(--text-dim);display:flex;align-items:center;transform:rotate(-90deg)}
 .ws-expand-arrow svg{width:14px;height:14px}
 .ws-expand.open .ws-expand-arrow{transform:rotate(0deg)}
-.ws-expand-body{padding:0 1rem;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
-.ws-expand.open .ws-expand-body{padding:1rem;max-height:2000px}
+.ws-expand-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.ws-expand-body>*{overflow:hidden;padding:0 1rem}
+.ws-expand.open .ws-expand-body{grid-template-rows:1fr}
+.ws-expand.open .ws-expand-body>*{padding:1rem}
 
 /* ─── Steps ─── */
 .ws-steps{counter-reset:ws-step;margin:1.5rem 0;--ws-step-size:28px}
@@ -563,19 +565,21 @@ button,a,.ws-tab-btn,.ws-expand-header{touch-action:manipulation;-webkit-tap-hig
 .entry-footer{font-size:.7rem;color:var(--text-dim);text-align:center;opacity:.4}
 
 /* ─── Admin logout ─── */
-.admin-logout-btn{display:flex;align-items:center;gap:.4rem;padding:.4rem .75rem;border-radius:6px;
+.admin-logout-btn{display:flex;align-items:center;gap:.4rem;height:32px;padding:0 .75rem;border-radius:6px;
   border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:.78rem;
   font-family:'Amazon Ember',sans-serif;font-weight:500;cursor:pointer;transition:var(--transition)}
 .admin-logout-btn svg{width:14px;height:14px}
 .admin-logout-btn:hover{border-color:var(--danger);color:var(--danger);background:rgba(248,81,73,.06)}
 
 /* ─── Sidebar user footer ─── */
-.sidebar-footer{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;
-  border-top:1px solid var(--border);gap:.5rem}
-.sidebar-user{font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--accent);
-  font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sidebar-logout{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-dim);
-  background:none;border:1px solid var(--border);border-radius:4px;padding:.25rem .6rem;cursor:pointer;
-  white-space:nowrap;transition:var(--transition);font-family:inherit}
+.sidebar-footer{display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem .75rem .5rem 1.5rem;border-top:1px solid var(--border);min-height:44px}
+.sidebar-footer-user{display:flex;align-items:center;gap:.45rem;min-width:0;flex:1}
+.sidebar-footer-icon{width:14px;height:14px;color:var(--text-dim);flex-shrink:0}
+.sidebar-user{font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);
+  font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-logout{display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:6px;border:none;background:none;
+  color:var(--text-dim);cursor:pointer;transition:color .15s ease,background .15s ease;flex-shrink:0}
 .sidebar-logout svg{width:14px;height:14px}
-.sidebar-logout:hover{color:var(--danger);border-color:var(--danger)}
+.sidebar-logout:hover{color:var(--danger);background:rgba(248,81,73,.08)}
