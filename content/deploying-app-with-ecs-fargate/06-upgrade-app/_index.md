@@ -198,7 +198,7 @@ sudo docker push $ECR_REPO:node
 ## 5.4 透過 Console 建立新版 Task Definition
 
 :::steps
-1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-app`
+1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-{{USERNAME}}-app`
 
 2. 點擊 ::button[Create new revision]{variant="action" postfix="aws-expand"}
 
@@ -227,7 +227,7 @@ sudo docker push $ECR_REPO:node
 
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster`
-2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-service`
+2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-{{USERNAME}}-service`
 3. 點擊 ::button[Update]{variant="default" split="aws-expand"} → 選擇 **Quick service update**
 4. 在 **Task definition revision** 欄位，選擇最新的 revision（數字最大的）
 5. 勾選 **Force new deployment**

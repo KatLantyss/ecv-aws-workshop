@@ -80,25 +80,34 @@ if os.path.exists(idx_path):
                 k, v = line.split(':', 1)
                 meta[k.strip()] = v.strip()
 
-# 讀取現有 manifest 保留手動設定的欄位
-manifest_path = os.path.join(ws_dir, '_manifest.json')
-existing = {}
-if os.path.exists(manifest_path):
-    with open(manifest_path) as f:
-        existing = json.load(f)
+# 讀取 workshop.json（手動維護的 metadata）
+workshop_json_path = os.path.join(ws_dir, 'workshop.json')
+manual = {}
+if os.path.exists(workshop_json_path):
+    with open(workshop_json_path) as f:
+        manual = json.load(f)
 
-# 合併：手動欄位優先，pages 永遠覆蓋
+# 合併：workshop.json 手動欄位 + 自動掃描的 pages
 manifest = {
-    'order': existing.get('order', 999),
-    'title': existing.get('title') or meta.get('title', slug),
-    'description': existing.get('description', ''),
-    'badge': existing.get('badge', ''),
-    'level': existing.get('level', ''),
-    'duration': existing.get('duration', ''),
-    'icon': existing.get('icon', '📘'),
+    'order': manual.get('order', 999),
+    'title': manual.get('title') or meta.get('title', slug),
+    'description': manual.get('description', ''),
+    'badge': manual.get('badge', ''),
+    'level': manual.get('level', ''),
+    'duration': manual.get('duration', ''),
+    'icon': manual.get('icon', '📘'),
     'pages': pages
 }
 
+# 自動偵測 lab templates
+for root, dirs, files in os.walk(ws_dir):
+    for f in files:
+        if f.endswith('-user.yaml'):
+            manifest['labTemplate'] = os.path.relpath(os.path.join(root, f), ws_dir)
+        if f.endswith('-infra.yaml'):
+            manifest['labName'] = f.replace('-infra.yaml', '')
+
+manifest_path = os.path.join(ws_dir, '_manifest.json')
 with open(manifest_path, 'w') as f:
     json.dump(manifest, f, ensure_ascii=False, indent=2)
 

@@ -1,8 +1,9 @@
 {
-  "title": "AWS Workshop",
+  "title": "ECV Workshop",
   "subtitle": "eCloudvalley 雲端技術實戰工作坊",
   "logo": "assets/logo.png",
   "footer": "© 2026 eCloudvalley Digital Technology",
+  "adminPassword": "ecv2026",
   "workshops": [
     "deploying-app-with-ecs-fargate",
     "writing-guide"

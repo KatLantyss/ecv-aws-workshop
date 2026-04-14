@@ -19,7 +19,7 @@ order: 7
 
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster`
-2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-service`
+2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-{{USERNAME}}-service`
 3. 點擊 ::button[Delete service]{variant="default"}
 4. 在確認對話框中輸入 ``delete``，點擊 ::button[Delete]{variant="action"}
 5. 等待 Service 刪除完成（所有 Task 會自動停止）
@@ -30,7 +30,7 @@ order: 7
 ## 6.2 反註冊 Task Definition
 
 :::steps
-1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-app`
+1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-{{USERNAME}}-app`
 2. 勾選所有版本
 3. 點擊 ::button[Actions]{variant="default" postfix="aws-expand"} → **Deregister**
 :::
@@ -43,7 +43,7 @@ CloudFormation 無法刪除非空的 S3 Bucket，需先清空。
 
 :::steps
 1. 開啟 [S3 Console](https://console.aws.amazon.com/s3/)
-2. 找到並點擊 workshop 的 S3 Bucket
+2. 找到並點擊 `ecs-fargate-lab-{{USERNAME}}-*` 的 S3 Bucket
 3. 點擊 ::button[Empty]{variant="default"}
 4. 輸入 ``permanently delete``，點擊 ::button[Empty]{variant="action"}
 :::
@@ -54,9 +54,9 @@ CloudFormation 無法刪除非空的 S3 Bucket，需先清空。
 
 :::steps
 1. 開啟 [CloudFormation Console](https://console.aws.amazon.com/cloudformation/)
-2. 勾選 `ecs-fargate-lab` Stack
+2. 勾選 `ecs-fargate-lab-{{USERNAME}}` Stack
 3. 點擊 ::button[Delete stack]{variant="default"}
-4. 輸入 ``ecs-fargate-lab`` ，點擊 ::button[Delete stack]{variant="action"}
+4. 輸入 ``ecs-fargate-lab-{{USERNAME}}`` ，點擊 ::button[Delete stack]{variant="action"}
 5. 等待狀態 ::status[DELETE_IN_PROGRESS]{type="info" icon="aws-info"} ， 期間可以使用 ::button[]{variant="default" prefix="aws-refresh"} 來刷新狀態，直到資源消失，即刪除完成。
 :::
 
@@ -79,7 +79,7 @@ ECS 自動建立的 Log Group 不在 CloudFormation 管理範圍內，如需清�
 
 :::steps
 1. 開啟 [CloudWatch Console](https://console.aws.amazon.com/cloudwatch/) → **Log groups**
-2. 找到以 `/ecs/ecs-fargate-lab-app` 開頭的 Log Group
+2. 找到以 `/ecs/ecs-fargate-lab-{{USERNAME}}-app` 開頭的 Log Group
 3. 勾選後點擊 ::button[Actions]{variant="default" postfix="aws-expand"} → **Delete log group(s)**
 :::
 

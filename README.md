@@ -38,7 +38,7 @@
   - Workshop 目錄下放 `credentials.json` → 進入時需要登入
   - 沒有 `credentials.json` → 公開 workshop，不需要登入
   - 登入狀態存 `localStorage`（per-workshop），event code 變更時自動失效
-  - `{{prefix}}` 變數在 markdown 渲染時自動替換為登入的 username
+  - `{{USERNAME}}` 變數在 markdown 渲染時自動替換為登入的 username
 - **Markdown**：使用 marked.js v15 渲染，支援 GFM
 - **自訂語法**：`preprocessCustomSyntax()` 在 marked 之前處理 `::` / `:::` 語法
 - **Mermaid**：支援 `mermaid` code block，自動偵測 dark/light 主題
@@ -120,7 +120,7 @@
 
 - `eventCode`：活動代碼，講師提供給學員。變更後所有 session 自動失效。
 - `users`：允許登入的 username 列表。
-- 登入後 `{{prefix}}` 變數會替換為 username，用於顯示個人化的資源名稱。
+- 登入後 `{{USERNAME}}` 變數會替換為 username，用於顯示個人化的資源名稱。
 - 沒有 `credentials.json` 的 workshop 為公開，不需要登入。
 
 ## CloudFormation 拆分

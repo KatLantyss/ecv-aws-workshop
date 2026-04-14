@@ -21,7 +21,7 @@ Task Definition 定義了容器要怎麼跑 — 用哪個映像、多少 CPU/Mem
 2. 點擊 ::button[Create new task definition]{variant="action" postfix="aws-expand"} → 選擇 Create new task definition
 
 3. 在 **Task definition configuration** 區塊：
-   - **Task definition family**：輸入 ``ecs-fargate-lab-app``
+   - **Task definition family**：輸入 ``ecs-fargate-lab-{{USERNAME}}-app``
 
 4. 在 **Infrastructure requirements** 區塊：
    - **Launch type**：選擇 **AWS Fargate**
@@ -61,9 +61,9 @@ Service 會確保指定數量的 Task 持續運行，並與 ALB 整合分配流�
 2. 在 **Services** 分頁，點擊 ::button[Create]{variant="action" split="aws-expand"}
 
 3. 在 **Service details** 區塊：
-   - **Task definition family**：選擇 `ecs-fargate-lab-app`
+   - **Task definition family**：選擇 `ecs-fargate-lab-{{USERNAME}}-app`
    - **Task definition revision**：留空（自動使用最新版本）
-   - **Service name**：輸入 ``ecs-fargate-lab-service``
+   - **Service name**：輸入 ``ecs-fargate-lab-{{USERNAME}}-service``
 
 4. 在 **Environment** 區塊（右上角應顯示 AWS Fargate）：
    - **Existing cluster**：已預選 `ecs-fargate-lab-cluster`
@@ -82,7 +82,7 @@ Service 會確保指定數量的 Task 持續運行，並與 ALB 整合分配流�
    - **Load balancer type**：選擇 **Application Load Balancer**
    - **Use an existing load balancer**：選擇 `ecs-fargate-lab-alb`
    - **Use an existing listener**：選擇 `80:HTTP`
-   - **Use an existing target group**：選擇 `ecs-fargate-lab-tg`
+   - **Use an existing target group**：選擇 `ecs-fargate-lab-{{USERNAME}}-tg`
 
 8. 點擊 ::button[Create]{variant="action"}
 
@@ -91,7 +91,7 @@ Service 會確保指定數量的 Task 持續運行，並與 ALB 整合分配流�
 :::
 
 :::banner{type="success"}
-ecs-fargate-lab-service has been deployed successfully.
+ecs-fargate-lab-{{USERNAME}}-service has been deployed successfully.
 :::
 
 :::alert{type="info"}
@@ -145,7 +145,7 @@ Fargate Task 需要 Public IP 才能拉取 ECR 映像（除非已設定 VPC Endp
 
 :::steps
 1. 開啟 [CloudWatch Console](https://console.aws.amazon.com/cloudwatch/) → 左側選單 **Log groups**
-2. 找到以 `/ecs/ecs-fargate-lab-app` 開頭的 Log Group（ECS 自動建立）
+2. 找到以 `/ecs/ecs-fargate-lab-{{USERNAME}}-app` 開頭的 Log Group（ECS 自動建立）
 3. 點擊最新的 Log stream
 4. 預期看到 Nginx 的存取日誌
 :::
@@ -156,7 +156,7 @@ Fargate Task 需要 Public IP 才能拉取 ECR 映像（除非已設定 VPC Endp
 
 | 項目 | 驗證方式 | 預期結果 |
 |------|----------|----------|
-| Task Definition | ECS Console → Task definitions | ecs-fargate-lab-app:1 |
+| Task Definition | ECS Console → Task definitions | ecs-fargate-lab-{{USERNAME}}-app:1 |
 | Service 狀態 | ECS Console → Cluster → Services | Running tasks: 2 |
 | 2048 遊戲 | 瀏覽器開啟 ALB DNS | 看到 2048 遊戲畫面 |
 | 容器 Log | CloudWatch Logs | 看到 Nginx 存取日誌 |

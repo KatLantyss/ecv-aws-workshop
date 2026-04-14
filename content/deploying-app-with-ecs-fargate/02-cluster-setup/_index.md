@@ -42,12 +42,12 @@ order: 2
 
 | 資源類型 | 資源名稱 | 說明 |
 |----------|----------|------|
-| Command Host | ecs-fargate-lab-{{prefix}}-command-host | t3.micro，預裝 Docker、Git |
-| S3 Bucket | ecs-fargate-lab-{{prefix}}-* | 個人 S3 儲存桶 |
-| Target Group | ecs-fargate-lab-{{prefix}}-tg | 個人 ALB 目標群組 |
+| Command Host | ecs-fargate-lab-{{USERNAME}}-command-host | t3.micro，預裝 Docker、Git |
+| S3 Bucket | ecs-fargate-lab-{{USERNAME}}-* | 個人 S3 儲存桶 |
+| Target Group | ecs-fargate-lab-{{USERNAME}}-tg | 個人 ALB 目標群組 |
 | Listener Rule | — | 將流量路由到個人 Target Group |
-| Security Group | ecs-fargate-lab-{{prefix}}-command-host-sg | Command Host 安全群組 |
-| IAM Role | ecs-fargate-lab-{{prefix}}-command-host-role | Command Host 角色 |
+| Security Group | ecs-fargate-lab-{{USERNAME}}-command-host-sg | Command Host 安全群組 |
+| IAM Role | ecs-fargate-lab-{{USERNAME}}-command-host-role | Command Host 角色 |
 
 ---
 
@@ -64,8 +64,8 @@ order: 2
    - 點擊 ::button[Next]{variant="action"}
 
 4. 在 **Specify stack details** 頁面：
-   - **Stack name**：輸入 ``ecs-fargate-lab-{{prefix}}``
-   - **UserPrefix**：輸入 ``{{prefix}}``
+   - **Stack name**：輸入 ``ecs-fargate-lab-{{USERNAME}}``
+   - **UserPrefix**：輸入 ``{{USERNAME}}``
    - **LabName**：保持預設值 `ecs-fargate-lab`
    - **ListenerRulePriority**：輸入講師分配的數字（例如座位號碼）
    - 點擊 ::button[Next]{variant="action"}
@@ -79,7 +79,7 @@ order: 2
 :::
 
 :::alert{type="warning"}
-**UserPrefix** 務必填入個人 username ``{{prefix}}``，**ListenerRulePriority** 務必填入講師分配的數字，避免與其他學員衝突。
+**UserPrefix** 務必填入個人 username ``{{USERNAME}}``，**ListenerRulePriority** 務必填入講師分配的數字，避免與其他學員衝突。
 :::
 
 ---
@@ -89,7 +89,7 @@ order: 2
 部署約需 **2-3 分鐘**。
 
 :::steps
-1. 在 CloudFormation Console 中，點擊剛建立的 `ecs-fargate-lab-{{prefix}}` Stack
+1. 在 CloudFormation Console 中，點擊剛建立的 `ecs-fargate-lab-{{USERNAME}}` Stack
 2. 切換到 **Events** 分頁，查看建立進度
 3. 等待 Stack 狀態變為 ::status[CREATE_COMPLETE]{type="success" icon="aws-success"}
 :::
@@ -107,7 +107,7 @@ order: 2
 ## 1.5 記錄 Stack 輸出值
 
 :::steps
-1. 在 CloudFormation Console 中，點擊 `ecs-fargate-lab-{{prefix}}` Stack
+1. 在 CloudFormation Console 中，點擊 `ecs-fargate-lab-{{USERNAME}}` Stack
 2. 切換到 **Outputs** 分頁
 3. 記錄以下關鍵輸出值：
 :::

@@ -5,13 +5,5 @@
   "badge": "Internal",
   "level": "入門",
   "duration": "5分鐘",
-  "icon": "book-marked",
-  "pages": [
-    "_index.md",
-    "01-standard-markdown/_index.md",
-    "02-badges-alerts/_index.md",
-    "03-interactive/_index.md",
-    "04-buttons/_index.md",
-    "05-media/_index.md"
-  ]
+  "icon": "book-marked"
 }

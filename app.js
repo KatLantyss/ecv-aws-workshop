@@ -283,17 +283,18 @@ marked.use({
 /* ═══════════════════════════════════════════
    Router — single source of truth for navigation
    
-   Views: home | login | reader
+   Views: dashboard | join | login | reader
    Hash patterns:
-     (empty)              → home
-     #login/{slug}        → login
+     (empty)              → dashboard (instructor, password required)
+     #join                → join (student, enter event code)
+     #join/{eventCode}    → join (student, pre-filled event code)
+     #login/{slug}        → login (student, enter username)
      #{slug}              → reader (first chapter)
      #{slug}/{chapterId}  → reader (specific chapter)
    ═══════════════════════════════════════════ */
 const router = {
   _busy: false,
 
-  // Set hash without triggering hashchange handler (to avoid loops)
   _setHash(hash, replace) {
     router._silent = true;
     if (replace) {
@@ -301,81 +302,107 @@ const router = {
     } else {
       window.location.hash = hash;
     }
-    // hashchange fires async, reset flag after it would have fired
     setTimeout(() => { router._silent = false; }, 0);
   },
 
-  // Parse current hash into a route object
   parseHash(hash) {
-    if (!hash) return { view: 'home' };
-    if (hash.startsWith('login/')) return { view: 'login', slug: hash.slice(6) };
+    if (!hash) return { view: 'join', eventCode: null };
+    if (hash === 'join') return { view: 'join', eventCode: null };
+    if (hash.startsWith('join/')) return { view: 'join', eventCode: hash.slice(5) };
+    if (hash === 'admin') return { view: 'dashboard' };
+    if (hash.startsWith('login/')) return { view: 'join', eventCode: null }; // legacy redirect
     const slash = hash.indexOf('/');
     if (slash === -1) return { view: 'reader', slug: hash, chapterId: null };
     return { view: 'reader', slug: hash.slice(0, slash), chapterId: hash.slice(slash + 1) };
   },
 
-  // Main entry — called on hashchange and initial load
   async resolve() {
     if (router._silent || router._busy) return;
     const route = router.parseHash(window.location.hash.slice(1));
     switch (route.view) {
-      case 'home':  router.showHome(); break;
-      case 'login': await router.showLogin(route.slug); break;
-      case 'reader': await router.showWorkshop(route.slug, route.chapterId); break;
+      case 'dashboard': router.showDashboard(); break;
+      case 'join':      router.showJoin(route.eventCode); break;
+      case 'reader':    await router.showWorkshop(route.slug, route.chapterId); break;
     }
   },
 
-  // ─── Home view ───
-  showHome() {
+  // ─── Dashboard view (instructor) ───
+  showDashboard() {
     currentWorkshop = null;
     chapters = [];
     currentUser = null;
     workshopCredentials = null;
     updateUserUI();
+
+    const isAuthed = sessionStorage.getItem('ws-admin') === config?.adminPassword;
+    if (!isAuthed) {
+      router._setHash('', true);
+      router.showJoin(null);
+      return;
+    }
+
     setView('home');
+    renderLanding();
+    document.getElementById('adminLogoutBtn').innerHTML = getIcon('aws-sign-out') + '登出';
+    document.getElementById('adminLogoutBtn').removeAttribute('hidden');
     document.getElementById('breadcrumb').innerHTML = '';
     document.getElementById('progressText').textContent = '';
     document.getElementById('progressFill').style.width = '0';
     document.getElementById('prevBtn').style.display = 'none';
     document.getElementById('nextBtn').style.display = 'none';
     document.body.classList.remove('workshop-mode');
-    document.title = config ? config.title : 'Workshop';
+    document.title = config ? config.title + ' — Admin' : 'Workshop';
     closeMobile();
     updateThemeIcon();
   },
 
-  // ─── Login view ───
-  async showLogin(slug) {
-    const ws = workshops.find(w => w.slug === slug);
-    if (!ws) { router._setHash('', true); router.showHome(); return; }
-
-    workshopCredentials = await loadWorkshopCredentials(ws.dir);
-    setView('login');
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginCode').value = '';
-    document.getElementById('loginError').textContent = '';
+  // ─── Join view (student entry) ───
+  showJoin(eventCode) {
+    currentWorkshop = null;
+    chapters = [];
+    currentUser = null;
+    workshopCredentials = null;
+    _entrySlug = null;
+    updateUserUI();
+    document.getElementById('adminLogoutBtn').setAttribute('hidden', '');
+    setView('join');
+    // Reset entry form to step 1
+    document.getElementById('entryStep1').querySelector('input').disabled = false;
+    document.getElementById('entryStep1').querySelector('button').disabled = false;
+    document.getElementById('entryStep2').classList.add('entry-step-hidden');
+    document.getElementById('joinCode').value = eventCode || '';
+    document.getElementById('joinError').textContent = '';
     document.getElementById('breadcrumb').innerHTML = '';
     document.getElementById('progressText').textContent = '';
     document.getElementById('progressFill').style.width = '0';
     document.getElementById('prevBtn').style.display = 'none';
     document.getElementById('nextBtn').style.display = 'none';
     document.body.classList.remove('workshop-mode');
+    document.title = '加入 — ' + (config ? config.title : 'Workshop');
     closeMobile();
-    document.getElementById('loginUser').focus();
+    updateThemeIcon();
+    if (eventCode) {
+      // Auto-submit if event code is in URL
+      resolveEventCode(eventCode);
+    } else {
+      document.getElementById('joinCode').focus();
+    }
   },
 
   // ─── Workshop/reader view ───
   async showWorkshop(slug, chapterId) {
     const ws = workshops.find(w => w.slug === slug);
-    if (!ws) { router._setHash('', true); router.showHome(); return; }
+    if (!ws) { router._setHash('', true); router.showJoin(null); return; }
 
-    // Auth check
-    const authed = await checkWorkshopAuth(slug, ws.dir);
-    if (!authed) {
-      // Redirect to login — replace current hash so back goes to previous page
-      router._setHash('login/' + slug, true);
-      await router.showLogin(slug);
-      return;
+    // Auth check — must be admin or authenticated user for this workshop
+    const isAdmin = sessionStorage.getItem('ws-admin') === config?.adminPassword;
+    if (!isAdmin) {
+      const authed = await checkWorkshopAuth(slug, ws.dir);
+      if (!authed) {
+        router._setHash('', true);
+        router.showJoin(null);
+        return;
+      }
     }
 
     // Already loaded — just switch chapter
@@ -409,6 +436,7 @@ const router = {
 
     document.getElementById('sidebarLabel').textContent = ws.manifest.title || slug;
     buildSidebar();
+    document.getElementById('adminLogoutBtn').setAttribute('hidden', '');
     setView('reader');
 
     const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : 0;
@@ -419,8 +447,12 @@ const router = {
   go(action, params) {
     switch (action) {
       case 'home':
+        router._setHash('admin', false);
+        router.showDashboard();
+        break;
+      case 'join':
         router._setHash('', false);
-        router.showHome();
+        router.showJoin(null);
         break;
       case 'workshop':
         router._setHash(params.slug, false);
@@ -433,10 +465,6 @@ const router = {
           displayChapter(params.index);
         }
         break;
-      case 'login':
-        router._setHash('login/' + params.slug, false);
-        router.showLogin(params.slug);
-        break;
     }
   }
 };
@@ -445,7 +473,7 @@ const router = {
 function setView(name) {
   document.getElementById('landing')[name === 'home' ? 'removeAttribute' : 'setAttribute']('hidden', '');
   document.getElementById('main')[name === 'reader' ? 'removeAttribute' : 'setAttribute']('hidden', '');
-  document.getElementById('loginScreen')[name === 'login' ? 'removeAttribute' : 'setAttribute']('hidden', '');
+  document.getElementById('joinScreen')[name === 'join' ? 'removeAttribute' : 'setAttribute']('hidden', '');
   document.getElementById('sidebar').classList[name === 'reader' ? 'add' : 'remove']('visible');
   if (name === 'reader') {
     document.getElementById('prevBtn').style.display = '';
@@ -485,8 +513,10 @@ function clearStoredUser(slug) {
 function updateUserUI() {
   const badge = document.getElementById('headerUser');
   const footer = document.getElementById('sidebarFooter');
+  const logoutBtn = document.getElementById('logoutBtn');
   if (currentUser) {
     badge.textContent = currentUser;
+    logoutBtn.innerHTML = getIcon('aws-sign-out') + '登出';
     footer.removeAttribute('hidden');
   } else {
     footer.setAttribute('hidden', '');
@@ -513,21 +543,64 @@ async function checkWorkshopAuth(slug, workshopDir) {
   return false;
 }
 
-function handleLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('loginUser').value.trim().toLowerCase();
-  const code = document.getElementById('loginCode').value.trim();
-  const errorEl = document.getElementById('loginError');
-  const slug = router.parseHash(window.location.hash.slice(1)).slug;
+function handleLogout() {
+  if (currentWorkshop) clearStoredUser(currentWorkshop);
+  currentUser = null;
+  workshopCredentials = null;
+  updateUserUI();
+  router.go('join');
+}
 
-  if (!workshopCredentials || !slug) {
-    errorEl.textContent = '系統錯誤：無法載入驗證資料';
+/* ═══════════════════════════════════════════
+   Join (Event Code → find workshop)
+   ═══════════════════════════════════════════ */
+let _entrySlug = null;
+
+function handleUnifiedEntry(e) {
+  e.preventDefault();
+  const code = document.getElementById('joinCode').value.trim();
+  if (!code) return;
+  resolveEventCode(code);
+}
+
+async function resolveEventCode(code) {
+  const errorEl = document.getElementById('joinError');
+  errorEl.textContent = '';
+
+  // Check if it's the admin password
+  if (config && config.adminPassword && code === config.adminPassword) {
+    sessionStorage.setItem('ws-admin', code);
+    router._setHash('admin', false);
+    router.showDashboard();
     return;
   }
-  if (code !== workshopCredentials.eventCode) {
-    errorEl.textContent = '活動代碼錯誤';
-    document.getElementById('loginCode').value = '';
-    document.getElementById('loginCode').focus();
+
+  for (const ws of workshops) {
+    const creds = await loadWorkshopCredentials(ws.dir);
+    if (creds && creds.eventCode === code) {
+      workshopCredentials = creds;
+      _entrySlug = ws.slug;
+      // Reveal step 2
+      document.getElementById('entryStep1').querySelector('input').disabled = true;
+      document.getElementById('entryStep1').querySelector('button').disabled = true;
+      document.getElementById('entryWorkshopName').textContent = ws.manifest.title || ws.slug;
+      document.getElementById('entryStep2').classList.remove('entry-step-hidden');
+      document.getElementById('loginUser').value = '';
+      document.getElementById('loginError').textContent = '';
+      document.getElementById('loginUser').focus();
+      return;
+    }
+  }
+  errorEl.textContent = '無效的代碼';
+}
+
+function handleUnifiedLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const errorEl = document.getElementById('loginError');
+
+  if (!workshopCredentials || !_entrySlug) {
+    errorEl.textContent = '系統錯誤';
     return;
   }
   if (!workshopCredentials.users.includes(username)) {
@@ -537,27 +610,30 @@ function handleLogin(e) {
   }
 
   currentUser = username;
-  setStoredUser(slug, { username, eventCode: code });
+  setStoredUser(_entrySlug, { username, eventCode: workshopCredentials.eventCode });
   updateUserUI();
-  // Replace login hash with workshop hash — back button skips login
-  router._setHash(slug, true);
-  router.showWorkshop(slug, null);
+  router._setHash(_entrySlug, false);
+  router.showWorkshop(_entrySlug, null);
 }
 
-function handleLogout() {
-  if (currentWorkshop) clearStoredUser(currentWorkshop);
-  currentUser = null;
+function entryReset() {
+  _entrySlug = null;
   workshopCredentials = null;
-  updateUserUI();
-  router.go('home');
+  document.getElementById('entryStep1').querySelector('input').disabled = false;
+  document.getElementById('entryStep1').querySelector('button').disabled = false;
+  document.getElementById('entryStep2').classList.add('entry-step-hidden');
+  document.getElementById('joinCode').value = '';
+  document.getElementById('joinError').textContent = '';
+  document.getElementById('joinCode').focus();
 }
 
-function cancelLogin() {
-  if (window.history.length > 1) {
-    window.history.back();
-  } else {
-    router.go('home');
-  }
+/* ═══════════════════════════════════════════
+   Dashboard (Admin)
+   ═══════════════════════════════════════════ */
+function handleAdminLogout() {
+  sessionStorage.removeItem('ws-admin');
+  router._setHash('', false);
+  router.showJoin(null);
 }
 
 /* ═══════════════════════════════════════════
@@ -607,7 +683,15 @@ async function displayChapter(index) {
 function navigatePrev() { if (currentIndex > 0) router.go('chapter', { index: currentIndex - 1 }); }
 function navigateNext() { if (currentIndex < chapters.length - 1) router.go('chapter', { index: currentIndex + 1 }); }
 
-function goHome() { router.go('home'); }
+function goHome() {
+  const isAdmin = sessionStorage.getItem('ws-admin') === config?.adminPassword;
+  if (isAdmin) {
+    router._setHash('admin', false);
+    router.showDashboard();
+  } else {
+    router.go('join');
+  }
+}
 
 /* ═══════════════════════════════════════════
    Markdown Renderer
@@ -620,7 +704,7 @@ function renderMarkdown(md) {
   if (blocks) html = html.replace(/\x00CB(\d+)\x00/g, (_, i) => blocks[i] || '');
 
   const prefix = getUserPrefix();
-  if (prefix) html = html.replace(/\{\{prefix\}\}/g, prefix);
+  if (prefix) html = html.replace(/\{\{USERNAME\}\}/g, prefix);
 
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
   const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
@@ -886,17 +970,20 @@ async function init() {
     config = await fetch('config.json').then(r => r.json());
     document.getElementById('headerTitle').textContent = config.title;
     document.title = config.title;
-    document.getElementById('loginTitle').textContent = config.title;
 
     const logoEl = document.getElementById('headerLogo');
-    const loginLogoEl = document.getElementById('loginLogo');
+    const joinLogoEl = document.getElementById('joinLogo');
     if (config.logo && /\.(png|svg|jpg|webp)$/.test(config.logo)) {
       logoEl.innerHTML = `<img src="${config.logo}" alt="logo" width="36" height="36">`;
-      loginLogoEl.innerHTML = `<img src="${config.logo}" alt="logo" style="width:64px;height:64px;object-fit:contain">`;
+      joinLogoEl.innerHTML = `<img src="${config.logo}" alt="logo">`;
     } else {
-      logoEl.textContent = config.logo || '☁';
-      loginLogoEl.textContent = config.logo || '☁';
+      const logoText = config.logo || '☁';
+      logoEl.textContent = logoText;
+      joinLogoEl.textContent = logoText;
     }
+    document.getElementById('entryTitle').textContent = config.title;
+    document.getElementById('entrySubtitle').textContent = config.subtitle || '';
+    document.getElementById('entryFooter').innerHTML = config.footer || '';
     document.getElementById('landingTitle').textContent = config.title;
     document.getElementById('landingSubtitle').textContent = config.subtitle || '';
     document.getElementById('landingFooter').innerHTML = `<p>${config.footer || ''}</p>`;

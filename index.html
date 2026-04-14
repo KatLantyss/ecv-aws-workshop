@@ -9,7 +9,8 @@
 <meta property="og:description" content="eCloudvalley 雲端技術實戰工作坊 — AWS Hands-on Lab">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
-<title>AWS Workshop</title>
+<title>ECV Workshop</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
 <link href="https://fonts.cdnfonts.com/css/amazon-ember" rel="stylesheet">
@@ -39,7 +40,7 @@
   <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">☰</button>
   <div class="header-logo">
     <div class="header-logo-icon" id="headerLogo">☁</div>
-    <a href="#" id="headerTitle" class="header-title-link" onclick="goHome();return false">ECV AWS Workshop</a>
+    <a href="#" id="headerTitle" class="header-title-link" onclick="goHome();return false">ECV Workshop</a>
   </div>
   <div class="header-center">
     <div class="header-breadcrumb" id="breadcrumb"></div>
@@ -47,7 +48,7 @@
   </div>
   <div class="header-right">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-
+    <button class="admin-logout-btn" id="adminLogoutBtn" onclick="handleAdminLogout()" hidden>登出</button>
     <button class="header-btn" id="prevBtn" onclick="navigatePrev()">← 上一頁</button>
     <button class="header-btn" id="nextBtn" onclick="navigateNext()">下一頁 →</button>
   </div>
@@ -56,20 +57,20 @@
 <!-- ═══ Sidebar (workshop reader mode) ═══ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-section">
-    <a class="sidebar-back" href="#" onclick="goHome();return false">← 回到首頁</a>
+    <a class="sidebar-back" href="#" onclick="goHome();return false">← 返回</a>
     <div class="sidebar-label" id="sidebarLabel">目錄</div>
     <ul class="sidebar-nav" id="sidebarNav"></ul>
   </div>
   <div class="sidebar-footer" id="sidebarFooter" hidden>
     <span class="sidebar-user" id="headerUser"></span>
-    <button class="sidebar-logout" id="logoutBtn" onclick="handleLogout()">登出</button>
+    <button class="sidebar-logout" id="logoutBtn" onclick="handleLogout()"></button>
   </div>
 </aside>
 
 <!-- ═══ Landing page (card grid) ═══ -->
 <div class="landing" id="landing" role="main">
   <div class="landing-hero">
-    <h1 id="landingTitle">ECV AWS Workshop</h1>
+    <h1 id="landingTitle">ECV Workshop</h1>
     <p id="landingSubtitle">eCloudvalley 雲端技術實戰工作坊</p>
   </div>
   <div class="card-grid" id="cardGrid"></div>
@@ -88,26 +89,44 @@
 
 <div class="overlay" id="overlay"></div>
 
-<!-- ═══ Login Screen ═══ -->
-<div class="login-screen" id="loginScreen" hidden>
-  <div class="login-card">
-    <div class="login-logo" id="loginLogo">☁</div>
-    <h1 class="login-title" id="loginTitle">AWS Workshop</h1>
-    <p class="login-subtitle">請輸入講師提供的帳號與活動代碼</p>
-    <form class="login-form" id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
-      <div class="login-field">
-        <label for="loginUser">使用者名稱</label>
-        <input type="text" id="loginUser" name="username" required autocomplete="username" spellcheck="false">
+<!-- ═══ Unified Entry Screen ═══ -->
+<div class="entry-screen" id="joinScreen" hidden>
+  <div class="entry-container">
+    <div class="entry-brand">
+      <div class="entry-logo" id="joinLogo">☁</div>
+      <h1 class="entry-title" id="entryTitle">ECV Workshop</h1>
+      <p class="entry-subtitle" id="entrySubtitle"></p>
+    </div>
+    <div class="entry-card">
+      <!-- Step 1: Event Code / Admin -->
+      <div class="entry-step" id="entryStep1">
+        <form class="entry-form" id="joinForm" onsubmit="handleUnifiedEntry(event)" autocomplete="off">
+          <label class="entry-label" for="joinCode">Event Code</label>
+          <div class="entry-input-row">
+            <input type="text" id="joinCode" name="eventcode" required autocomplete="off" spellcheck="false">
+            <button class="entry-submit" type="submit" aria-label="Continue">&rarr;</button>
+          </div>
+          <div class="entry-error" id="joinError" role="alert" aria-live="polite"></div>
+        </form>
       </div>
-      <div class="login-field">
-        <label for="loginCode">活動代碼</label>
-        <input type="text" id="loginCode" name="eventcode" required autocomplete="off" spellcheck="false">
+      <!-- Step 2: Username (revealed after event code) -->
+      <div class="entry-step entry-step-hidden" id="entryStep2">
+        <div class="entry-step2-badge">
+          <span class="entry-step2-icon">✓</span>
+          <span class="entry-workshop-name" id="entryWorkshopName"></span>
+          <button class="entry-change-btn" onclick="entryReset()">變更</button>
+        </div>
+        <form class="entry-form" id="entryUserForm" onsubmit="handleUnifiedLogin(event)" autocomplete="off">
+          <label class="entry-label" for="loginUser">Username</label>
+          <div class="entry-input-row">
+            <input type="text" id="loginUser" name="username" required autocomplete="username" spellcheck="false">
+            <button class="entry-submit" type="submit" aria-label="Join">&rarr;</button>
+          </div>
+          <div class="entry-error" id="loginError" role="alert" aria-live="polite"></div>
+        </form>
       </div>
-      <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
-      <button class="login-btn" type="submit">進入 Workshop</button>
-    </form>
-    <p class="login-hint">沒有帳號或活動代碼？請聯繫講師取得。</p>
-    <a class="login-back" href="#" onclick="cancelLogin();return false">← 返回首頁</a>
+    </div>
+    <footer class="entry-footer" id="entryFooter"></footer>
   </div>
 </div>
 
