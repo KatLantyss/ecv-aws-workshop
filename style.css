@@ -287,8 +287,8 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
   .ws-alert{flex-direction:column;gap:.5rem;padding:.75rem}
   .ws-banner{flex-direction:column;gap:.5rem;padding:.75rem}
   .ws-expand-header{font-size:.82rem;padding:.6rem .75rem}
-  .ws-expand-body>*{padding:0 .75rem}
-  .ws-expand.open .ws-expand-body>*{padding:.75rem}
+  .ws-expand-body{padding:0 .75rem}
+  .ws-expand.open .ws-expand-body{padding:.75rem}
   .ws-steps{--ws-step-size:24px}
   .ws-step::before{font-size:.65rem}
   .ws-step{padding-bottom:1rem}
@@ -388,10 +388,8 @@ body{font-family:'Amazon Ember',system-ui,sans-serif;background:var(--bg);color:
 .ws-expand-arrow{transition:transform .2s ease;color:var(--text-dim);display:flex;align-items:center;transform:rotate(-90deg)}
 .ws-expand-arrow svg{width:14px;height:14px}
 .ws-expand.open .ws-expand-arrow{transform:rotate(0deg)}
-.ws-expand-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
-.ws-expand-body>*{overflow:hidden;padding:0 1rem}
-.ws-expand.open .ws-expand-body{grid-template-rows:1fr}
-.ws-expand.open .ws-expand-body>*{padding:1rem}
+.ws-expand-body{padding:0 1rem;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.ws-expand.open .ws-expand-body{padding:1rem;max-height:2000px}
 
 /* ─── Steps ─── */
 .ws-steps{counter-reset:ws-step;margin:1.5rem 0;--ws-step-size:28px}

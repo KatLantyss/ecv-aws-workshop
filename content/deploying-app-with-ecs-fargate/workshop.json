@@ -4,6 +4,6 @@
   "description": "從零開始建構完整的 AWS ECS Fargate 容器化應用架構，整合 ECR、ALB、S3 與 RDS。",
   "badge": "AWS",
   "level": "初級",
-  "duration": "約 2-3 小時",
+  "duration": "3 小時",
   "icon": "container"
 }

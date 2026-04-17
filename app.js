@@ -883,7 +883,7 @@ function buildTOC() {
   let html = '<div class="toc-title">目錄</div>';
   headings.forEach(h => {
     const cls = h.tagName === 'H3' ? ' class="toc-h3"' : '';
-    html += `<a href="#${h.id}"${cls} data-target="${h.id}">${h.textContent}</a>`;
+    html += `<a href="javascript:void(0)" onclick="document.getElementById('${h.id}').scrollIntoView({behavior:'smooth',block:'start'})"${cls} data-target="${h.id}">${h.textContent}</a>`;
   });
   toc.innerHTML = html;
 }

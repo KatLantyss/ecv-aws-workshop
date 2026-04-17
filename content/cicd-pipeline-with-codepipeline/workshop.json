@@ -1,0 +1,9 @@
+{
+  "order": 2,
+  "title": "CI/CD Pipeline 自動化部署實戰",
+  "description": "使用 AWS CodePipeline 與 CodeBuild 建立完整的 CI/CD 自動化部署流程，整合 GitHub、ECR 與 ECS Fargate。",
+  "badge": "AWS",
+  "level": "初級",
+  "duration": "3 小時",
+  "icon": "git-branch"
+}
