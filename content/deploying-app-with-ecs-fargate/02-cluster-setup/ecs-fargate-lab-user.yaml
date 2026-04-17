@@ -9,18 +9,12 @@ Parameters:
     Type: String
     AllowedPattern: '[a-z0-9\-]+'
     ConstraintDescription: Lowercase alphanumeric and hyphens only
-    Description: Unique prefix for this student (e.g. ws-07)
+    Description: Unique prefix for this student
 
   LabName:
     Type: String
     Default: ecs-fargate-lab
     Description: Lab name used as resource naming prefix and for importing shared infrastructure exports
-
-  ListenerRulePriority:
-    Type: Number
-    MinValue: 1
-    MaxValue: 50000
-    Description: Unique priority for this student's ALB Listener Rule (e.g. student 7 = priority 7)
 
 Resources:
 
@@ -59,6 +53,17 @@ Resources:
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+
+  # Allow Command Host to connect to RDS (port 3306)
+  RDSIngressFromCommandHost:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::ImportValue: !Sub '${LabName}-RDSSg'
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref CommandHostSecurityGroup
 
   CommandHost:
     Type: AWS::EC2::Instance
@@ -105,7 +110,7 @@ Resources:
         - Key: User
           Value: !Ref UserPrefix
 
-  # ==================== ALB Target Group + Listener Rule ====================
+  # ==================== ALB Target Group ====================
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -120,19 +125,24 @@ Resources:
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 3
 
-  ListenerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      ListenerArn:
-        Fn::ImportValue: !Sub '${LabName}-ListenerArn'
-      Priority: !Ref ListenerRulePriority
-      Conditions:
-        - Field: http-header
-          HttpHeaderConfig:
-            HttpHeaderName: X-Workshop-User
-            Values:
-              - !Ref UserPrefix
-      Actions:
+      Name: !Sub '${LabName}-${UserPrefix}-alb'
+      Scheme: internet-facing
+      Subnets:
+        - Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
+        - Fn::ImportValue: !Sub '${LabName}-PublicSubnet2'
+      SecurityGroups:
+        - Fn::ImportValue: !Sub '${LabName}-ALBSg'
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup
 
@@ -145,6 +155,8 @@ Outputs:
     Value: !Ref S3Bucket
   TargetGroupArn:
     Value: !Ref TargetGroup
+  ALBDnsName:
+    Value: !GetAtt ALB.DNSName
   UserPrefix:
     Value: !Ref UserPrefix
   # Pass-through from infra stack for convenience
@@ -154,9 +166,6 @@ Outputs:
   ECRRepositoryUri:
     Value:
       Fn::ImportValue: !Sub '${LabName}-ECRUri'
-  ALBDnsName:
-    Value:
-      Fn::ImportValue: !Sub '${LabName}-ALBDns'
   RDSEndpoint:
     Value:
       Fn::ImportValue: !Sub '${LabName}-RDSEndpoint'

@@ -10,18 +10,6 @@ Parameters:
     MinLength: 8
     Description: RDS master password (min 8 chars)
 
-  ApiToken:
-    Type: String
-    NoEcho: true
-    MinLength: 8
-    Description: Token for Lambda API authentication
-
-  AdminPassword:
-    Type: String
-    NoEcho: true
-    MinLength: 8
-    Description: Password for instructor dashboard access
-
 Mappings:
   Config:
     VPC:
@@ -162,31 +150,6 @@ Resources:
           ToPort: 3306
           SourceSecurityGroupId: !Ref ECSSecurityGroup
 
-  # ==================== ALB ====================
-  ALB:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Name: ecs-fargate-lab-alb
-      Scheme: internet-facing
-      Subnets:
-        - !Ref PublicSubnet1
-        - !Ref PublicSubnet2
-      SecurityGroups:
-        - !Ref ALBSecurityGroup
-
-  ALBListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      LoadBalancerArn: !Ref ALB
-      Port: 80
-      Protocol: HTTP
-      DefaultActions:
-        - Type: fixed-response
-          FixedResponseConfig:
-            StatusCode: '404'
-            ContentType: text/plain
-            MessageBody: 'No lab environment found. Please start your lab first.'
-
   # ==================== ECS Cluster ====================
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -300,194 +263,6 @@ Resources:
       StorageEncrypted: true
       BackupRetentionPeriod: 0
 
-  # ==================== Lab API (Lambda Function URL) ====================
-  LabApiRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: ecs-fargate-lab-api-role
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: LabLifecycle
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cloudformation:CreateStack
-                  - cloudformation:DeleteStack
-                  - cloudformation:DescribeStacks
-                  - cloudformation:ListStacks
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:AttachRolePolicy
-                  - iam:DetachRolePolicy
-                  - iam:PutRolePolicy
-                  - iam:DeleteRolePolicy
-                  - iam:CreateInstanceProfile
-                  - iam:DeleteInstanceProfile
-                  - iam:AddRoleToInstanceProfile
-                  - iam:RemoveRoleFromInstanceProfile
-                  - iam:PassRole
-                  - iam:GetRole
-                  - iam:GetRolePolicy
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - ec2:*
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - s3:*
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - elasticloadbalancing:*
-                Resource: '*'
-
-  LabApiFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: ecs-fargate-lab-api
-      Runtime: python3.12
-      Handler: index.handler
-      Timeout: 30
-      MemorySize: 128
-      Role: !GetAtt LabApiRole.Arn
-      Environment:
-        Variables:
-          API_TOKEN: !Ref ApiToken
-          ADMIN_PASSWORD: !Ref AdminPassword
-          ACCOUNT_ID: !Ref AWS::AccountId
-      Code:
-        ZipFile: |
-          import json, boto3
-
-          cfn = boto3.client('cloudformation')
-
-          def handler(event, context):
-              headers = {
-                  'Content-Type': 'application/json',
-                  'Access-Control-Allow-Origin': '*',
-                  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                  'Access-Control-Allow-Headers': 'Content-Type'
-              }
-              if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
-                  return {'statusCode': 200, 'headers': headers, 'body': ''}
-
-              import os
-              body = json.loads(event.get('body', '{}'))
-
-              token = body.get('token', '')
-              if token != os.environ['API_TOKEN']:
-                  return respond(403, {'error': 'Invalid token'}, headers)
-
-              action = body.get('action')
-              username = body.get('username', '')
-              lab = body.get('labName', 'ecs-fargate-lab')
-              stack_name = f'{lab}-{username}'
-
-              if action == 'create':
-                  try:
-                      cfn.create_stack(
-                          StackName=stack_name,
-                          TemplateURL=body['templateUrl'],
-                          Parameters=[
-                              {'ParameterKey': 'UserPrefix', 'ParameterValue': username},
-                              {'ParameterKey': 'LabName', 'ParameterValue': lab},
-                              {'ParameterKey': 'ListenerRulePriority', 'ParameterValue': str(body.get('priority', 1))}
-                          ],
-                          Capabilities=['CAPABILITY_NAMED_IAM']
-                      )
-                      return respond(200, {'status': 'CREATE_IN_PROGRESS', 'stackName': stack_name}, headers)
-                  except cfn.exceptions.ClientError as e:
-                      return respond(400, {'error': str(e)}, headers)
-
-              elif action == 'status':
-                  try:
-                      res = cfn.describe_stacks(StackName=stack_name)
-                      stack = res['Stacks'][0]
-                      outputs = {o['OutputKey']: o['OutputValue'] for o in stack.get('Outputs', [])}
-                      return respond(200, {'status': stack['StackStatus'], 'outputs': outputs}, headers)
-                  except cfn.exceptions.ClientError:
-                      return respond(200, {'status': 'NOT_FOUND', 'outputs': {}}, headers)
-
-              elif action == 'delete':
-                  try:
-                      account_id = os.environ.get('ACCOUNT_ID', '')
-                      bucket_name = f'{lab}-{username}-{account_id}'
-                      try:
-                          s3 = boto3.resource('s3')
-                          bucket = s3.Bucket(bucket_name)
-                          bucket.objects.all().delete()
-                      except Exception:
-                          pass
-                      cfn.delete_stack(StackName=stack_name)
-                      return respond(200, {'status': 'DELETE_IN_PROGRESS'}, headers)
-                  except cfn.exceptions.ClientError as e:
-                      return respond(400, {'error': str(e)}, headers)
-
-              elif action == 'list':
-                  admin_pw = body.get('adminPassword', '')
-                  if admin_pw != os.environ['ADMIN_PASSWORD']:
-                      return respond(403, {'error': 'Invalid admin password'}, headers)
-                  stacks = []
-                  paginator = cfn.get_paginator('list_stacks')
-                  for page in paginator.paginate(StackStatusFilter=[
-                      'CREATE_IN_PROGRESS', 'CREATE_COMPLETE', 'CREATE_FAILED',
-                      'DELETE_IN_PROGRESS', 'DELETE_FAILED',
-                      'ROLLBACK_COMPLETE', 'ROLLBACK_IN_PROGRESS'
-                  ]):
-                      for s in page['StackSummaries']:
-                          if s['StackName'].startswith(f'{lab}-') and s['StackName'] != lab:
-                              stacks.append({
-                                  'stackName': s['StackName'],
-                                  'status': s['StackStatus'],
-                                  'username': s['StackName'].replace(f'{lab}-', '', 1),
-                                  'createdAt': s['CreationTime'].isoformat()
-                              })
-                  return respond(200, {'stacks': stacks}, headers)
-
-              return respond(400, {'error': 'Unknown action'}, headers)
-
-          def respond(code, body, headers):
-              return {
-                  'statusCode': code,
-                  'headers': headers,
-                  'body': json.dumps(body, default=str)
-              }
-
-  LabApiFunctionUrl:
-    Type: AWS::Lambda::Url
-    Properties:
-      AuthType: NONE
-      TargetFunctionArn: !Ref LabApiFunction
-      Cors:
-        AllowOrigins:
-          - '*'
-        AllowMethods:
-          - POST
-        AllowHeaders:
-          - Content-Type
-
-  LabApiFunctionUrlPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref LabApiFunction
-      Action: lambda:InvokeFunctionUrl
-      Principal: '*'
-      FunctionUrlAuthType: NONE
-
 Outputs:
   VPCId:
     Value: !Ref VPC
@@ -521,18 +296,6 @@ Outputs:
     Value: !GetAtt ECRRepository.RepositoryUri
     Export:
       Name: ecs-fargate-lab-ECRUri
-  ALBArn:
-    Value: !Ref ALB
-    Export:
-      Name: ecs-fargate-lab-ALBArn
-  ALBDnsName:
-    Value: !GetAtt ALB.DNSName
-    Export:
-      Name: ecs-fargate-lab-ALBDns
-  ALBListenerArn:
-    Value: !Ref ALBListener
-    Export:
-      Name: ecs-fargate-lab-ListenerArn
   ECSSecurityGroup:
     Value: !Ref ECSSecurityGroup
     Export:
@@ -541,6 +304,10 @@ Outputs:
     Value: !Ref ALBSecurityGroup
     Export:
       Name: ecs-fargate-lab-ALBSg
+  RDSSecurityGroup:
+    Value: !Ref RDSSecurityGroup
+    Export:
+      Name: ecs-fargate-lab-RDSSg
   ECSTaskExecutionRoleArn:
     Value: !GetAtt ECSTaskExecutionRole.Arn
     Export:
@@ -555,7 +322,3 @@ Outputs:
       Name: ecs-fargate-lab-RDSEndpoint
   Region:
     Value: !Ref AWS::Region
-  LabApiUrl:
-    Value: !GetAtt LabApiFunctionUrl.FunctionUrl
-    Export:
-      Name: ecs-fargate-lab-ApiUrl

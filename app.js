@@ -83,6 +83,11 @@ function preprocessCustomSyntax(md) {
     return `<span class="ws-btn ws-btn-${variant}">${pre}${text}${post}</span>`;
   });
 
+  // Download template button — pre-fills user params
+  md = md.replace(/::download-template\[([^\]]*)\]\{file="([^"]+)"\}/g, (_, text, file) => {
+    return `<button class="ws-btn ws-btn-default" onclick="downloadTemplate('${file}')">${getIcon('arrow-down-to-line')} ${text}</button>`;
+  });
+
   md = md.replace(/::badge\[([^\]]+)\]\{([^}]+)\}/g, (_, text, attrs) => {
     const type = (attrs.match(/type="([^"]+)"/) || [])[1] || 'default';
     return `<span class="ws-badge ws-badge-${type}">${text}</span>`;
@@ -441,12 +446,12 @@ const router = {
     document.getElementById('adminLogoutBtn').setAttribute('hidden', '');
     setView('reader');
 
-    // Show lab fab in reader mode
+    // Show lab fab only if workshop has labConfig
     if (workshopCredentials?.labConfig) {
       _showLabFab();
       _labAutoCheck();
     } else {
-      _showLabFab(); // Show with mock mode
+      _hideLabFab();
     }
 
     const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : 0;
@@ -660,7 +665,6 @@ function _getLabConfig() {
   if (!ws) return null;
   return {
     lambdaUrl: workshopCredentials.labConfig.lambdaUrl,
-    apiToken: workshopCredentials.labConfig.apiToken,
     labName: ws.manifest.labName || currentWorkshop,
     templateUrl: ws.manifest.labTemplate
       ? window.location.origin + '/' + ws.dir + '/' + ws.manifest.labTemplate
@@ -710,7 +714,6 @@ async function _labApiCall(action, extra) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action,
-      token: cfg.apiToken,
       username: cfg.username,
       labName: cfg.labName,
       ...extra
@@ -961,6 +964,10 @@ function renderMarkdown(md) {
 
   const prefix = getUsername();
   if (prefix) html = html.replace(/\{\{USERNAME\}\}/g, prefix);
+  if (prefix && workshopCredentials && workshopCredentials.users) {
+    const priority = workshopCredentials.users.indexOf(prefix) + 1;
+    html = html.replace(/\{\{PRIORITY\}\}/g, String(priority));
+  }
 
   const prev = currentIndex > 0 ? chapters[currentIndex - 1] : null;
   const next = currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
@@ -1064,6 +1071,40 @@ function copyToClipboard(text) {
   document.body.appendChild(ta); ta.select(); document.execCommand('copy');
   document.body.removeChild(ta);
   return Promise.resolve();
+}
+
+/* ═══════════════════════════════════════════
+   Download Template (with user params pre-filled)
+   ═══════════════════════════════════════════ */
+async function downloadTemplate(filePath) {
+  if (!currentUser || !workshopCredentials) return;
+  const ws = workshops.find(w => w.slug === currentWorkshop);
+  if (!ws) return;
+  const url = ws.dir + '/' + filePath;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return;
+    let yaml = await res.text();
+    const priority = workshopCredentials.users.indexOf(currentUser) + 1;
+    // Set UserPrefix default
+    yaml = yaml.replace(
+      /(UserPrefix:\s*\n\s*Type: String)/,
+      `UserPrefix:\n    Type: String\n    Default: '${currentUser}'`
+    );
+    // Set ListenerRulePriority default
+    yaml = yaml.replace(
+      /(ListenerRulePriority:\s*\n\s*Type: Number)/,
+      `ListenerRulePriority:\n    Type: Number\n    Default: ${priority}`
+    );
+    const blob = new Blob([yaml], { type: 'application/x-yaml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filePath.split('/').pop();
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (e) {
+    console.error('Download template error:', e);
+  }
 }
 
 function copyCode(btn) {

@@ -54,7 +54,7 @@ export ECR_REPO=<貼上 CloudFormation Outputs 的 ECRRepositoryUri>
 1. 標記映像
 
 ```bash
-sudo docker tag web2048:latest $ECR_REPO:nginx
+sudo docker tag web2048:latest $ECR_REPO:{{USERNAME}}-nginx
 ```
 
 2. 確認標記成功
@@ -68,7 +68,7 @@ sudo docker images
 3. 推送映像
 
 ```bash
-sudo docker push $ECR_REPO:nginx
+sudo docker push $ECR_REPO:{{USERNAME}}-nginx
 ```
 :::
 
@@ -88,8 +88,8 @@ latest: digest: sha256:... size: 1780
 
 :::steps
 1. 回到 [ECR Console](https://console.aws.amazon.com/ecr/) → **Repositories** → `ecs-fargate-lab-app` → **Images**
-2. 確認看到 `nginx` 映像標籤
-3. 點擊映像，可以查看 **Vulnerabilities** 欄位（Image Scanning 結果）
+2. 確認看到 `{{USERNAME}}-nginx` 映像標籤
+3. 點擊映像，可以查看 **Scanning and vulnerabilities** 欄位（Image Scanning 結果）
 :::
 
 :::expand{title="關於 Image Scanning"}

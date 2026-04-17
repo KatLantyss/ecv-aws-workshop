@@ -77,10 +77,10 @@ order: 0
 | Lab | 時間 | 內容 |
 |-----|------|------|
 | 概念說明 | 15 mins | 容器、Docker、ECR、ECS、Fargate、EKS 概念 |
-| Task 1 - 基礎環境建置 | 15-20 mins | 透過 CloudFormation Console 部署 VPC、ALB、ECS Cluster 等 |
+| Task 1 - 基礎環境建置 | 15-20 mins | 透過 CloudFormation Console 部署 VPC、ECS Cluster 等 |
 | Task 2 - 容器化應用 | 15-20 mins | Clone 2048 遊戲、建立 Dockerfile、建置映像 |
 | Task 3 - ECR 映像推送 | 10-15 mins | 推送映像至 Amazon ECR |
-| Task 4 - 部署至 ECS | 20-25 mins | 建立 Task Definition、Service，透過 ALB 玩遊戲 |
+| Task 4 - 部署至 ECS | 20-25 mins | 建立 Task Definition、Service，透過個人 ALB 玩遊戲 |
 | Task 5 - 應用升級 | 25-30 mins | 升級為 Node.js，S3 載入靜態檔 + RDS 排行榜 |
 | Task 6 - 資源清除 | 10 mins | 刪除所有 AWS 資源避免產生費用 |
 

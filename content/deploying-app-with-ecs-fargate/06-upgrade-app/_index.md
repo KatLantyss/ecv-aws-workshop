@@ -47,7 +47,47 @@ aws s3 ls s3://$S3_BUCKET/public/
 
 ---
 
-## 5.2 建立 Node.js 應用
+## 5.2 建立 RDS Database
+
+Node.js 應用需要一個 MySQL database 和 table 來儲存排行榜資料。在 Command Host 上安裝 MySQL client 並建立：
+
+:::alert{type="warning"}
+資料庫密碼： ``Workshop1234``
+:::
+
+:::steps
+1. 安裝 MySQL client
+
+```bash
+sudo yum install -y mariadb105
+```
+
+2. 建立 database 和 scores table
+
+```bash
+mysql -h $RDS_ENDPOINT -u admin -p -e "
+CREATE DATABASE IF NOT EXISTS workshopdb;
+USE workshopdb;
+CREATE TABLE IF NOT EXISTS scores (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  player VARCHAR(50) NOT NULL,
+  score INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);"
+```
+
+3. 確認建立成功
+
+```bash
+mysql -h $RDS_ENDPOINT -u admin -p workshopdb -e "SHOW TABLES;"
+```
+:::
+
+預期看到 `scores` table。
+
+---
+
+## 5.3 建立 Node.js 應用
 
 在 Command Host 上建立新的應用程式碼：
 
@@ -185,17 +225,17 @@ EOF
 
 ---
 
-## 5.3 建置並推送新映像
+## 5.4 建置並推送新映像
 
 ```bash
 sudo docker build -t web2048:v2 .
-sudo docker tag web2048:v2 $ECR_REPO:node
-sudo docker push $ECR_REPO:node
+sudo docker tag web2048:v2 $ECR_REPO:{{USERNAME}}-node
+sudo docker push $ECR_REPO:{{USERNAME}}-node
 ```
 
 ---
 
-## 5.4 透過 Console 建立新版 Task Definition
+## 5.5 透過 Console 建立新版 Task Definition
 
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Task definitions** → `ecs-fargate-lab-{{USERNAME}}-app`
@@ -203,15 +243,15 @@ sudo docker push $ECR_REPO:node
 2. 點擊 ::button[Create new revision]{variant="action" postfix="aws-expand"}
 
 3. 在 **Container - 1** 區塊：
-   - 將 **Image URI** 的 tag 從 `:nginx` 改為 ``:node``（例如 `123456789012.dkr.ecr.us-east-1.amazonaws.com/ecs-fargate-lab-app:node`）
-   - 展開 **Environment variables**，新增以下變數：
+   - 將 **Image URI** 的 tag 從 `:{{USERNAME}}-nginx` 改為 ``:{{USERNAME}}-node``
+   - 展開 **Environment variables**，點擊 ::button[Add environment variable]{variant="default"} ，新增以下變數：
 
 | Key | Value |
 |-----|-------|
 | ``S3_BUCKET`` | 貼上 Task 1 記錄的 S3 Bucket 名稱 |
 | ``DB_HOST`` | 貼上 Task 1 記錄的 RDS Endpoint |
 | ``DB_USER`` | ``admin`` |
-| ``DB_PASSWORD`` | Task 1 設定的資料庫密碼 |
+| ``DB_PASSWORD`` | ``Workshop1234`` |
 | ``DB_NAME`` | ``workshopdb`` |
 
 4. 點擊 ::button[Create]{variant="action"}
@@ -223,22 +263,26 @@ sudo docker push $ECR_REPO:node
 
 ---
 
-## 5.5 透過 Console 更新 ECS Service
+## 5.6 透過 Console 更新 ECS Service
 
 :::steps
 1. 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster`
 2. 在 **Services** 分頁，勾選 `ecs-fargate-lab-{{USERNAME}}-service`
 3. 點擊 ::button[Update]{variant="default" split="aws-expand"} → 選擇 **Quick service update**
-4. 在 **Task definition revision** 欄位，選擇最新的 revision（數字最大的）
+4. 在 **Task definition revision** 欄位，選擇最新的 revision（**LATEST**）
 5. 勾選 **Force new deployment**
 6. 點擊 ::button[Update]{variant="action"}
 :::
 
 等待部署完成（約 2-3 分鐘），在 **Deployments** 分頁確認新版本已完成。
 
+:::alert{type="warning"}
+要留意 `ecs-fargate-lab-student-app:` 之後的版本號，ECS 會等待新的版本 Running 後才將舊版本的容器關閉。
+:::
+
 ---
 
-## 5.6 驗證
+## 5.7 驗證
 
 ### 確認遊戲仍正常（靜態檔案來自 S3）
 
@@ -304,7 +348,7 @@ aws s3 cp leaderboard.js s3://$S3_BUCKET/public/leaderboard.js
 
 3. 重啟 ECS Task 以載入新內容
    - 開啟 [ECS Console](https://console.aws.amazon.com/ecs/) → **Clusters** → `ecs-fargate-lab-cluster` → **Tasks** 分頁
-   - 勾選任一 Task，點擊 ::button[Stop]{variant="action"}
+   - 點擊 ::button[Stop]{variant="default" postfix="aws-expand"} → Stop all
    - 等待新 Task 變為 ::status[Running]{type="success" icon="aws-success"}
 
 4. 在瀏覽器開啟 `http://<ALB_DNS>`，確認分頁標題已變為「2048 - S3 Edition」
@@ -354,7 +398,7 @@ curl -s http://$ALB_DNS/api/scores | python3 -m json.tool
 
 | 項目 | 驗證方式 | 預期結果 |
 |------|----------|----------|
-| 2048 遊戲 | 瀏覽器開啟 ALB DNS | 遊戲正常運作（內容來自 S3） |
+| 2048 遊戲 | 瀏覽器開啟個人 ALB DNS | 遊戲正常運作（內容來自 S3） |
 | Health API | `curl /api/health` | `source: "node"` |
 | S3 驗證 | 修改 S3 檔案 → 重啟 Task | 頁面內容更新 |
 | 排行榜 | `curl /api/scores` | 顯示分數排名 |

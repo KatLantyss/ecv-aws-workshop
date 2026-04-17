@@ -134,38 +134,6 @@
   </div>
 </div>
 
-<!-- ═══ Lab Floating Button ═══ -->
-<div class="lab-fab" id="labFab" data-state="idle" hidden>
-  <div class="lab-fab-collapsed">
-    <span class="lab-fab-dot" id="labFabDot"></span>
-    <span class="lab-fab-label">Lab</span>
-  </div>
-  <div class="lab-fab-expanded">
-    <div class="lab-fab-header" id="labFabHeader">
-      <span>Lab 環境</span>
-      <span class="lab-fab-header-dot" id="labFabHeaderDot"></span>
-    </div>
-    <div class="lab-fab-body" id="labFabBody">
-      <div class="lab-fab-idle" id="labFabIdle">
-        <button class="lab-fab-deploy-btn" onclick="labDeploy()">部署 Lab 環境</button>
-      </div>
-      <div class="lab-fab-progress" id="labFabProgress" hidden>
-        <div class="lab-fab-spinner"></div>
-        <span class="lab-fab-status" id="labFabStatus">建立中...</span>
-        <span class="lab-fab-elapsed" id="labFabElapsed"></span>
-      </div>
-      <div class="lab-fab-outputs" id="labFabOutputs" hidden></div>
-      <div class="lab-fab-error" id="labFabError" hidden>
-        <span class="lab-fab-error-msg" id="labFabErrorMsg"></span>
-        <button class="lab-fab-retry-btn" onclick="labDeploy()">重試</button>
-      </div>
-    </div>
-    <div class="lab-fab-footer" id="labFabFooter" hidden>
-      <button class="lab-fab-destroy-btn" onclick="labDestroy()">銷毀環境</button>
-    </div>
-  </div>
-</div>
-
 <script src="app.js"></script>
 </body>
 </html>

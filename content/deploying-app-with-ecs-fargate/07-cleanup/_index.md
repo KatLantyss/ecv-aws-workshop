@@ -61,7 +61,7 @@ CloudFormation 無法刪除非空的 S3 Bucket，需先清空。
 :::
 
 :::alert{type="info"}
-CloudFormation 會自動刪除 ECR Repository（含映像）、VPC、ALB、ECS Cluster、RDS、Command Host 等所有資源。
+CloudFormation 會自動刪除 ALB、Command Host、S3 Bucket 等個人 Lab 資源。
 :::
 
 :::expand{title="刪除失敗怎麼辦？"}

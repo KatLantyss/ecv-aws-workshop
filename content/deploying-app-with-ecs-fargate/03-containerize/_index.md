@@ -138,13 +138,13 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost
 ```
 
 預期輸出：`200`
-:::
 
-測試完成後，停止並移除容器：
+3. 測試完成後，停止並移除容器：
 
 ```bash
 sudo docker stop test-2048 && sudo docker rm test-2048
 ```
+:::
 
 ---
 
