@@ -108,14 +108,18 @@ sequenceDiagram
 ![確認是否已安裝 ng, donet](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.10.33.png "確認是否已安裝 ng, donet")
 ![協助 kiro 完成 command 並取得回傳](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.12.00.png "協助 kiro 完成 command 並取得回傳")
 ![等待 kiro 撰寫程式碼](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.13.25.png "等待 kiro 撰寫程式碼")
-![檢驗 kiro 完成的程式專案，並且補充安裝依賴套件 (e.g. donet sdk)](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.15.20.png "檢驗 kiro 完成的程式專案，並且補充安裝依賴套件 (e.g. donet sdk)")
+
+![檢驗 kiro 完成的程式專案，並且補充安裝依賴套件 (例如 donet sdk)](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.15.20.png "檢驗 kiro 完成的程式專案，並且補充安裝依賴套件 (e.g. donet sdk)")
+
 ![Backend](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.18.20.png "Backend")
+
 ![Frontend](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.19.12.png "Frontend")
 
 
 
 ![Backend 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.30.29.png "Backend 啟動成功")
 ![Frontend 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.30.48.png "Frontend 啟動成功")
+
 ### 驗證專案成果
 
 > 通常需要檢驗結果，並且回報錯誤給Kiro，引導它進一步完善程式專案。
