@@ -1,11 +1,11 @@
 {
-  "order": 999,
-  "title": "總覽",
-  "description": "",
-  "badge": "",
-  "level": "",
-  "duration": "",
-  "icon": "📘",
+  "order": 1,
+  "title": "Kiro-容器化與雲端儲存搭配AI智能開發與運維實戰",
+  "description": "透過 Kiro 從零開始建構完整的 FileUpload 專案，快速部署到 AWS EC2。",
+  "badge": "AWS",
+  "level": "初級",
+  "duration": "3 小時",
+  "icon": "container",
   "pages": [
     "_index.md",
     "01-registration/_index.md",
