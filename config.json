@@ -7,6 +7,7 @@
   "workshops": [
     "cicd-pipeline-with-codepipeline",
     "deploying-app-with-ecs-fargate",
+    "use-kiro-boost-dev-ops",
     "writing-guide"
   ]
 }
