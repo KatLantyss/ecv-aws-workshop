@@ -5,7 +5,7 @@ order: 0
 
 # Workshop 撰寫指南
 
-::badge[內部文件]{type="info"} ::badge[約 10 分鐘]{type="default"}
+::badge[INTERNAL]{type="info"} ::badge[約 10 分鐘]{type="default"}
 
 這份指南說明如何用本框架從零建立一個 AWS Workshop。
 

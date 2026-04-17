@@ -366,6 +366,7 @@ const router = {
     _entrySlug = null;
     updateUserUI();
     document.getElementById('adminLogoutBtn').setAttribute('hidden', '');
+    _hideLabFab();
     setView('join');
     // Reset entry form to step 1
     document.getElementById('entryStep1').querySelector('input').disabled = false;
@@ -440,6 +441,14 @@ const router = {
     document.getElementById('adminLogoutBtn').setAttribute('hidden', '');
     setView('reader');
 
+    // Show lab fab in reader mode
+    if (workshopCredentials?.labConfig) {
+      _showLabFab();
+      _labAutoCheck();
+    } else {
+      _showLabFab(); // Show with mock mode
+    }
+
     const idx = chapterId ? chapters.findIndex(c => c.id === chapterId) : 0;
     displayChapter(idx >= 0 ? idx : 0);
   },
@@ -493,7 +502,7 @@ window.addEventListener('hashchange', () => router.resolve());
    ═══════════════════════════════════════════ */
 async function loadWorkshopCredentials(workshopDir) {
   try {
-    const res = await fetch(workshopDir + '/credentials.json');
+    const res = await fetch(workshopDir + '/credentials.json?t=' + Date.now());
     if (res.ok) return await res.json();
   } catch {}
   return null;
@@ -637,6 +646,229 @@ function handleAdminLogout() {
   sessionStorage.removeItem('ws-admin');
   router._setHash('', false);
   router.showJoin(null);
+}
+
+/* ═══════════════════════════════════════════
+   Lab Deploy / Destroy (Lambda Function URL)
+   ═══════════════════════════════════════════ */
+let _labPollTimer = null;
+let _labStartTime = null;
+
+function _getLabConfig() {
+  if (!workshopCredentials || !workshopCredentials.labConfig) return null;
+  const ws = workshops.find(w => w.slug === currentWorkshop);
+  if (!ws) return null;
+  return {
+    lambdaUrl: workshopCredentials.labConfig.lambdaUrl,
+    apiToken: workshopCredentials.labConfig.apiToken,
+    labName: ws.manifest.labName || currentWorkshop,
+    templateUrl: ws.manifest.labTemplate
+      ? window.location.origin + '/' + ws.dir + '/' + ws.manifest.labTemplate
+      : '',
+    username: currentUser,
+    priority: workshopCredentials.users.indexOf(currentUser) + 1
+  };
+}
+
+function _setDeployView(state) {
+  const fab = document.getElementById('labFab');
+  if (!fab) return;
+  fab.dataset.state = state;
+  document.getElementById('labFabIdle').hidden = state !== 'idle';
+  document.getElementById('labFabProgress').hidden = state !== 'progress';
+  document.getElementById('labFabOutputs').hidden = state !== 'done';
+  document.getElementById('labFabError').hidden = state !== 'error';
+  document.getElementById('labFabFooter').hidden = state !== 'done';
+  // Header dot
+  const dotColor = state === 'done' ? 'var(--success)' : state === 'progress' ? 'var(--warning)' : state === 'error' ? 'var(--danger)' : 'var(--text-dim)';
+  const headerDot = document.getElementById('labFabHeaderDot');
+  if (headerDot) headerDot.style.background = dotColor;
+}
+
+function toggleLabFab() {
+  document.getElementById('labFab').classList.toggle('open');
+}
+
+function _showLabFab() {
+  const fab = document.getElementById('labFab');
+  if (fab) fab.removeAttribute('hidden');
+}
+
+function _hideLabFab() {
+  const fab = document.getElementById('labFab');
+  if (fab) {
+    fab.setAttribute('hidden', '');
+    fab.classList.remove('open');
+  }
+}
+
+async function _labApiCall(action, extra) {
+  const cfg = _getLabConfig();
+  if (!cfg) throw new Error('labConfig not found');
+  const res = await fetch(cfg.lambdaUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action,
+      token: cfg.apiToken,
+      username: cfg.username,
+      labName: cfg.labName,
+      ...extra
+    })
+  });
+  return await res.json();
+}
+
+async function labDeploy() {
+  const cfg = _getLabConfig();
+  // Mock mode: simulate deployment when no labConfig
+  if (!cfg) {
+    _showLabFab();
+    _setDeployView('progress');
+    _labStartTime = Date.now();
+    _updateElapsed();
+    setTimeout(() => {
+      _renderOutputs({
+        CommandHostSessionUrl: 'https://us-east-1.console.aws.amazon.com/systems-manager/session-manager/i-0abc123def456',
+        ECRRepositoryUri: '123456789012.dkr.ecr.us-east-1.amazonaws.com/ecs-fargate-lab-app',
+        ALBDnsName: 'ecs-fargate-lab-alb-123456.us-east-1.elb.amazonaws.com',
+        S3BucketName: 'ecs-fargate-lab-' + (currentUser || 'demo') + '-123456789012',
+        RDSEndpoint: 'ecs-fargate-lab-db.abc123.us-east-1.rds.amazonaws.com',
+        ECSSecurityGroup: 'sg-0abc123def456',
+        TargetGroupArn: 'arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/ecs-fargate-lab-tg/abc123'
+      });
+      _setDeployView('done');
+    }, 3000);
+    return;
+  }
+  _setDeployView('progress');
+  _labStartTime = Date.now();
+  _updateElapsed();
+  try {
+    await _labApiCall('create', {
+      templateUrl: cfg.templateUrl,
+      priority: cfg.priority
+    });
+    _labPollTimer = setInterval(() => _labPollStatus(), 5000);
+  } catch (e) {
+    document.getElementById('labFabErrorMsg').textContent = '部署請求失敗：' + e.message;
+    _setDeployView('error');
+  }
+}
+
+async function _labPollStatus() {
+  try {
+    const data = await _labApiCall('status');
+    _updateElapsed();
+    const status = data.status || 'UNKNOWN';
+    const textEl = document.getElementById('labFabStatus');
+    if (textEl) textEl.textContent = status.replace(/_/g, ' ');
+
+    if (status === 'CREATE_COMPLETE') {
+      clearInterval(_labPollTimer);
+      _labPollTimer = null;
+      _renderOutputs(data.outputs || {});
+      _setDeployView('done');
+    } else if (status.includes('FAILED') || status.includes('ROLLBACK')) {
+      clearInterval(_labPollTimer);
+      _labPollTimer = null;
+      document.getElementById('labFabErrorMsg').textContent = '部署失敗：' + status;
+      _setDeployView('error');
+    }
+  } catch (e) {
+    // Network error, keep polling
+  }
+}
+
+function _updateElapsed() {
+  const el = document.getElementById('labFabElapsed');
+  if (!el || !_labStartTime) return;
+  const sec = Math.floor((Date.now() - _labStartTime) / 1000);
+  el.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  if (document.getElementById('labFabProgress') && !document.getElementById('labFabProgress').hidden) {
+    requestAnimationFrame(() => setTimeout(_updateElapsed, 1000));
+  }
+}
+
+function _renderOutputs(outputs) {
+  const container = document.getElementById('labFabOutputs');
+  if (!container) return;
+  const keys = Object.keys(outputs);
+  if (!keys.length) { container.innerHTML = '<p style="font-size:.8rem;color:var(--text-dim)">No outputs</p>'; return; }
+  container.innerHTML = keys.map(k => {
+    const v = outputs[k];
+    const isUrl = v.startsWith('http');
+    const val = isUrl
+      ? `<a href="${v}" target="_blank" rel="noopener">${v}</a>`
+      : `<span class="lab-fab-output-val" onclick="copyLabOutput(this,'${v.replace(/'/g, "\\'")}')">${v}</span>`;
+    return `<div class="lab-fab-output-row"><span class="lab-fab-output-key"><span>${k}</span><span class="lab-fab-output-hint">click to copy</span></span>${val}</div>`;
+  }).join('');
+}
+
+async function labDestroy() {
+  if (!confirm('確定要銷毀 Lab 環境？此操作無法復原。')) return;
+  _setDeployView('progress');
+  document.getElementById('labFabStatus').textContent = '正在銷毀環境...';
+  _labStartTime = Date.now();
+  _updateElapsed();
+  try {
+    await _labApiCall('delete');
+    _labPollTimer = setInterval(async () => {
+      try {
+        const data = await _labApiCall('status');
+        _updateElapsed();
+        const status = data.status || 'UNKNOWN';
+        document.getElementById('labFabStatus').textContent = status.replace(/_/g, ' ');
+        if (status === 'NOT_FOUND' || status === 'DELETE_COMPLETE') {
+          clearInterval(_labPollTimer);
+          _labPollTimer = null;
+          _setDeployView('idle');
+        } else if (status.includes('FAILED')) {
+          clearInterval(_labPollTimer);
+          _labPollTimer = null;
+          document.getElementById('labFabErrorMsg').textContent = '銷毀失敗：' + status;
+          _setDeployView('error');
+        }
+      } catch {}
+    }, 5000);
+  } catch (e) {
+    document.getElementById('labFabErrorMsg').textContent = '銷毀請求失敗：' + e.message;
+    _setDeployView('error');
+  }
+}
+
+// Auto-check lab status when entering a workshop with labConfig
+function copyLabOutput(el, text) {
+  copyToClipboard(text);
+  const row = el.closest('.lab-fab-output-row');
+  const hint = row.querySelector('.lab-fab-output-hint');
+  row.classList.add('copied');
+  if (hint) hint.textContent = '✓ copied';
+  setTimeout(() => {
+    row.classList.remove('copied');
+    if (hint) hint.textContent = 'click to copy';
+  }, 1200);
+}
+
+// Auto-check lab status when entering a workshop with labConfig
+async function _labAutoCheck() {
+  const cfg = _getLabConfig();
+  if (!cfg) return;
+  try {
+    const data = await _labApiCall('status');
+    if (data.status === 'CREATE_COMPLETE') {
+      _renderOutputs(data.outputs || {});
+      _setDeployView('done');
+    } else if (data.status === 'CREATE_IN_PROGRESS') {
+      _setDeployView('progress');
+      _labStartTime = Date.now();
+      _updateElapsed();
+      _labPollTimer = setInterval(() => _labPollStatus(), 5000);
+    } else if (data.status && data.status.includes('FAILED')) {
+      document.getElementById('labFabErrorMsg').textContent = data.status;
+      _setDeployView('error');
+    }
+  } catch {}
 }
 
 /* ═══════════════════════════════════════════
@@ -824,7 +1056,14 @@ function closeLightbox(lb) {
 }
 
 function copyToClipboard(text) {
-  return navigator.clipboard.writeText(text);
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    return navigator.clipboard.writeText(text);
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
+  return Promise.resolve();
 }
 
 function copyCode(btn) {
