@@ -166,6 +166,7 @@ id: custom-id    # 選填
 
 # 本地預覽
 python3 -m http.server 8080
+npx serve .
 ```
 
 ## 新增 Workshop

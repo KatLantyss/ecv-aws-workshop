@@ -1,15 +1,17 @@
 {
-  "title": "容器化與雲端儲存搭配AI智能開發與運維實戰",
-  "description": "透過 Kiro 加速開發與運維",
-  "badge": "HANDS-ON LAB",
-  "level": "初級 ~ 中級",
-  "duration": "約 3~4 小時",
-  "icon": "container",
+  "order": 999,
+  "title": "總覽",
+  "description": "",
+  "badge": "",
+  "level": "",
+  "duration": "",
+  "icon": "📘",
   "pages": [
     "_index.md",
     "01-registration/_index.md",
     "02-shooting-game/_index.md",
     "03-fileupload-sys/_index.md",
+    "03-fileupload-sys/03-1-basic-spa/_index-backup.md",
     "03-fileupload-sys/03-1-basic-spa/_index.md",
     "03-fileupload-sys/03-2-containerized-ecr/_index.md",
     "03-fileupload-sys/03-3-deploy-to-ec2/_index.md"
