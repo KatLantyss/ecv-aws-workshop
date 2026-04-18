@@ -137,8 +137,9 @@ Build Project 建立後，需要加入 ECR Repository URI 的環境變數，讓 
 | `docker: command not found` | 沒有勾選 Privileged | 編輯 Environment → 勾選 Privileged |
 | `denied: Your authorization token has expired` | ECR_REPO 環境變數錯誤 | 確認 ECR_REPO 值正確 |
 | `buildspec.yml not found` | 檔案未 push 到 GitHub | 確認 `git push` 成功 |
-| `AccessDeniedException` | CodeBuild Role 權限不足 | 確認使用的是 User Stack 建立的 Role |
+| `AccessDeniedException` | CodeBuild Role 權限不足 | 確認使用的是 User Stack 建立的 Role，不是 Console 自動建立的 Role |
 | `toomanyrequests` | Docker Hub rate limit | 重試即可，或等幾分鐘 |
+| `ecr get-login-password` 失敗 | ECR_REPO 或 AWS_DEFAULT_REGION 環境變數未設定 | 確認 4.3 的環境變數已正確設定 |
 :::
 
 ---
