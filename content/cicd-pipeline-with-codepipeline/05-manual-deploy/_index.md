@@ -41,8 +41,8 @@ aws ecr get-login-password --region us-east-1 | \
 2. 標記並推送映像
 
 ```bash
-sudo docker tag web2048:latest $ECR_REPO:latest
-sudo docker push $ECR_REPO:latest
+sudo docker tag web2048:latest $ECR_REPO:{{USERNAME}}-latest
+sudo docker push $ECR_REPO:{{USERNAME}}-latest
 ```
 :::
 
@@ -65,7 +65,7 @@ sudo docker push $ECR_REPO:latest
 
 4. **Container - 1**：
    - **Name**：輸入 ``web``
-   - **Image URI**：貼上 ECR URI + ``:latest``
+   - **Image URI**：貼上 ECR URI + ``:{{USERNAME}}-latest``
    - **Container port**：``80``
 
 5. 點擊 ::button[Create]{variant="action"}
@@ -87,21 +87,23 @@ Container Name 必須是 ``web``，這要跟 `buildspec.yml` 中 `imagedefinitio
 3. **Service details**：
    - **Task definition family**：選擇 `cicd-pipeline-lab-{{USERNAME}}-app`
    - **Service name**：輸入 ``cicd-pipeline-lab-{{USERNAME}}-service``
+
+4. **Deployment configuration**
    - **Desired tasks**：``1``
 
-4. **Networking**：
+5. **Networking**：
    - **VPC**：選擇 `cicd-pipeline-lab-vpc`
    - **Subnets**：選擇 Public Subnet
    - **Security group**：選擇 ECS Security Group
    - **Public IP**：Turned on
 
-5. **Load balancing**：
+6. **Load balancing**：
    - 選擇 **Application Load Balancer**
    - **Use an existing load balancer**：`cicd-pipeline-lab-{{USERNAME}}-alb`
    - **Use an existing listener**：`80:HTTP`
    - **Use an existing target group**：`cicd-pipeline-lab-{{USERNAME}}-tg`
 
-6. 點擊 ::button[Create]{variant="action"}
+7. 點擊 ::button[Create]{variant="action"}
 :::
 
 ---

@@ -41,6 +41,10 @@ order: 3
 
 ## 1.3 部署個人 Lab
 
+下載個人 Lab CloudFormation 模板：
+
+[::button[cicd-pipeline-lab-user.yaml]{variant="default" prefix="arrow-down-to-line"}](cicd-pipeline-lab-user.yaml)
+
 :::steps
 1. 開啟 [CloudFormation Console](https://console.aws.amazon.com/cloudformation/)，確認右上角區域為 ``us-east-1``
 

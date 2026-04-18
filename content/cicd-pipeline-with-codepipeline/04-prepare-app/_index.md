@@ -127,14 +127,8 @@ git push origin master
 ```
 :::
 
-:::expand{title="Push 時要求輸入密碼？"}
-GitHub 已不支援密碼驗證，需要使用 **Personal Access Token (PAT)**：
-
-1. 開啟 [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
-2. 點擊 **Generate new token (classic)**
-3. 勾選 `repo` 權限
-4. 點擊 **Generate token**，複製 token
-5. Push 時 Username 輸入 GitHub 帳號，Password 輸入 token
+:::alert{type="info"}
+Push 時 Username 輸入你的 GitHub 帳號，Password 輸入 Task 0 建立的 **Personal Access Token**。
 :::
 
 ---
