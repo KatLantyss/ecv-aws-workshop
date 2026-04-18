@@ -59,6 +59,9 @@ Fork 會在你的 GitHub 帳號下建立一份獨立的副本。你對這個副�
 
 後續步驟需要使用 GitHub Personal Access Token 來讓 Command Host 和 AWS CodeBuild 存取你的 Repository。
 
+:::tabs
+::tab[Classic Token（推薦）]
+
 :::steps
 1. 開啟 [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
 
@@ -66,13 +69,35 @@ Fork 會在你的 GitHub 帳號下建立一份獨立的副本。你對這個副�
 
 3. 填入以下設定：
    - **Note**：輸入 ``codebuild-workshop``
-   - **Expiration**：選擇 **7 days**（workshop 結束後自動過期）
+   - **Expiration**：選擇 **7 days**
    - 勾選以下權限：
-     - `Only select repositories` 並選擇 `https://github.com/<你的 GitHub Username>/2048`
+     - `repo`（完整 Repository 存取）
+     - `admin:repo_hook`（Webhook 管理）
 
 4. 點擊 ::button[Generate token]{variant="action"}
 
 5. **立即複製 Token** 並妥善保存
+:::
+
+::tab[Fine-grained Token]
+
+:::steps
+1. 開啟 [GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)
+
+2. 填入以下設定：
+   - **Token name**：輸入 ``codebuild-workshop``
+   - **Expiration**：選擇 **7 days**
+   - **Repository access**：選擇 **Only select repositories** → 選擇你 Fork 的 2048 Repository
+
+3. 在 **Permissions** 區塊設定：
+   - **Contents**：Access: **Read and write**
+   - **Metadata**：Access: **Read-only**
+
+4. 點擊 ::button[Generate token]{variant="action"}
+
+5. **立即複製 Token** 並妥善保存
+:::
+
 :::
 
 :::alert{type="warning"}
