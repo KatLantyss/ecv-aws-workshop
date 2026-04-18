@@ -1,5 +1,5 @@
 ---
-title: Task 3-3 - 透過 Kiro 將 FileUpload 容器映像快速部署於 EC2
+title: Task 3-3 - 將容器快速部署於 EC2
 order: 5
 ---
 

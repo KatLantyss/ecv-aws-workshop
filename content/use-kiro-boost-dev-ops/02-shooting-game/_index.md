@@ -1,5 +1,5 @@
 ---
-title: Task 2 -透過 Kiro 開發一個 Shooting Game
+title: Task 2 - 開發 Shooting Game
 order: 1
 ---
 

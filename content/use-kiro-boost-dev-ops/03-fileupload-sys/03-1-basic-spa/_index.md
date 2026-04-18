@@ -1,5 +1,5 @@
 ---
-title: Task 3-1 - 透過 Kiro 建立基礎 FileUpload 專案（前後端分離）
+title: Task 3-1 - 建立 FileUpload 專案（前後端分離）
 order: 3
 ---
 

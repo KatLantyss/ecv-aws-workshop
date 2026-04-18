@@ -1,5 +1,5 @@
 ---
-title: Task 3-2 - 透過 Kiro 將 FileUpload 專案容器化 並推送至 Amazon ECR
+title: Task 3-2 - FileUpload 專案容器化並推送至 Amazon ECR
 order: 4
 ---
 
