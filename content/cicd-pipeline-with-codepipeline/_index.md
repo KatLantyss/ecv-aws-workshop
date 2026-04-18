@@ -26,7 +26,7 @@ order: 1
 ## 架構總覽
 
 ```mermaid
-graph LR
+graph TB
     A[GitHub Repository] -->|push 觸發| B[CodePipeline]
     B --> C[Source Stage]
     C --> D[Build Stage<br/>CodeBuild]

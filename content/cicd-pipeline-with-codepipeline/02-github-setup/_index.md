@@ -43,7 +43,7 @@ order: 2
 
 3. 在 **Create a new fork** 頁面：
    - **Repository name**：保持 `2048` 或改為 ``cicd-lab-2048``
-   - 取消勾選 **Copy the `master` branch only**（保持勾選也可以）
+   - 勾選 **Copy the `master` branch only**
    - 點擊 ::button[Create fork]{variant="action"}
 
 4. 等待 Fork 完成，確認你的 GitHub 帳號下有了這個 Repository

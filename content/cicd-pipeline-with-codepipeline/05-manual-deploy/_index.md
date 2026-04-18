@@ -97,7 +97,7 @@ Container Name 必須是 ``web``，這要跟 `buildspec.yml` 中 `imagedefinitio
 
 5. **Load balancing**：
    - 選擇 **Application Load Balancer**
-   - **Use an existing load balancer**：`cicd-pipeline-lab-alb`
+   - **Use an existing load balancer**：`cicd-pipeline-lab-{{USERNAME}}-alb`
    - **Use an existing listener**：`80:HTTP`
    - **Use an existing target group**：`cicd-pipeline-lab-{{USERNAME}}-tg`
 
@@ -139,7 +139,7 @@ Container Name 必須是 ``web``，這要跟 `buildspec.yml` 中 `imagedefinitio
 |------|----------|----------|
 | ECR Image | ECR Console | 看到 latest 標籤 |
 | ECS Service | ECS Console | Running tasks: 1 |
-| 2048 遊戲 | 瀏覽器 ALB DNS | 看到遊戲畫面 |
+| 2048 遊戲 | 瀏覽器開啟個人 ALB DNS | 看到遊戲畫面 |
 
 :::alert{type="success"}
 手動部署完成。接下來，讓我們把這些步驟全部自動化。

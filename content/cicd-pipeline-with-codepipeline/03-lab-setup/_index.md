@@ -18,7 +18,6 @@ order: 3
 | 資源類型 | 資源名稱 | 說明 |
 |----------|----------|------|
 | VPC | cicd-pipeline-lab-vpc | 單一 Public Subnet |
-| ALB | cicd-pipeline-lab-alb | 共用負載平衡器 |
 | ECS Cluster | cicd-pipeline-lab-cluster | 共用 Fargate Cluster |
 | ECR Repository | cicd-pipeline-lab-app | 共用映像儲存庫 |
 | IAM Roles | execution-role / task-role | 共用 ECS 角色 |
@@ -32,8 +31,8 @@ order: 3
 | 資源類型 | 資源名稱 | 說明 |
 |----------|----------|------|
 | Command Host | cicd-pipeline-lab-{{USERNAME}}-command-host | t3.micro，預裝 Docker、Git |
+| ALB | cicd-pipeline-lab-{{USERNAME}}-alb | 個人負載平衡器 |
 | Target Group | cicd-pipeline-lab-{{USERNAME}}-tg | 個人 ALB 目標群組 |
-| Listener Rule | — | 將流量路由到個人 Target Group |
 | CodeBuild Project | cicd-pipeline-lab-{{USERNAME}}-build | 建置專案 |
 | S3 Bucket | cicd-pipeline-lab-{{USERNAME}}-artifacts-* | Pipeline Artifact 儲存 |
 | IAM Roles | CodeBuild Role、CodePipeline Role | CI/CD 所需角色 |
@@ -53,7 +52,6 @@ order: 3
    - **Stack name**：輸入 ``cicd-pipeline-lab-{{USERNAME}}``
    - **UserPrefix**：輸入 ``{{USERNAME}}``
    - **LabName**：保持預設值 `cicd-pipeline-lab`
-   - **ListenerRulePriority**：輸入講師分配的數字
    - 點擊 ::button[Next]{variant="action"}
 
 5. 勾選 ::status[I acknowledge that AWS CloudFormation might create IAM resources with custom names.]{type="none" icon="square-check"}，點擊 ::button[Next]{variant="action"}
@@ -72,14 +70,13 @@ order: 3
 2. 切換到 **Outputs** 分頁，記錄以下值：
 :::
 
-| Output Key | 說明 | 用途 |
-|------------|------|------|
-| CommandHostSessionUrl | Session Manager 連線 URL | 連線至 Command Host |
+| Output Key | 說明 | 在哪裡用 |
+|------------|------|----------|
+| CommandHostSessionUrl | Session Manager 連線 URL | 點擊連結開啟 Command Host |
 | ECRRepositoryUri | ECR 映像儲存庫 URI | Build + Push Image |
-| ALBDnsName | ALB DNS 名稱 | 驗證應用 |
+| ALBDnsName | 個人 ALB DNS 名稱 | 瀏覽器驗證應用 |
 | ECSClusterName | ECS Cluster 名稱 | 建立 Service |
 | ECSSecurityGroup | ECS 安全群組 ID | 建立 Service |
-| TargetGroupArn | Target Group ARN | 建立 Service |
 | PublicSubnet | Public Subnet ID | 建立 Service |
 
 ---
@@ -111,7 +108,6 @@ docker --version && git --version && aws --version
 |------|----------|----------|
 | Stack 狀態 | CloudFormation Console | ::status[CREATE_COMPLETE]{type="success" icon="aws-success"} |
 | Command Host | Session Manager | 可連線，Docker/Git 已安裝 |
-| ALB | 瀏覽器 `http://<ALB_DNS>` | HTTP 404 |
 
 :::alert{type="success"}
 Lab 環境就緒，前往下一節準備應用程式。
