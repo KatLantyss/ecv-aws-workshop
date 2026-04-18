@@ -78,6 +78,10 @@ order: 9
 4. 等待刪除完成
 :::
 
+:::alert{type="info"}
+CloudFormation 會自動刪除 Command Host、ALB、Target Group、S3 Bucket、IAM Roles 等個人 Lab 資源。
+:::
+
 ---
 
 ## 7.7 刪除 GitHub Connection（選擇性）

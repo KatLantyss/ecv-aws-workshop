@@ -20,7 +20,7 @@ order: 1.5
 - **Continuous Delivery**：程式碼通過測試後，自動準備好可部署的版本，但需要人工核准才部署
 - **Continuous Deployment**：完全自動化，程式碼通過測試後直接部署到生產環境
 
-本工作坊實作的是 **Continuous Delivery** — 包含一個人工核准步驟。
+本工作坊實作的是 **Continuous Deployment** — 程式碼通過建置後自動部署。
 
 ---
 
@@ -49,8 +49,7 @@ graph TD
 graph TD
     A[開發者 git push] --> B[自動觸發 Pipeline]
     B --> C[自動 Build + Test]
-    C --> D[人工核准]
-    D --> E[自動部署至 ECS]
+    C --> E[自動部署至 ECS]
     E --> F[自動驗證]
     style A fill:#3fb950,color:#fff
     style B fill:#3fb950,color:#fff
@@ -75,18 +74,16 @@ graph TD
 
 ---
 
-## Pipeline 四階段
+## Pipeline 三階段
 
-本工作坊建立的 Pipeline 包含四個階段：
+本工作坊建立的 Pipeline 包含三個階段：
 
 :::steps
 1. **Source** — 偵測 GitHub Repository 的程式碼變更，自動拉取最新版本
 
 2. **Build** — CodeBuild 執行 `buildspec.yml` 定義的步驟：建置 Docker Image、推送至 ECR
 
-3. **Approval** — 人工核准關卡，模擬正式環境的部署審核流程
-
-4. **Deploy** — 更新 ECS Service，使用新的 Docker Image 啟動容器
+3. **Deploy** — 更新 ECS Service，使用新的 Docker Image 啟動容器
 :::
 
 ---

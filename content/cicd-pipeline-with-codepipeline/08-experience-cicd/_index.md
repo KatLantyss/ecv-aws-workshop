@@ -36,13 +36,9 @@ git push origin master
 4. 觀察 Pipeline 自動觸發：
    - **Source** — 偵測到 GitHub push，拉取新程式碼
    - **Build** — CodeBuild 自動 build 新的 Docker Image
-   - **Approval** — 等待你的核准
+   - **Deploy** — ECS Service 自動更新
 
-5. 點擊 ::button[Review]{variant="default"} → ::button[Approve]{variant="action"}
-
-6. 觀察 **Deploy** — ECS Service 自動更新
-
-7. 等待所有 Stage ::status[Succeeded]{type="success" icon="aws-success"}
+5. 等待所有 Stage ::status[Succeeded]{type="success" icon="aws-success"}
 :::
 
 在瀏覽器重新整理 `http://<ALB_DNS>`，確認分頁標題已變為 **2048 - CI/CD Edition**。
@@ -99,8 +95,7 @@ git push origin master
 :::steps
 1. **Source** stage — 偵測到 push，拉取 Flappy Bird 程式碼
 2. **Build** stage — CodeBuild 用同一個 Dockerfile 建置新的 Image（內容是 Flappy Bird）
-3. **Approval** stage — 點擊 ::button[Review]{variant="default"} → ::button[Approve]{variant="action"}
-4. **Deploy** stage — ECS 自動用新 Image 替換舊的 Task
+3. **Deploy** stage — ECS 自動用新 Image 替換舊的 Task
 :::
 
 :::alert{type="info"}
@@ -129,11 +124,10 @@ ECS 的部署策略是 **Rolling Update** — 先啟動新的 Task，確認 Heal
 | 2 | `git push` | 偵測變更 |
 | 3 | — | 自動 Build Docker Image |
 | 4 | — | 自動 Push 至 ECR |
-| 5 | 點擊 Approve | — |
-| 6 | — | 自動更新 ECS Service |
-| 7 | — | 零停機切換應用 |
+| 5 | — | 自動更新 ECS Service |
+| 6 | — | 零停機切換應用 |
 
-**你只做了 3 個動作**（改 code、push、approve），Pipeline 自動完成了其餘所有工作。
+**你只做了 2 個動作**（改 code、push），Pipeline 自動完成了其餘所有工作。
 
 :::alert{type="success"}
 這就是 CI/CD 的價值 — 將重複的手動工作自動化，讓開發者專注在程式碼本身。前往最後一節清除資源。

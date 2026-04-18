@@ -42,7 +42,7 @@ order: 2
 2. 點擊右上角的 ::button[Fork]{variant="default"} 按鈕
 
 3. 在 **Create a new fork** 頁面：
-   - **Repository name**：保持 `2048` 或改為 ``cicd-lab-2048``
+   - **Repository name**：保持 `2048`
    - 勾選 **Copy the `master` branch only**
    - 點擊 ::button[Create fork]{variant="action"}
 
@@ -55,7 +55,33 @@ Fork 會在你的 GitHub 帳號下建立一份獨立的副本。你對這個副�
 
 ---
 
-## 0.3 記錄 Repository 資訊
+## 0.3 建立 Personal Access Token (PAT)
+
+後續步驟需要使用 GitHub Personal Access Token 來讓 Command Host 和 AWS CodeBuild 存取你的 Repository。
+
+:::steps
+1. 開啟 [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+
+2. 點擊 **Generate new token** → 選擇 **Generate new token (classic)**
+
+3. 填入以下設定：
+   - **Note**：輸入 ``codebuild-workshop``
+   - **Expiration**：選擇 **7 days**（workshop 結束後自動過期）
+   - 勾選以下權限：
+     - `Only select repositories` 並選擇 `https://github.com/<你的 GitHub Username>/2048`
+
+4. 點擊 ::button[Generate token]{variant="action"}
+
+5. **立即複製 Token** 並妥善保存
+:::
+
+:::alert{type="warning"}
+Token 只會顯示一次，離開頁面後無法再查看。請複製到記事本或密碼管理工具中備用。
+:::
+
+---
+
+## 0.4 記錄 Repository 資訊
 
 記下你的 Repository URL，後續步驟會用到：
 
@@ -71,6 +97,7 @@ https://github.com/<你的 GitHub Username>/2048
 |------|----------|----------|
 | GitHub 帳號 | 能登入 github.com | ✅ |
 | Fork Repository | 你的帳號下有 2048 repo | ✅ |
+| Personal Access Token | 已複製並保存 | ✅ |
 
 :::alert{type="success"}
 GitHub 準備完成，前往下一節建置 Lab 環境。

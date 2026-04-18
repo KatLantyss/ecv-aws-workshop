@@ -1,0 +1,265 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CI/CD Pipeline Workshop - Per-User Lab Resources.
+  Each student gets their own Command Host, ALB, Target Group, S3 Bucket for artifacts,
+  and IAM Roles for CodeBuild/CodePipeline.
+
+Parameters:
+  UserPrefix:
+    Type: String
+    AllowedPattern: '[a-z0-9\-]+'
+    ConstraintDescription: Lowercase alphanumeric and hyphens only
+    Description: Unique prefix for this student
+
+  LabName:
+    Type: String
+    Default: cicd-pipeline-lab
+    Description: Lab name used as resource naming prefix and for importing shared infrastructure exports
+
+Resources:
+
+  # ==================== Command Host ====================
+  CommandHostRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${LabName}-${UserPrefix}-command-host-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+
+  CommandHostInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${LabName}-${UserPrefix}-command-host-profile'
+      Roles:
+        - !Ref CommandHostRole
+
+  CommandHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${LabName}-${UserPrefix} Command Host SG'
+      GroupName: !Sub '${LabName}-${UserPrefix}-command-host-sg'
+      VpcId:
+        Fn::ImportValue: !Sub '${LabName}-VPCId'
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  CommandHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      SubnetId:
+        Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
+      SecurityGroupIds:
+        - !Ref CommandHostSecurityGroup
+      IamInstanceProfile: !Ref CommandHostInstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y docker git
+          systemctl enable docker
+          systemctl start docker
+      Tags:
+        - Key: Name
+          Value: !Sub '${LabName}-${UserPrefix}-command-host'
+        - Key: Workshop
+          Value: !Ref LabName
+        - Key: User
+          Value: !Ref UserPrefix
+
+  # ==================== ALB (per-user) ====================
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub '${LabName}-${UserPrefix}-tg'
+      Port: 80
+      Protocol: HTTP
+      VpcId:
+        Fn::ImportValue: !Sub '${LabName}-VPCId'
+      TargetType: ip
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub '${LabName}-${UserPrefix}-alb'
+      Scheme: internet-facing
+      Subnets:
+        - Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
+        - Fn::ImportValue: !Sub '${LabName}-PublicSubnet2'
+      SecurityGroups:
+        - Fn::ImportValue: !Sub '${LabName}-ALBSg'
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  # ==================== S3 Bucket (Pipeline Artifacts) ====================
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${LabName}-${UserPrefix}-artifacts-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Workshop
+          Value: !Ref LabName
+        - Key: User
+          Value: !Ref UserPrefix
+
+  # ==================== CodeBuild IAM Role ====================
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${LabName}-${UserPrefix}-codebuild-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:PutImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource: '*'
+
+  # ==================== CodePipeline IAM Role ====================
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${LabName}-${UserPrefix}-pipeline-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetBucketVersioning
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:DescribeTaskDefinition
+                  - ecs:DescribeTasks
+                  - ecs:ListTasks
+                  - ecs:RegisterTaskDefinition
+                  - ecs:UpdateService
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                Resource: '*'
+
+Outputs:
+  CommandHostSessionUrl:
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${CommandHost}?region=${AWS::Region}'
+  CommandHostId:
+    Value: !Ref CommandHost
+  ALBDnsName:
+    Value: !GetAtt ALB.DNSName
+  TargetGroupArn:
+    Value: !Ref TargetGroup
+  ArtifactBucketName:
+    Value: !Ref ArtifactBucket
+  CodeBuildRoleArn:
+    Value: !GetAtt CodeBuildRole.Arn
+  CodePipelineRoleArn:
+    Value: !GetAtt CodePipelineRole.Arn
+  UserPrefix:
+    Value: !Ref UserPrefix
+  # Pass-through from infra stack
+  ECSClusterName:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-ClusterName'
+  ECRRepositoryUri:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-ECRUri'
+  ECSTaskExecutionRoleArn:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-ExecRoleArn'
+  ECSTaskRoleArn:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-TaskRoleArn'
+  PublicSubnet1:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
+  PublicSubnet2:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-PublicSubnet2'
+  ECSSecurityGroup:
+    Value:
+      Fn::ImportValue: !Sub '${LabName}-ECSSg'
