@@ -140,14 +140,41 @@ Console 會顯示 "GitHub (via OAuth app) action is not recommended" 的提示�
 
 ---
 
-## 5.8 觀察 Pipeline 執行
+## 5.8 加入 Manual Approval Stage
 
-Pipeline 建立後會立即觸發第一次執行：
+Pipeline 建立後，我們加入一個人工核准關卡，模擬正式環境的部署審核流程。
+
+:::steps
+1. 在 Pipeline 頁面，點擊 ::button[Edit]{variant="default"}
+
+2. 在 **Build** 和 **Deploy** 之間，點擊 **+ Add stage**
+
+3. **Stage name**：輸入 ``Approval``
+
+4. 在新的 Stage 中，點擊 **+ Add action group**：
+   - **Action name**：``ManualApproval``
+   - **Action provider**：選擇 **Manual approval**
+   - 點擊 ::button[Done]{variant="action"}
+
+5. 點擊頁面上方的 ::button[Save]{variant="action"} → 確認 ::button[Save]{variant="action"}
+:::
+
+:::alert{type="info"}
+Manual Approval 模擬正式環境中的部署審核流程。Build 完成後 Pipeline 會暫停，等待人工核准後才繼續部署。正式環境中可搭配 SNS 通知相關人員來審核。
+:::
+
+---
+
+## 5.9 觀察 Pipeline 執行
+
+Pipeline 儲存後會重新執行：
 
 :::steps
 1. 觀察 **Source** stage — 從 GitHub 拉取程式碼 → ::status[Succeeded]{type="success" icon="aws-success"}
 2. 觀察 **Build** stage — CodeBuild 執行 buildspec.yml → ::status[Succeeded]{type="success" icon="aws-success"}
-3. 觀察 **Deploy** stage — 更新 ECS Service → ::status[Succeeded]{type="success" icon="aws-success"}
+3. **Approval** stage 會停下來等待核准
+4. 點擊 ::button[Review]{variant="default"} → 點擊 ::button[Approve]{variant="action"}
+5. 觀察 **Deploy** stage — 更新 ECS Service → ::status[Succeeded]{type="success" icon="aws-success"}
 :::
 
 :::expand{title="Pipeline 執行失敗？"}
@@ -161,7 +188,7 @@ Pipeline 建立後會立即觸發第一次執行：
 
 ---
 
-## 5.9 驗證
+## 5.10 驗證
 
 在瀏覽器開啟 `http://<ALB_DNS>`，確認 2048 遊戲仍正常運作。
 
@@ -175,7 +202,7 @@ Pipeline 建立後會立即觸發第一次執行：
 
 | 項目 | 驗證方式 | 預期結果 |
 |------|----------|----------|
-| Pipeline | CodePipeline Console | 三個 Stage 全部 Succeeded |
+| Pipeline | CodePipeline Console | 四個 Stage 全部 Succeeded |
 | 2048 遊戲 | 瀏覽器開啟個人 ALB DNS | 正常運作 |
 
 :::alert{type="success"}

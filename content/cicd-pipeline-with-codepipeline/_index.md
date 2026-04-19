@@ -17,7 +17,7 @@ order: 1
 - 註冊並使用 GitHub 管理原始碼
 - 撰寫 CodeBuild 的 `buildspec.yml` 定義建置流程
 - 建立 CodeBuild Project 並執行自動化建置
-- 建立 CodePipeline 串接 Source → Build → Deploy
+- 建立 CodePipeline 串接 Source → Build → Approval → Deploy
 - 體驗 `git push` 自動觸發完整部署流程
 - 實現零停機應用切換
 
@@ -30,7 +30,8 @@ graph TB
     A[GitHub Repository] -->|push 觸發| B[CodePipeline]
     B --> C[Source Stage]
     C --> D[Build Stage<br/>CodeBuild]
-    D --> F[Deploy Stage<br/>ECS Fargate]
+    D --> E[Manual Approval]
+    E --> F[Deploy Stage<br/>ECS Fargate]
     D -->|push image| G[Amazon ECR]
     G -->|pull image| F
     F --> H[ALB<br/>Web Application]
