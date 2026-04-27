@@ -54,7 +54,7 @@ order: 2
 路線 B 的環境建置與串接步驟請參考外部文件連結。
 :::
 
-- [建置 AWS GuardDuty Malware Protection + S3 Buckets 安全檔案雲端環境](https://www.notion.so/AWS-GuardDuty-Malware-Protection-S3-Buckets-3199f60ac54e80009600c3995fccd8d4?pvs=21)
-- [透過 Kiro 將 FileUpload 專案串接 S3 + GuardDuty Malware Protection 實現安全檔案上傳流程（ToDo）](https://www.notion.so/Kiro-FileUpload-S3-GuardDuty-Malware-Protection-ToDo-3199f60ac54e80928ac6ce4bedf9abdd?pvs=21)
+- 建置 AWS GuardDuty Malware Protection + S3 Buckets 安全檔案雲端環境 (準備中)
+- 透過 Kiro 將 FileUpload 專案串接 S3 + GuardDuty Malware Protection 實現安全檔案上傳流程（準備中）
 
 :::
