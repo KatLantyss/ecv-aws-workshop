@@ -26,28 +26,28 @@ order: 3
 :::steps
 1. 確認目前的工作目錄
 
-```bash
-pwd
-```
+   ```bash
+   pwd
+   ```
 
 2. 進入家目錄並切換至 Bash
 
-```bash
-cd ~ && bash
-```
+   ```bash
+   cd ~ && bash
+   ```
 
 3. Clone 2048 遊戲的 GitHub Repository
 
-```bash
-git clone https://github.com/gabrielecirulli/2048
-cd 2048
-```
+   ```bash
+   git clone https://github.com/gabrielecirulli/2048
+   cd 2048
+   ```
 
 4. 確認檔案已下載
 
-```bash
-ll
-```
+   ```bash
+   ll
+   ```
 :::
 
 :::expand{title="預期輸出"}
@@ -127,23 +127,23 @@ sudo docker images
 :::steps
 1. 啟動容器
 
-```bash
-sudo docker run -d -p 80:80 --name test-2048 web2048
-```
+   ```bash
+   sudo docker run -d -p 80:80 --name test-2048 web2048
+   ```
 
 2. 在 Command Host 上測試
 
-```bash
-curl -s -o /dev/null -w "%{http_code}\n" http://localhost
-```
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost
+   ```
 
-預期輸出：`200`
+   預期輸出：`200`
 
-3. 測試完成後，停止並移除容器：
+3. 測試完成後，停止並移除容器
 
-```bash
-sudo docker stop test-2048 && sudo docker rm test-2048
-```
+   ```bash
+   sudo docker stop test-2048 && sudo docker rm test-2048
+   ```
 :::
 
 ---

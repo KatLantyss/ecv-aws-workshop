@@ -5,16 +5,20 @@ order: 3
 
 # 透過 Kiro 建立基礎 FileUpload 專案（前後端分離）
 
-### 前置作業
+---
 
-▶️  開啟 Kiro IDE
+## 前置作業
 
-![截圖 2026-03-03 上午10.08.16.png](./img/%E6%88%AA%E5%9C%96_2026-03-03_%E4%B8%8A%E5%8D%8810.08.16.png)
-![1772519235266.jpg](./img/1772519235266.jpg)
+:::steps
+1. 開啟 Kiro IDE
 
-### 透過 Kiro 開發 FileUpload 程式專案
+   ![開啟 Kiro IDE](./img/%E6%88%AA%E5%9C%96_2026-03-03_%E4%B8%8A%E5%8D%8810.08.16.png)
+   ![Kiro IDE 畫面](./img/1772519235266.jpg)
+:::
 
-▶️ 了解目標
+---
+
+## 了解目標架構
 
 ```mermaid
 graph LR
@@ -28,6 +32,7 @@ graph LR
     style D fill:#f3e5f5
 ```
 
+:::expand{title="完整互動流程圖"}
 ```mermaid
 sequenceDiagram
     actor User as 使用者
@@ -91,10 +96,15 @@ sequenceDiagram
     FE->>FE: 清除 localStorage 中的 Token
     FE->>User: 導向登入頁面
 ```
+:::
 
-▶️  透過 Vibe-coding 輸入以下提示詞
+---
 
-```json
+## 透過 Kiro 開發 FileUpload 程式專案
+
+透過 Vibe-coding 輸入以下提示詞：
+
+```
 請幫我建立一個前後端分離的 FileUpload 的簡易系統，Frontend使用 Angular，BackendAPI使用 .NET Core，共2份專案，每份專案包含README.md說明文件。
 
 1) Frontend 與 BackendAPI 有一個基本的JWT身份驗證機制，提供使用者進行登入/登出，初始帳號及密碼設置於BackendAPI的配置檔，初始帳號為admin。
@@ -102,46 +112,90 @@ sequenceDiagram
 3) Frontend 透過 GET 請求，向 BackendAPI 讀取檔案清單，呈現於列表畫面，提供使用者下載檔案。
 ```
 
-![截圖 2026-03-04 上午10.08.54.png](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.08.54.png "▶️  引導 Kiro 完成工作")
-![創建資料夾](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.09.43.png "創建資料夾")
+:::steps
+1. 引導 Kiro 完成工作
 
-![確認是否已安裝 ng, donet](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.10.33.png "確認是否已安裝 ng, donet")
-![協助 kiro 完成 command 並取得回傳](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.12.00.png "協助 kiro 完成 command 並取得回傳")
-![等待 kiro 撰寫程式碼](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.13.25.png "等待 kiro 撰寫程式碼")
+   ![引導 Kiro 完成工作](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.08.54.png "引導 Kiro 完成工作")
 
-![檢驗 kiro 完成的程式專案，並且補充安裝依賴套件 (例如 donet sdk)](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.15.20.png "檢驗 kiro 完成的程式專案，並且補充安裝依賴套件 (e.g. donet sdk)")
+2. Kiro 創建資料夾
 
-![Backend](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.18.20.png "Backend")
+   ![創建資料夾](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.09.43.png "創建資料夾")
 
-![Frontend](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.19.12.png "Frontend")
+3. 確認是否已安裝 `ng`、`dotnet`
 
+   ![確認是否已安裝 ng, dotnet](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.10.33.png "確認是否已安裝 ng, dotnet")
 
+4. 協助 Kiro 完成 command 並取得回傳
 
-![Backend 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.30.29.png "Backend 啟動成功")
-![Frontend 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.30.48.png "Frontend 啟動成功")
+   ![協助 Kiro 完成 command](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.12.00.png "協助 Kiro 完成 command 並取得回傳")
 
-### 驗證專案成果
+5. 等待 Kiro 撰寫程式碼
 
-> 通常需要檢驗結果，並且回報錯誤給Kiro，引導它進一步完善程式專案。
-> 
+   ![等待 Kiro 撰寫程式碼](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.13.25.png "等待 Kiro 撰寫程式碼")
 
-![截圖 2026-03-04 上午10.31.25.png](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.31.25.png)
+6. 檢驗完成的程式專案，並補充安裝依賴套件（例如 dotnet sdk）
 
-![截圖 2026-03-04 上午10.31.47.png](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.31.47.png)
+   ![檢驗程式專案](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.15.20.png "檢驗 Kiro 完成的程式專案，並且補充安裝依賴套件")
 
-![測試檔案上傳](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.32.44.png "測試檔案上傳")
-![檢查 uploads 資料夾（成功）](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.34.05.png "檢查 uploads 資料夾（成功）")
-![測試下載功能（成功）](./img/1772592993132.jpg "測試下載功能（成功）")
+7. 啟動 Backend
 
-💡完成驗證 Kiro 的程式專案
+   ![Backend 啟動](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.18.20.png "Backend")
 
-[https://github.com/richguosa/FileUploadProject](https://github.com/richguosa/FileUploadProject)
+8. 啟動 Frontend
 
-- 紀錄 Kiro Credits 使用率
-    
-    ![截圖 2026-03-04 上午10.54.58.png](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.54.58.png)
-### 建立 Kiro Steering
+   ![Frontend 啟動](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.19.12.png "Frontend")
 
-![1772595011314.jpg](./img/1772595011314.jpg)
+9. 確認兩個服務都成功啟動
 
-![截圖 2026-03-04 上午11.32.09.png](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8811.32.09.png)
+   ![Backend 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.30.29.png "Backend 啟動成功")
+   ![Frontend 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.30.48.png "Frontend 啟動成功")
+:::
+
+---
+
+## 驗證專案成果
+
+:::alert{type="info"}
+通常需要檢驗結果，並且回報錯誤給 Kiro，引導它進一步完善程式專案。
+:::
+
+:::steps
+1. 登入測試
+
+   ![登入頁面](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.31.25.png)
+   ![登入成功](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.31.47.png)
+
+2. 測試檔案上傳
+
+   ![測試檔案上傳](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.32.44.png "測試檔案上傳")
+
+3. 確認 uploads 資料夾有收到檔案
+
+   ![檢查 uploads 資料夾（成功）](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.34.05.png "檢查 uploads 資料夾（成功）")
+
+4. 測試下載功能
+
+   ![測試下載功能（成功）](./img/1772592993132.jpg "測試下載功能（成功）")
+:::
+
+:::alert{type="success"}
+完成驗證！參考完成品：[GitHub - richguosa/FileUploadProject](https://github.com/richguosa/FileUploadProject)
+:::
+
+:::expand{title="Kiro Credits 使用率"}
+![Credits 使用率](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8810.54.58.png)
+:::
+
+---
+
+## 建立 Kiro Steering
+
+:::steps
+1. 產生 Steering Docs
+
+   ![產生 Steering Docs](./img/1772595011314.jpg)
+
+2. 確認 Steering 設定
+
+   ![Steering 設定完成](./img/%E6%88%AA%E5%9C%96_2026-03-04_%E4%B8%8A%E5%8D%8811.32.09.png)
+:::

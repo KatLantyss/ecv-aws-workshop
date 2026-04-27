@@ -5,15 +5,17 @@ order: 5
 
 # 透過 Kiro 將 FileUpload 容器映像快速部署於 EC2
 
-### Prerequisite
+## Prerequisite
 
-[透過 Kiro 將 FileUpload 專案容器化 並推送至 Amazon ECR](https://www.notion.so/Kiro-FileUpload-Amazon-ECR-3349f60ac54e80a38f60d0f869929dee?pvs=21)
+:::alert{type="warning"}
+開始前請確認已完成 Task 3-2：將 FileUpload 專案容器化並推送至 Amazon ECR，且已在 Kiro 的 terminal 完成 `aws configure sso` 驗證。
+:::
 
-- 於 Kiro 的 terminal 完成 `aws configure sso` 驗證
+---
 
-▶️ 繼容器映像推送至ECR之後，於 Kiro Session 裡面繼續請它協助**部署任務**
+## 部署任務
 
-![截圖 2026-03-31 上午11.16.58.png](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.16.58.png)
+繼容器映像推送至 ECR 之後，於 Kiro Session 裡繼續輸入以下提示詞，請 Kiro 協助部署：
 
 ```
 1) 我已將 Docker Image 推送至 ECR
@@ -33,30 +35,59 @@ order: 5
 8) 終端機執行過程，只需要一個 terminal 視窗，請不要新的指令就重啟新terminal視窗，避免需要重複 aws configure sso 登入
 ```
 
-![Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.01.png "Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰")
+:::steps
+1. Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰
 
-![開始創建 Security Group 安全群組](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.56.png "開始創建 Security Group 安全群組")
+   ![建立 EC2 Key Pair](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.16.58.png)
+   ![建立 Key Pair 進行中](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.01.png "Kiro 先檢查網路是否存在，然後開始建立 EC2 Key Pair 金鑰")
 
-![開始創建 EC2 實例](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.21.17.png "開始創建 EC2 實例")
+2. 建立 Security Group 安全群組
 
-![檢查 AWS Console - EC2 已建立完成](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.22.06.png "檢查 AWS Console - EC2 已建立完成")
+   ![建立 Security Group](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.19.56.png "開始創建 Security Group 安全群組")
 
-![繼續執行 ssh 連線指令](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.23.35.png "繼續執行 ssh 連線指令")
+3. 建立 EC2 實例
 
-![透過 scp 複製 docker-compose 檔案到 EC2](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.24.05.png "透過 scp 複製 docker-compose 檔案到 EC2")
+   ![建立 EC2 實例](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.21.17.png "開始創建 EC2 實例")
 
-![設定 EC2 Instance Profile（配置 ECR Pull Image 權限）](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.28.56.png "設定 EC2 Instance Profile（配置 ECR Pull Image 權限）")
+4. 至 AWS Console 確認 EC2 已建立完成
 
-![成功運行 docker-compose.yaml 檔案](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.44.30.png "成功運行 docker-compose.yaml 檔案")
+   ![EC2 建立完成](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.22.06.png "檢查 AWS Console - EC2 已建立完成")
 
-### 驗證結果（完成）
+5. 執行 SSH 連線指令
 
-![前往 AWS Console - EC2，複製 Public IP](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.20.png "前往 AWS Console - EC2，複製 Public IP")
+   ![SSH 連線](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.23.35.png "繼續執行 ssh 連線指令")
 
-![訪問 FileUpload 網頁](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.52.png "訪問 FileUpload 網頁")
+6. 透過 SCP 複製 docker-compose 檔案到 EC2
 
-![截圖 2026-03-31 上午11.46.18.png](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.46.18.png)
+   ![SCP 複製檔案](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.24.05.png "透過 scp 複製 docker-compose 檔案到 EC2")
 
-### 直接下載完成品
+7. 設定 EC2 Instance Profile（配置 ECR Pull Image 權限）
 
-[GitHub - richguosa/FileUploadProject at feat/push-ecr-deploy-ec2](https://github.com/richguosa/FileUploadProject/tree/feat/push-ecr-deploy-ec2#)
+   ![設定 Instance Profile](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.28.56.png "設定 EC2 Instance Profile（配置 ECR Pull Image 權限）")
+
+8. 成功運行 docker-compose.yaml
+
+   ![docker-compose 啟動成功](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.44.30.png "成功運行 docker-compose.yaml 檔案")
+:::
+
+---
+
+## 驗證結果
+
+:::steps
+1. 前往 AWS Console → EC2，複製 Public IP
+
+   ![複製 Public IP](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.20.png "前往 AWS Console - EC2，複製 Public IP")
+
+2. 用瀏覽器訪問 FileUpload 網頁
+
+   ![訪問 FileUpload 網頁](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.45.52.png "訪問 FileUpload 網頁")
+
+3. 確認功能正常
+
+   ![功能確認](./img/%E6%88%AA%E5%9C%96_2026-03-31_%E4%B8%8A%E5%8D%8811.46.18.png)
+:::
+
+:::alert{type="success"}
+部署完成！可直接下載完成品參考：[GitHub - richguosa/FileUploadProject (feat/push-ecr-deploy-ec2)](https://github.com/richguosa/FileUploadProject/tree/feat/push-ecr-deploy-ec2#)
+:::
