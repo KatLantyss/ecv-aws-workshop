@@ -169,6 +169,54 @@ python3 -m http.server 8080
 npx serve .
 ```
 
+## 部署到 S3
+
+靜態檔案部署至 S3 Bucket（`audy-workshop-website-test`），搭配 CloudFront 對外服務。
+
+### 前置條件
+
+- 已設定 AWS CLI 並具備 S3 寫入與 CloudFront 失效權限
+- S3 Bucket 已啟用靜態網站託管，或透過 CloudFront 存取
+
+### 部署指令
+
+```bash
+# 同步靜態檔案至 S3（排除 infra/ 和 docs/）
+aws s3 sync . s3://audy-workshop-website-test \
+  --exclude ".git/*" \
+  --exclude "infra/*" \
+  --exclude "docs/*" \
+  --exclude "*.sh" \
+  --delete
+
+# 建立 CloudFront 快取失效（若有設定 CloudFront）
+aws cloudfront create-invalidation \
+  --distribution-id <YOUR_DISTRIBUTION_ID> \
+  --paths "/*"
+```
+
+### 完整部署流程
+
+```bash
+# 1. 更新索引
+./build.sh
+
+# 2. 同步至 S3
+aws s3 sync . s3://audy-workshop-website-test \
+  --exclude ".git/*" \
+  --exclude "infra/*" \
+  --exclude "docs/*" \
+  --exclude "*.sh" \
+  --delete
+
+# 3. 清除 CloudFront 快取（若有設定）
+aws cloudfront create-invalidation \
+  --distribution-id <YOUR_DISTRIBUTION_ID> \
+  --paths "/*"
+```
+
+> 若尚未設定 CloudFront，可直接透過 S3 靜態網站端點存取：`http://audy-workshop-website-test.s3-website-<region>.amazonaws.com`
+
 ## 新增 Workshop
 
 1. 建立 `content/my-workshop/_index.md`（含 front matter）
