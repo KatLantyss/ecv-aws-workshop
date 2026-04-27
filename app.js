@@ -270,8 +270,9 @@ marked.use({
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
       if (href && !href.startsWith('http') && !href.startsWith('#') && !href.startsWith('mailto:')) {
-        const mdMatch = href.replace(/\.md$/, '').replace(/\/_index$/, '').replace(/^\.\//, '');
-        const idx = chapters.findIndex(c => c.id === mdMatch || c.file.includes(href));
+        const mdMatch = href.replace(/\.md$/, '').replace(/\/_index$/, '').replace(/^\.\//, '').replace(/\//g, '-');
+        const hrefNorm = href.replace(/^\.\//, '');
+        const idx = chapters.findIndex(c => c.id === mdMatch || c.file.includes(hrefNorm));
         if (idx >= 0) {
           const titleAttr = title ? ` title="${title}"` : '';
           return `<a href="#${currentWorkshop}/${chapters[idx].id}" onclick="event.preventDefault();router.go('chapter',{index:${idx}})"${titleAttr}>${text}</a>`;
