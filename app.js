@@ -3,14 +3,14 @@
    ═══════════════════════════════════════════ */
 const ICONS = {
   'aws-sign-out': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M9 0V2H3V14H9V16H3C1.89543 16 1 15.1046 1 14V2C1 0.895431 1.89543 0 3 0H9Z"/><path d="M12.5858 9L10 11.5858L11.4142 13L15.7071 8.70711C16.0976 8.31658 16.0976 7.68342 15.7071 7.29289L11.4142 3L10 4.41421L12.5858 7H6V9H12.5858Z"/></svg>',
-  'aws-new-tab':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M13 9.012v-6H7M13.02 3 7 9.01M3 5.012v8h8.01" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
-  'aws-refresh':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none" overflow="hidden"><path d="M15 0v5l-5-.04" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 8c0 3.87-3.13 7-7 7s-7-3.13-7-7 3.13-7 7-7c2.79 0 5.2 1.63 6.33 4" stroke="currentColor" stroke-width="2"/></svg>',
-  'aws-expand':   '<svg viewBox="2 3 12 10" xmlns="http://www.w3.org/2000/svg"><path d="m8 11 4-6H4l4 6Z" fill="currentColor"/></svg>',
-  'aws-info':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 12V7M8 6V4" stroke="currentColor" stroke-width="2"/></svg>',
-  'aws-success':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4.5 7.5 7 10l4-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
-  'aws-warning':  '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v4M8 10v2" stroke="currentColor" stroke-width="2"/><path d="M6.52 1.88l-5.33 9.76c-.13.23-.19.5-.19.76 0 .88.71 1.59 1.59 1.59H13.4c.88 0 1.59-.71 1.59-1.59 0-.27-.07-.53-.19-.76L9.48 1.88C9.18 1.34 8.62 1 8 1s-1.18.34-1.48.88Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
-  'aws-error':    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="2"/></svg>',
-  'aws-copy':     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M15 5H5v10h10V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><path d="M13 1H1v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>'
+  'aws-new-tab': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M13 9.012v-6H7M13.02 3 7 9.01M3 5.012v8h8.01" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  'aws-refresh': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none" overflow="hidden"><path d="M15 0v5l-5-.04" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 8c0 3.87-3.13 7-7 7s-7-3.13-7-7 3.13-7 7-7c2.79 0 5.2 1.63 6.33 4" stroke="currentColor" stroke-width="2"/></svg>',
+  'aws-expand': '<svg viewBox="2 3 12 10" xmlns="http://www.w3.org/2000/svg"><path d="m8 11 4-6H4l4 6Z" fill="currentColor"/></svg>',
+  'aws-info': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 12V7M8 6V4" stroke="currentColor" stroke-width="2"/></svg>',
+  'aws-success': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4.5 7.5 7 10l4-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
+  'aws-warning': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v4M8 10v2" stroke="currentColor" stroke-width="2"/><path d="M6.52 1.88l-5.33 9.76c-.13.23-.19.5-.19.76 0 .88.71 1.59 1.59 1.59H13.4c.88 0 1.59-.71 1.59-1.59 0-.27-.07-.53-.19-.76L9.48 1.88C9.18 1.34 8.62 1 8 1s-1.18.34-1.48.88Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>',
+  'aws-error': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="2"/></svg>',
+  'aws-copy': '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M15 5H5v10h10V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/><path d="M13 1H1v11" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/></svg>'
 };
 
 function getIcon(name) {
@@ -20,7 +20,7 @@ function getIcon(name) {
     const iconData = lucide.icons[key] || lucide.icons[name];
     if (iconData) {
       const inner = iconData.map(([tag, attrs]) => {
-        const a = Object.entries(attrs).map(([k,v]) => `${k}="${v}"`).join(' ');
+        const a = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
         return `<${tag} ${a}/>`;
       }).join('');
       return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
@@ -71,12 +71,12 @@ function preprocessCustomSyntax(md) {
 
   md = md.replace(/::button\[([^\]]*)\]\{([^}]*)\}/g, (_, text, attrs) => {
     const variant = (attrs.match(/variant="([^"]+)"/) || [])[1] || 'action';
-    const prefix  = (attrs.match(/prefix="([^"]+)"/)  || [])[1] || '';
+    const prefix = (attrs.match(/prefix="([^"]+)"/) || [])[1] || '';
     const postfix = (attrs.match(/postfix="([^"]+)"/) || [])[1] || '';
-    const split   = (attrs.match(/split="([^"]+)"/)   || [])[1] || '';
+    const split = (attrs.match(/split="([^"]+)"/) || [])[1] || '';
     if (!text.trim() && prefix) return `<span class="ws-btn-icon">${getIcon(prefix)}</span>`;
-    const pre  = prefix  ? `${getIcon(prefix)} `   : '';
-    const post = postfix ? ` ${getIcon(postfix)}`   : '';
+    const pre = prefix ? `${getIcon(prefix)} ` : '';
+    const post = postfix ? ` ${getIcon(postfix)}` : '';
     if (split) {
       return `<span class="ws-btn-split"><span class="ws-btn ws-btn-${variant}">${pre}${text}${post}</span><span class="ws-btn-divider"></span><span class="ws-btn ws-btn-${variant}">${getIcon(split)}</span></span>`;
     }
@@ -177,18 +177,18 @@ function preprocessCustomSyntax(md) {
    Syntax Highlighting (basic)
    ═══════════════════════════════════════════ */
 function simpleHighlight(code) {
-  const KW = new Set(['import','from','def','return','class','function','const','let','var',
-    'if','else','for','while','async','await','export','default','new','try','catch','throw']);
+  const KW = new Set(['import', 'from', 'def', 'return', 'class', 'function', 'const', 'let', 'var',
+    'if', 'else', 'for', 'while', 'async', 'await', 'export', 'default', 'new', 'try', 'catch', 'throw']);
   const out = [];
   const re = /((?<![:\w])\/\/[^\n]*|(?<=^|\s)#[^\n]*|"[^"]*"|'[^']*'|\b\d+\b|\b[a-zA-Z_]\w*\b|[^\s]|\s+)/g;
   let m;
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   while ((m = re.exec(code)) !== null) {
     const t = m[0];
     if (t.startsWith('//') || t.startsWith('#')) {
       out.push('<span class="token-comment">' + esc(t) + '</span>');
     } else if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-      out.push('<span class="token-string">' + esc(t).replace(/"/g,'&quot;').replace(/'/g,'&#39;') + '</span>');
+      out.push('<span class="token-string">' + esc(t).replace(/"/g, '&quot;').replace(/'/g, '&#39;') + '</span>');
     } else if (/^\d+$/.test(t)) {
       out.push('<span class="token-number">' + t + '</span>');
     } else if (KW.has(t)) {
@@ -328,8 +328,8 @@ const router = {
     const route = router.parseHash(window.location.hash.slice(1));
     switch (route.view) {
       case 'dashboard': router.showDashboard(); break;
-      case 'join':      router.showJoin(route.eventCode); break;
-      case 'reader':    await router.showWorkshop(route.slug, route.chapterId); break;
+      case 'join': router.showJoin(route.eventCode); break;
+      case 'reader': await router.showWorkshop(route.slug, route.chapterId); break;
     }
   },
 
@@ -510,7 +510,7 @@ async function loadWorkshopCredentials(workshopDir) {
   try {
     const res = await fetch(workshopDir + '/credentials.json?t=' + Date.now());
     if (res.ok) return await res.json();
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -833,7 +833,7 @@ async function labDestroy() {
           document.getElementById('labFabErrorMsg').textContent = '銷毀失敗：' + status;
           _setDeployView('error');
         }
-      } catch {}
+      } catch { }
     }, 5000);
   } catch (e) {
     document.getElementById('labFabErrorMsg').textContent = '銷毀請求失敗：' + e.message;
@@ -872,7 +872,7 @@ async function _labAutoCheck() {
       document.getElementById('labFabErrorMsg').textContent = data.status;
       _setDeployView('error');
     }
-  } catch {}
+  } catch { }
 }
 
 /* ═══════════════════════════════════════════
@@ -885,7 +885,7 @@ function buildSidebar() {
     if (isAdmin) {
       backEl.textContent = '← 返回總覽';
       backEl.style.display = '';
-      backEl.onclick = function(e) {
+      backEl.onclick = function (e) {
         e.preventDefault();
         router._setHash('admin', false);
         router.showDashboard();
@@ -1049,7 +1049,7 @@ function openLightbox(img) {
   lb.appendChild(lbImg);
   lb.appendChild(closeBtn);
   lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(lb); });
-  document.addEventListener('keydown', lb._escHandler = function(e) {
+  document.addEventListener('keydown', lb._escHandler = function (e) {
     if (e.key === 'Escape') closeLightbox(lb);
   });
   document.querySelectorAll('body > :not(.ws-lightbox)').forEach(el => el.setAttribute('inert', ''));
@@ -1078,31 +1078,51 @@ function copyToClipboard(text) {
    Download Template (with user params pre-filled)
    ═══════════════════════════════════════════ */
 async function downloadTemplate(filePath) {
-  if (!currentUser || !workshopCredentials) return;
   const ws = workshops.find(w => w.slug === currentWorkshop);
   if (!ws) return;
   const url = ws.dir + '/' + filePath;
+  const fileName = filePath.split('/').pop();
+
+  // If no user params to inject, use direct anchor download (most reliable, preserves filename)
+  if (!currentUser || !workshopCredentials) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+
   try {
     const res = await fetch(url);
-    if (!res.ok) return;
-    let yaml = await res.text();
+    if (!res.ok) { console.error('Download template fetch failed:', res.status); return; }
+    const buffer = await res.arrayBuffer();
+    let yaml = new TextDecoder('utf-8').decode(buffer);
+
     const priority = workshopCredentials.users.indexOf(currentUser) + 1;
-    // Set UserPrefix default
+    // Set UserPrefix or StudentID default
     yaml = yaml.replace(
-      /(UserPrefix:\s*\n\s*Type: String)/,
-      `UserPrefix:\n    Type: String\n    Default: '${currentUser}'`
+      /(\s*(UserPrefix|StudentID):\s*\r?\n\s*Type:\s*String)/i,
+      `$1\n    Default: '${currentUser}'`
     );
     // Set ListenerRulePriority default
     yaml = yaml.replace(
-      /(ListenerRulePriority:\s*\n\s*Type: Number)/,
-      `ListenerRulePriority:\n    Type: Number\n    Default: ${priority}`
+      /(\s*ListenerRulePriority:\s*\r?\n\s*Type:\s*Number)/i,
+      `$1\n    Default: ${priority}`
     );
-    const blob = new Blob([yaml], { type: 'application/x-yaml' });
+    // Use text/plain — browsers honour the download attribute more reliably than application/x-yaml
+    const blob = new Blob([yaml], { type: 'text/plain;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filePath.split('/').pop();
+    a.href = blobUrl;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
   } catch (e) {
     console.error('Download template error:', e);
   }

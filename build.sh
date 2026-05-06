@@ -43,7 +43,7 @@ slug = '$slug'
 pages = []
 for root, dirs, files in os.walk(ws_dir):
     # 跳過 images 等非內容目錄
-    dirs[:] = [d for d in dirs if not d.startswith('.') and d != 'images']
+    dirs[:] = [d for d in dirs if not d.startswith('.') and not d.startswith('_') and d != 'images']
     for f in files:
         if not f.endswith('.md'):
             continue
