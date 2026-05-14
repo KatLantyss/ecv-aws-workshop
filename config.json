@@ -5,6 +5,8 @@
   "footer": "© 2026 eCloudvalley Digital Technology",
   "adminPassword": "ecv6689ecv",
   "workshops": [
+    "aws-network-firewall-tgw",
+    "aws-three-tier-architecture",
     "cicd-pipeline-with-codepipeline",
     "deploying-app-with-ecs-fargate",
     "s3-malware-scanning-workshop",
