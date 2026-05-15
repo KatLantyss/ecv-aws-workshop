@@ -1,0 +1,9 @@
+{
+  "order": 2,
+  "title": "建立 AWS 企業級三層式架構",
+  "description": "從零開始構建具備高可用性與安全性的 AWS 三層式架構，涵蓋 VPC、EC2、ALB、ASG、RDS、SSM 與 WAF。",
+  "badge": "AWS",
+  "level": "中級",
+  "duration": "2~3 小時",
+  "icon": "layers"
+}

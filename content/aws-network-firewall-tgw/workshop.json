@@ -1,0 +1,9 @@
+{
+  "order": 3,
+  "title": "打造 AWS 進階網路與安全防護",
+  "description": "利用 Transit Gateway 串連多個 VPC，部署 AWS Network Firewall 實現集中式 Egress 控制與流量過濾。",
+  "badge": "AWS",
+  "level": "進階",
+  "duration": "2~3 小時",
+  "icon": "shield"
+}
