@@ -29,17 +29,17 @@ RDS 部署在 Private Subnet 內，無法直接從本地連線。以下提供兩
 
    ![建立 Bastion](./img/image.png)
 
-   ![Bastion 設定](./img/image 1.png)
+   ![Bastion 設定](./img/image_1.png)
 
-   ![選擇 AMI](./img/image 2.png)
+   ![選擇 AMI](./img/image_2.png)
 
-   ![網路設定](./img/image 3.png)
+   ![網路設定](./img/image_3.png)
 
-   ![Security Group](./img/image 4.png)
+   ![Security Group](./img/image_4.png)
 
-   ![確認建立](./img/image 5.png)
+   ![確認建立](./img/image_5.png)
 
-   ![Bastion 建立完成](./img/image 6.png)
+   ![Bastion 建立完成](./img/image_6.png)
 :::
 
 ### 設定 Security Group (ec2-rds-1)
@@ -48,9 +48,9 @@ RDS 部署在 Private Subnet 內，無法直接從本地連線。以下提供兩
 需要確保 RDS 的 Security Group 允許來自 Bastion 的連線（Port 5432）。
 :::
 
-![設定 Security Group](./img/image 7.png)
+![設定 Security Group](./img/image_7.png)
 
-![新增 Inbound Rule](./img/image 8.png)
+![新增 Inbound Rule](./img/image_8.png)
 
 ### 本地透過 SSH 建立 Tunnel 連線
 
@@ -62,22 +62,22 @@ chmod 400 ./your.pem
 ssh -i ./your.pem -N -L 8182:<rds-dns-name>:5432 ec2-user@<bastion-public-ip> -v
 ```
 
-![SSH Tunnel 建立成功](./img/image 9.png)
+![SSH Tunnel 建立成功](./img/image_9.png)
 
 ### 本地透過 pgAdmin 連線 RDS
 
 :::steps
 1. 開啟 pgAdmin，新增 Server
 
-   ![新增 Server](./img/image 10.png)
+   ![新增 Server](./img/image_10.png)
 
 2. 設定連線資訊（Host: `localhost`、Port: `8182`）
 
-   ![設定連線資訊](./img/image 11.png)
+   ![設定連線資訊](./img/image_11.png)
 
 3. 確認連線成功
 
-   ![連線成功](./img/image 12.png)
+   ![連線成功](./img/image_12.png)
 :::
 
 ::tab[方式 B — Session Manager Port Forwarding]
@@ -161,7 +161,7 @@ aws ssm start-session \
 :::steps
 1. 開啟 pgAdmin，新增 Server
 
-   ![新增 Server](./img/image 10.png)
+   ![新增 Server](./img/image_10.png)
 
 2. 設定連線資訊（Host: `localhost`、Port: `8181`）
 
@@ -169,7 +169,7 @@ aws ssm start-session \
 
 3. 確認連線成功
 
-   ![連線成功](./img/image 12.png)
+   ![連線成功](./img/image_12.png)
 :::
 
 :::
