@@ -32,6 +32,10 @@ order: 6
 
 5. 設定 DB Instance 名稱與認證資訊
 
+   :::alert{type="info"}
+   **DB cluster identifier 命名建議**：請將名稱設定為 ``my-pg-database-{{USERNAME}}``，方便講師與學員區分各自建立的資源。
+   :::
+
    ![設定名稱與認證](./img/image-72.png)
 
    ![認證設定](./img/image-73.png)

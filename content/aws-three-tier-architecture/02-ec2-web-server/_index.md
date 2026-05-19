@@ -28,11 +28,19 @@ order: 3
 
 3. 填寫 EC2 名稱與 AMI 資訊
 
+   :::alert{type="info"}
+   **EC2 命名建議**：請將 Name 設定為 ``my-web-{{USERNAME}}``，方便講師與學員區分各自建立的資源。
+   :::
+
    ![填寫 EC2 資訊](./img/image-10.png)
 
 4. 選擇機器型別、設定 Key Pair
 
    ![選擇機器型別](./img/image-11.png)
+
+   :::alert{type="info"}
+   **Key Pair 命名建議**：建立新的 Key Pair 時，請將名稱設定為 ``my-web-rsa-key-{{USERNAME}}``，方便識別與管理。
+   :::
 
    ![設定 Key Pair](./img/image-12.png)
 
@@ -41,6 +49,10 @@ order: 3
    ![設定網路 - 選擇 VPC](./img/image-13.png)
 
    ![設定 Subnet](./img/image-14.png)
+
+   :::alert{type="info"}
+   **Security Group 命名建議**：請將 Security Group name 設定為 ``my-web-{{USERNAME}}-sg``，方便識別與管理。
+   :::
 
    ![設定 Security Group](./img/image-15.png)
 

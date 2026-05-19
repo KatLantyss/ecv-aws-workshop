@@ -26,6 +26,10 @@ order: 4
 
 2. 填寫 AMI 名稱與描述
 
+   :::alert{type="info"}
+   **AMI 命名建議**：請將 AMI Name 設定為 ``my-web-{{USERNAME}}-v1.0``，方便識別與版本管理。
+   :::
+
    ![填寫 AMI 資訊](./img/image-24.png)
 
    ![AMI 設定](./img/image-25.png)
@@ -47,6 +51,10 @@ order: 4
    ![建立 Launch Template](./img/image-28.png)
 
 2. 填寫 Launch Template 名稱
+
+   :::alert{type="info"}
+   **Launch Template 命名建議**：請將名稱設定為 ``my-web-{{USERNAME}}-tpl``，方便識別與管理。
+   :::
 
    ![填寫名稱](./img/image-29.png)
 
@@ -82,6 +90,10 @@ order: 4
 
 2. 填寫 ASG 名稱，選擇 Launch Template
 
+   :::alert{type="info"}
+   **ASG 命名建議**：請將名稱設定為 ``my-web-{{USERNAME}}-asg``，方便識別與管理。
+   :::
+
    ![填寫 ASG 名稱](./img/image-36.png)
 
 3. 設定網路 - 選擇 VPC 與 Subnet
@@ -94,15 +106,23 @@ order: 4
 
    ![設定負載平衡](./img/image-39.png)
 
+   :::alert{type="info"}
+   **ALB 命名建議**：請將 ALB Name 設定為 ``my-web-{{USERNAME}}-alb``，方便識別與管理。
+   :::
+
    ![建立 ALB](./img/image-40.png)
 
    ![ALB 設定](./img/image-41.png)
 
-5. 設定 Target Group
+   :::alert{type="info"}
+   **Target Group 命名建議**：請將 Target Group Name 設定為 ``my-web-{{USERNAME}}-alb-tg``，方便識別與管理。
+   :::
 
-   ![設定 Target Group](./img/image-42.png)
+5. 設定 Auto Scaling Group
 
-   ![Target Group 設定](./img/image-43.png)
+   ![設定 ASG](./img/image-42.png)
+
+   ![ASG 設定](./img/image-43.png)
 
 6. 設定 Group Size（Desired / Min / Max）
 
