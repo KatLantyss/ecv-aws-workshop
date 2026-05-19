@@ -24,6 +24,10 @@ order: 3
 
 3. 填寫 Firewall 名稱，選擇 Inspection-VPC
 
+   :::alert{type="info"}
+   **Firewall 命名建議**：請將 Firewall Name 設定為 ``aws-nfw-egress-{{USERNAME}}``，方便識別與管理。
+   :::
+
    ![填寫名稱](./img/image-2.png)
 
    ![選擇 VPC](./img/image-3.png)
@@ -53,6 +57,10 @@ order: 3
    ![Create log group](./img/image-7.png)
 
 3. 填寫 Log Group 名稱
+
+   :::alert{type="info"}
+   **Log Group 命名建議**：請將名稱設定為 ``/aws/network-firewall/aws-nfw-egress-{{USERNAME}}``，方便識別與管理。
+   :::
 
    ![填寫名稱](./img/image-8.png)
 
@@ -104,6 +112,10 @@ order: 3
 
 4. 填寫允許的 Domain 清單
 
+   :::alert{type="info"}
+   **Rule Group 命名建議**：請將名稱設定為 ``allow-domain-list-{{USERNAME}}``，方便識別與管理。
+   :::
+
    ![填寫 Domain](./img/image-19.png)
 
 5. 確認建立完成
@@ -151,6 +163,10 @@ order: 3
    ![Standard stateful rule](./img/image-29.png)
 
 3. 設定 ICMP 規則
+
+   :::alert{type="info"}
+   **Rule Group 命名建議**：請將名稱設定為 ``allow-ping-{{USERNAME}}``，方便識別與管理。
+   :::
 
    ![ICMP 規則](./img/image-30.png)
 

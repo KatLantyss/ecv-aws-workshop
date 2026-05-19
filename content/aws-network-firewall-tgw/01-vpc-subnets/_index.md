@@ -20,6 +20,10 @@ order: 2
 
 2. 選擇 **VPC and more**，填寫 Workload-VPC 相關設定
 
+   :::alert{type="info"}
+   **VPC 命名建議**：請將 VPC Name 設定為 ``workload-vpc-{{USERNAME}}`` (`10.0.0.0/16`)，方便講師與學員區分各自建立的資源。
+   :::
+
    ![VPC 設定](./img/image-1.png)
 
    ![CIDR 設定](./img/image-2.png)
@@ -75,6 +79,10 @@ TGW Attachment 需要專用的 Subnet，建議使用 /28 的小網段。
    ![Create VPC](./img/image.png)
 
 2. 填寫 Inspection-VPC 相關設定
+
+   :::alert{type="info"}
+   **VPC 命名建議**：請將 VPC Name 設定為 ``inspection-vpc-{{USERNAME}}`` (`192.168.0.0/20`)，方便講師與學員區分各自建立的資源。
+   :::
 
    ![VPC 設定](./img/image-13.png)
 

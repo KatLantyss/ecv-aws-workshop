@@ -11,11 +11,14 @@ order: 6
 
 ---
 
-## 為 Workload-VPC 創建 TGW 需要的 Subnets
+## 檢視 Workload-VPC 當中 TGW 需要的 Subnets
+
+:::alert{type="info"}
+若 Subnet 不存在，才建立。若 Subnet 已存在，則直接進入 **「變更 Route Table 的名稱」**
+:::
+
 
 ### 建立 TGW Subnet (1a)
-
-建議網段：`10.0.160.0/28` (workload-tgw-subnet-private1-ap-northeast-1a)
 
 :::steps
 1. 檢視 VPC 的拓樸圖
@@ -25,6 +28,10 @@ order: 6
 2. 創建 Subnet
 
    ![創建 Subnet](./img/image-1.png "創建 Subnet")
+
+   :::alert{type="info"}
+   建議網段：`10.0.160.0/28` (``workload-tgw-subnet-private1-ap-northeast-1a-{{USERNAME}}``)
+   :::
 
    ![填寫設定](./img/image-2.png)
 
@@ -43,16 +50,22 @@ order: 6
 
 ### 創建另一個 TGW Subnet (1c)
 
-建議網段：`10.0.160.16/28` (workload-tgw-subnet-private2-ap-northeast-1c)
+
 
 :::steps
 1. 建立 Subnet
+
+   :::alert{type="info"}
+   建議網段：`10.0.160.16/28` (``workload-tgw-subnet-private2-ap-northeast-1c-{{USERNAME}}``)
+   :::
 
    ![建立 Subnet](./img/image-7.png)
 
 2. 建立對應的 Route Table
 
-   建議命名：`workload-rtb-tgw-private2-ap-northeast-1c`
+   :::alert{type="info"}
+   建議命名：`workload-rtb-tgw-private2-ap-northeast-1c-{{USERNAME}}`
+   :::
 
    ![建立 Route Table](./img/image-8.png)
 
@@ -80,6 +93,10 @@ order: 6
 
 2. 填寫 TGW 名稱與設定
 
+   :::alert{type="info"}
+   **Transit Gateway 命名建議**：請將名稱設定為 ``transit-gateway-{{USERNAME}}``，方便識別與管理。
+   :::
+
    ![填寫名稱](./img/image-14.png)
 
    ![設定](./img/image-15.png)
@@ -93,16 +110,16 @@ order: 6
 
 ## 創建 Transit Gateway Attachments
 
-### tgw-01-attachment-001（in Workload-VPC）
+### 先創建 ``tgw-{{USERNAME}}-attachment-001``（in Workload-VPC）
 
 :::steps
 1. 前往 Transit Gateway Attachments，點擊 **Create**
 
    ![Create Attachment](./img/image-17.png)
 
-2. 填寫名稱：**tgw-01-attachment-001**，選擇 Workload-VPC
+2. 填寫名稱：**``tgw-{{USERNAME}}-attachment-001``**，選擇 Workload-VPC
 
-   ![填寫名稱](./img/image-18.png "建議命名: tgw-01-attachment-001")
+   ![填寫名稱](./img/image-18.png "建議命名: ``tgw-{{USERNAME}}-attachment-001``")
 
 3. 選擇 TGW Subnets
 
@@ -113,10 +130,10 @@ order: 6
    ![建立完成](./img/image-20.png)
 :::
 
-### tgw-01-attachment-002（in Inspection-VPC）
+### 接著創建 ``tgw-{{USERNAME}}-attachment-002``（in Inspection-VPC）
 
 :::steps
-1. 再次點擊 **Create**，填寫名稱：**tgw-01-attachment-002**，選擇 Inspection-VPC
+1. 再次點擊 **Create**，填寫名稱：**``tgw-{{USERNAME}}-attachment-002``**，選擇 Inspection-VPC
 
    ![填寫名稱](./img/image-21.png)
 
@@ -217,7 +234,7 @@ order: 6
 
    ![編輯 Policy](./img/image-40.png)
 
-2. 設定 Default Actions 為 **Drop established**
+2. 設定 Drop action 為 **None**，Alert action 為 **Alert established**
 
    ![設定 Drop](./img/image-41.png)
 
@@ -232,7 +249,7 @@ order: 6
 由於 Workload-VPC 的 EC2 沒有對外網路（流量走 TGW），需要建立 VPC Endpoints 才能使用 Session Manager。
 :::
 
-### 1. com.amazonaws.ap-northeast-1.ssm
+### 1. 建立 com.amazonaws.ap-northeast-1.ssm (endpoint)
 
 ![建立 ssm endpoint](./img/image-43.png)
 
@@ -242,7 +259,7 @@ order: 6
 
 ![確認](./img/image-46.png)
 
-### 2. com.amazonaws.ap-northeast-1.ssmmessages
+### 2. 建立 com.amazonaws.ap-northeast-1.ssmmessages (endpoint)
 
 ![建立 ssmmessages endpoint](./img/image-47.png)
 
@@ -252,7 +269,7 @@ order: 6
 
 ![確認](./img/image-50.png)
 
-### 3. com.amazonaws.ap-northeast-1.ec2messages
+### 3. 建立 com.amazonaws.ap-northeast-1.ec2messages (endpoint)
 
 ![建立 ec2messages endpoint](./img/image-51.png)
 

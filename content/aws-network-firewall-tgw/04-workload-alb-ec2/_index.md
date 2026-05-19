@@ -22,7 +22,11 @@ order: 5
 
    ![填寫名稱](./img/image-ec2-2.png)
 
-3. 設定網路 — 選擇 Workload-VPC 的 Private Subnet
+3. 填寫 EC2 資訊，以及設定網路 — 選擇 Workload-VPC 的 Private Subnet
+
+   :::alert{type="info"}
+   **EC2 命名建議**：請將 Name 設定為 ``test-firewall-{{USERNAME}}-in-workload-vpc``，方便識別與管理。
+   :::
 
    ![設定網路](./img/image.png)
 
@@ -102,11 +106,15 @@ order: 5
 
    ![Create target group](./img/image-5.png)
 
-2. 選擇 Instances 類型
+2. 選擇 Instances 類型，填寫 Target Group 名稱
+
+   :::alert{type="info"}
+   **Target Group 命名建議**：請將名稱設定為 ``my-web-{{USERNAME}}-tg``，方便識別與管理。
+   :::
 
    ![選擇類型](./img/image-6.png)
 
-3. 填寫 Target Group 名稱，選擇 Workload-VPC
+3. 選擇 Workload-VPC
 
    ![填寫名稱](./img/image-7.png)
 
@@ -132,6 +140,10 @@ order: 5
 
 2. 填寫名稱，選擇 Workload-VPC，新增 HTTP (Port 80) Inbound Rule
 
+   :::alert{type="info"}
+   **Security Group 命名建議**：請將名稱設定為 ``my-web-alb-{{USERNAME}}-sg``，方便識別與管理。
+   :::
+
    ![填寫設定](./img/image-12.png)
 
 3. 確認建立完成
@@ -154,17 +166,21 @@ order: 5
 
 3. 填寫 ALB 名稱，選擇 Internet-facing
 
+   :::alert{type="info"}
+   **ALB 命名建議**：請將名稱設定為 ``my-web-alb-{{USERNAME}}``，方便識別與管理。
+   :::
+
    ![填寫名稱](./img/image-16.png)
 
 4. 選擇 Workload-VPC 的 Public Subnets
 
    ![選擇 Subnets](./img/image-17.png)
 
-5. 選擇 Security Group（my-web-alb-sg）
+5. 選擇 Security Group（``my-web-alb-{{USERNAME}}-sg``），設定 Listener，指向 Target Group (``my-web-{{USERNAME}}-tg``)
 
-   ![選擇 SG](./img/image-18.png "Security Groups 請改選為 my-web-alb-sg")
+   ![選擇 SG](./img/image-18.png "Security Groups 請取消 default，改選為 ``my-web-alb-{{USERNAME}}-sg``")
 
-6. 設定 Listener，指向 Target Group
+6. 點擊建立 Load Balancer
 
    ![設定 Listener](./img/image-19.png)
 
