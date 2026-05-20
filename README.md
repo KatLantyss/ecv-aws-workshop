@@ -181,13 +181,25 @@ npx serve .
 ### 部署指令
 
 ```bash
-# 同步靜態檔案至 S3（排除 infra/ 和 docs/）
+# 1. 先上傳 HTML、JSON、MD（不快取）
+aws s3 sync . s3://audy-workshop-website-test \
+  --exclude "*" \
+  --include "*.html" \
+  --include "*.json" \
+  --include "*.md" \
+  --cache-control "no-cache, no-store, must-revalidate" \
+  --delete
+
+# 2. 再上傳靜態資源（長期快取）
 aws s3 sync . s3://audy-workshop-website-test \
   --exclude ".git/*" \
   --exclude "infra/*" \
   --exclude "docs/*" \
   --exclude "*.sh" \
-  --delete
+  --exclude "*.html" \
+  --exclude "*.json" \
+  --exclude "*.md" \
+  --cache-control "public, max-age=31536000, immutable"
 
 # 建立 CloudFront 快取失效（若有設定 CloudFront）
 aws cloudfront create-invalidation \

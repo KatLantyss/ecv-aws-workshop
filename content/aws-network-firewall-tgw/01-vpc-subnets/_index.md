@@ -45,6 +45,40 @@ order: 2
 TGW Attachment 需要專用的 Subnet，建議使用 /28 的小網段。
 :::
 
+### 建立 TGW Subnet (1c)
+
+:::steps
+1. 建立 Subnet
+
+   :::alert{type="info"}
+   建議網段：`10.0.160.16/28` (``workload-tgw-subnet-private2-ap-northeast-1c-{{USERNAME}}``)
+   :::
+
+   ![建立 Subnet](./img/image-7.png)
+
+2. 建立對應的 Route Table
+
+   :::alert{type="info"}
+   建議命名：`workload-rtb-tgw-private2-ap-northeast-1c-{{USERNAME}}`
+   :::
+
+   ![建立 Route Table](./img/image-8.png)
+
+3. 編輯 Subnet 關聯性
+
+   ![編輯關聯性](./img/image-9.png "編輯 subnet 關聯性")
+
+   ![選擇 Subnet](./img/image-10.png)
+
+   ![確認](./img/image-11.png)
+
+4. 檢視 Workload-VPC 的 Resource Map
+
+   ![Resource Map](./img/image-12.png)
+:::
+
+### 創建另一個 TGW Subnet (1a)
+
 :::steps
 1. 前往 Subnets，點擊 **Create subnet**
 
@@ -52,13 +86,17 @@ TGW Attachment 需要專用的 Subnet，建議使用 /28 的小網段。
 
 2. 選擇 Workload-VPC，填寫 TGW Subnet 資訊
 
+   :::alert{type="info"}
+   建議網段：`10.0.160.0/28` (``workload-tgw-subnet-private3-ap-northeast-1c-{{USERNAME}}``)
+   :::
+
    ![選擇 VPC](./img/image-7.png)
 
    ![填寫 Subnet 資訊](./img/image-8.png)
 
-   ![AZ 設定](./img/image-9.png)
+3. 設定 Route Table 命名 ``workload-rtb-tgw-private3-ap-northeast-1c-{{USERNAME}}``
 
-3. 建立第二個 AZ 的 TGW Subnet
+   ![AZ 設定](./img/image-9.png)
 
    ![第二個 TGW Subnet](./img/image-10.png)
 
@@ -68,6 +106,7 @@ TGW Attachment 需要專用的 Subnet，建議使用 /28 的小網段。
 
    ![確認完成](./img/image-12.png)
 :::
+
 
 ---
 
@@ -102,13 +141,17 @@ TGW Attachment 需要專用的 Subnet，建議使用 /28 的小網段。
 :::steps
 1. 前往 Subnets，建立 Inspection-VPC 的 TGW Subnet
 
+   :::alert{type="info"}
+   **Subnet 命名建議**：請將 Subnet Name 設定為 ``inspection-tgw-subnet-private2-ap-northeast-1a-{{USERNAME}}`` (`192.168.15.0/28`)，方便講師與學員區分各自建立的資源。
+   :::
+
    ![Create subnet](./img/image-17.png)
 
    ![選擇 Inspection-VPC](./img/image-18.png)
 
    ![填寫 Subnet 資訊](./img/image-19.png)
 
-2. 建立第二個 AZ 的 TGW Subnet
+2. 設定 Route Table 命名 ``inspection-tgw-rtb-private2-ap-northeast-1a-{{USERNAME}}``
 
    ![第二個 TGW Subnet](./img/image-20.png)
 

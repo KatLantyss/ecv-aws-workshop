@@ -5,7 +5,7 @@ order: 0
 
 # 打造 AWS 進階網路與安全防護
 
-::badge[AWS]{type="info"} ::badge[進階]{type="default"} ::badge[2~3 小時]{type="default"}
+::badge[AWS]{type="info"} ::badge[進階]{type="default"} ::badge[3~4 小時]{type="default"}
 
 *ECV Solutions Architect. FUYU GUO (Rich) - Published at 2026.01*
 

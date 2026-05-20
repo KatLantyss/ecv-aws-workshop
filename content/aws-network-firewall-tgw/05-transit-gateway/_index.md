@@ -14,18 +14,18 @@ order: 6
 ## 檢視 Workload-VPC 當中 TGW 需要的 Subnets
 
 :::alert{type="info"}
-若 Subnet 不存在，才建立。若 Subnet 已存在，則直接進入 **「變更 Route Table 的名稱」**
+這邊只是在「創建 Transit Gateway、以及 Transit Gateway Attachments」之前，先檢視所需的 Subnets。
 :::
 
 
-### 建立 TGW Subnet (1a)
+### 檢視 TGW Subnet (1a)
 
 :::steps
 1. 檢視 VPC 的拓樸圖
 
    ![VPC 拓樸圖](./img/image.png "檢視 VPC 的拓樸圖")
 
-2. 創建 Subnet
+2. 檢視 Subnet
 
    ![創建 Subnet](./img/image-1.png "創建 Subnet")
 
@@ -42,18 +42,16 @@ order: 6
    ![建立完成](./img/image-4.png "建立出 1a 需要的 TGW subnet")
 :::
 
-### 變更 Route Table 的名稱
+### 檢視 Route Table 的名稱
 
 ![變更名稱](./img/image-5.png)
 
 ![命名完成](./img/image-6.png)
 
-### 創建另一個 TGW Subnet (1c)
-
-
+### 檢視另一個 TGW Subnet (1c)
 
 :::steps
-1. 建立 Subnet
+1. 檢視 Subnet
 
    :::alert{type="info"}
    建議網段：`10.0.160.16/28` (``workload-tgw-subnet-private2-ap-northeast-1c-{{USERNAME}}``)
@@ -61,7 +59,7 @@ order: 6
 
    ![建立 Subnet](./img/image-7.png)
 
-2. 建立對應的 Route Table
+2. 檢視對應的 Route Table
 
    :::alert{type="info"}
    建議命名：`workload-rtb-tgw-private2-ap-northeast-1c-{{USERNAME}}`
@@ -69,7 +67,7 @@ order: 6
 
    ![建立 Route Table](./img/image-8.png)
 
-3. 編輯 Subnet 關聯性
+3. 檢視 Subnet 關聯性
 
    ![編輯關聯性](./img/image-9.png "編輯 subnet 關聯性")
 
