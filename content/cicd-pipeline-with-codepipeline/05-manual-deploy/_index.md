@@ -75,6 +75,13 @@ sudo docker push $ECR_REPO:{{USERNAME}}-latest
 Container Name 必須是 ``web``，這要跟 `buildspec.yml` 中 `imagedefinitions.json` 的 `name` 欄位一致。
 :::
 
+:::
+
+:::expand{title="executionRole vs taskRole 的差別"}
+- **Task execution role**：ECS Agent 使用，負責拉取 ECR 映像、寫入 CloudWatch Logs
+- **Task role**：容器內的應用程式使用，存取 S3、RDS 等 AWS 服務（後續 Lab 會用到）
+:::
+
 ---
 
 ## 3.4 建立 ECS Service
