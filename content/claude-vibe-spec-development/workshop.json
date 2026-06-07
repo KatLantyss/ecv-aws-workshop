@@ -1,0 +1,9 @@
+{
+  "order": 10,
+  "title": "Claude Code — Vibe Coding & Spec Driven Development",
+  "description": "透過兩個動手實作的 Lab，掌握 Claude Code 的核心操作與 Slash 指令，體驗從 Vibe Coding 到 Spec Driven Development 的完整 AI 輔助開發流程。",
+  "badge": "AI 開發",
+  "level": "初級",
+  "duration": "約 60 分鐘",
+  "icon": "zap"
+}

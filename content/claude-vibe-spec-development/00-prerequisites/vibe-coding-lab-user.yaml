@@ -1,0 +1,320 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Vibe Coding & SDD Workshop - Per-User Lab Resources.
+  Each student gets their own EC2 with code-server (browser-based VS Code),
+  Claude Code CLI + VS Code Extension pre-installed.
+  Students open VS Code in their browser — no local installation required.
+
+Parameters:
+  UserPrefix:
+    Type: String
+    AllowedPattern: '[a-z0-9\-]+'
+    ConstraintDescription: 只能使用小寫英文、數字與連字號
+    Description: 學員專屬前綴（例如 ws-01），由講師指定
+
+  AnthropicApiKey:
+    Type: String
+    NoEcho: true
+    Description: 學員的 Anthropic API Key（sk-ant-...），輸入後不會顯示
+
+  LabName:
+    Type: String
+    Default: vibe-coding-lab
+    Description: Lab 名稱，用於資源命名與匯入共用基礎設施
+
+Resources:
+
+  # ==================== IAM Role for EC2 ====================
+  WorkshopHostRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${LabName}-${UserPrefix}-host-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # SSM Session Manager 連線所需（講師排查用，學員主要走瀏覽器 VS Code）
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Workshop
+          Value: !Ref LabName
+        - Key: User
+          Value: !Ref UserPrefix
+
+  WorkshopHostInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${LabName}-${UserPrefix}-host-profile'
+      Roles:
+        - !Ref WorkshopHostRole
+
+  # ==================== Security Group ====================
+  # 開放 8080（code-server VS Code）給所有 IP
+  # 實際存取仍需要密碼（code-server 登入頁）
+  WorkshopHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${LabName}-${UserPrefix} - code-server 8080 + all outbound'
+      GroupName: !Sub '${LabName}-${UserPrefix}-host-sg'
+      VpcId:
+        Fn::ImportValue: !Sub '${LabName}-VPCId'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+          Description: code-server (browser VS Code)
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound (npm, Claude API, code-server updates)
+      Tags:
+        - Key: Workshop
+          Value: !Ref LabName
+        - Key: User
+          Value: !Ref UserPrefix
+
+  # ==================== EC2 Workshop Host ====================
+  WorkshopHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      # t3.medium: 2 vCPU / 4GB RAM
+      # code-server 本身約佔 300MB，加上 Node.js + Claude Code 需要至少 2GB
+      # t3.small (2GB) 在多個學員同時操作時容易 OOM，medium 較穩定
+      InstanceType: t3.medium
+      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
+      SubnetId:
+        Fn::ImportValue: !Sub '${LabName}-PublicSubnet1'
+      SecurityGroupIds:
+        - !Ref WorkshopHostSecurityGroup
+      IamInstanceProfile: !Ref WorkshopHostInstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          exec > >(tee /var/log/workshop-init.log) 2>&1
+          echo "=== Workshop EC2 Init Start: $(date) ==="
+
+          # ── 系統更新 ──────────────────────────────────────────
+          dnf update -y
+          dnf install -y git curl tar gzip
+
+          # ── Node.js 22 LTS（Claude Code CLI 需要 Node 18+）──────
+          curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
+          dnf install -y nodejs
+
+          echo "Node.js: $(node --version)"
+          echo "npm:     $(npm --version)"
+
+          # ── Claude Code CLI（全域）────────────────────────────
+          npm install -g @anthropic-ai/claude-code
+          echo "Claude Code: $(claude --version)"
+
+          # ── code-server（瀏覽器版 VS Code）──────────────────
+          # 使用官方安裝腳本，自動選擇最新穩定版
+          export HOME=/root
+          curl -fsSL https://code-server.dev/install.sh | sh
+
+          # ── code-server 設定檔 ────────────────────────────────
+          # 每位學員的密碼 = UserPrefix（例如 ws-01）
+          # 課程結束後建議由講師統一刪除 Stack
+          mkdir -p /home/ec2-user/.config/code-server
+          cat > /home/ec2-user/.config/code-server/config.yaml << 'CODESERVER_CONFIG'
+          bind-addr: 0.0.0.0:8080
+          auth: password
+          password: ${UserPrefix}
+          cert: false
+          CODESERVER_CONFIG
+
+          # ── 環境變數：寫入 /etc/environment（所有 session 通用）──
+          echo "ANTHROPIC_API_KEY=${AnthropicApiKey}" >> /etc/environment
+          echo "LAB_USER=${UserPrefix}" >> /etc/environment
+
+          # ── ec2-user .bashrc（code-server terminal session）──
+          cat >> /home/ec2-user/.bashrc << 'BASHRC'
+          export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY /etc/environment | cut -d= -f2)
+          export LAB_USER=$(grep LAB_USER /etc/environment | cut -d= -f2)
+          BASHRC
+
+          # ── code-server systemd service（開機自動啟動）────────
+          cat > /etc/systemd/system/code-server.service << 'SERVICE'
+          [Unit]
+          Description=code-server (Browser VS Code)
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=ec2-user
+          Environment=ANTHROPIC_API_KEY_FILE=/etc/environment
+          EnvironmentFile=/etc/environment
+          ExecStart=/usr/bin/code-server --config /home/ec2-user/.config/code-server/config.yaml
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+          SERVICE
+
+          systemctl daemon-reload
+          systemctl enable code-server
+          systemctl start code-server
+
+          # ── Claude Code Extension（從 Open VSX 安裝）─────────
+          # code-server 使用 Open VSX Registry，Claude Code 官方 extension 已上架
+          # 等待 code-server 完全啟動後再安裝 extension
+          sleep 5
+          sudo -u ec2-user /usr/bin/code-server \
+            --install-extension Anthropic.claude-code \
+            --force 2>&1 || echo "Extension install will retry on first launch"
+
+          # ── 建立 Lab 工作目錄與範例檔案 ──────────────────────
+          mkdir -p /home/ec2-user/vibe-coding-lab
+          cd /home/ec2-user/vibe-coding-lab
+
+          # Lab 1 範例：user-auth.js（刻意含多個問題）
+          cat > user-auth.js << 'JSEOF'
+          const users = [];
+
+          function register(username, password) {
+            for (let i = 0; i < users.length; i++) {
+              if (users[i].username == username) {
+                return false;
+              }
+            }
+            users.push({ username: username, password: password });
+            return true;
+          }
+
+          function login(username, password) {
+            for (let i = 0; i < users.length; i++) {
+              if (users[i].username == username) {
+                if (users[i].password == password) {
+                  return { success: true, token: username + "_token_" + Date.now() };
+                }
+              }
+            }
+            return { success: false };
+          }
+
+          function getUserData(token) {
+            const username = token.split("_token_")[0];
+            for (let i = 0; i < users.length; i++) {
+              if (users[i].username == username) {
+                return users[i];
+              }
+            }
+            return null;
+          }
+
+          module.exports = { register, login, getUserData };
+          JSEOF
+
+          # Lab 2 範例：空白 Spec 模板
+          cat > user-auth-spec.md << 'SPECEOF'
+          ## 功能名稱
+          使用者認證模組（User Authentication）
+
+          ## 背景與目的
+          （請填寫）
+
+          ## 輸入規格
+
+          ### register(username, password)
+          - username:
+          - password:
+
+          ### login(username, password)
+          - username:
+          - password:
+
+          ### getUserData(token)
+          - token:
+
+          ## 輸出規格
+
+          ### register
+          - 成功：
+          - 失敗：
+
+          ### login
+          - 成功：
+          - 失敗：
+
+          ### getUserData
+          - 成功：
+          - 失敗：
+
+          ## 業務規則
+          （請填寫）
+
+          ## 錯誤處理
+          （請填寫）
+
+          ## 不在範圍內
+          （請填寫）
+
+          ## 測試情境
+          1.
+          2.
+          3.
+          SPECEOF
+
+          # 初始化 npm 專案（jest 預先裝好，學員不需要等待安裝）
+          npm init -y
+          npm install --save-dev jest
+
+          # VS Code workspace 設定（讓 code-server 開啟時預設顯示此目錄）
+          mkdir -p /home/ec2-user/vibe-coding-lab/.vscode
+          cat > /home/ec2-user/vibe-coding-lab/.vscode/settings.json << 'VSCODE_SETTINGS'
+          {
+            "editor.fontSize": 14,
+            "editor.tabSize": 2,
+            "editor.formatOnSave": true,
+            "files.autoSave": "afterDelay",
+            "files.autoSaveDelay": 1000
+          }
+          VSCODE_SETTINGS
+          # 注意：ANTHROPIC_API_KEY 透過 code-server systemd EnvironmentFile 注入，
+          # 在 VS Code Terminal 中執行 `echo $ANTHROPIC_API_KEY` 可確認已載入
+
+          # 調整所有檔案的擁有者為 ec2-user
+          chown -R ec2-user:ec2-user /home/ec2-user/
+
+          echo "=== Workshop EC2 Init Complete: $(date) ==="
+
+      Tags:
+        - Key: Name
+          Value: !Sub '${LabName}-${UserPrefix}-host'
+        - Key: Workshop
+          Value: !Ref LabName
+        - Key: User
+          Value: !Ref UserPrefix
+
+Outputs:
+  VSCodeUrl:
+    Description: 學員用瀏覽器開啟此 URL 進入 VS Code（密碼為 UserPrefix，例如 ws-01）
+    Value: !Sub 'http://${WorkshopHost.PublicIp}:8080'
+
+  LoginPassword:
+    Description: VS Code 登入密碼
+    Value: !Ref UserPrefix
+
+  SSMSessionUrl:
+    Description: 講師排查用 - SSM Session Manager 連線
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${WorkshopHost}?region=${AWS::Region}'
+
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref WorkshopHost
+
+  LabDirectory:
+    Description: Lab 工作目錄（在 VS Code 終端機中使用）
+    Value: /home/ec2-user/vibe-coding-lab
+
+  InitLogLocation:
+    Description: 環境初始化 log（排查用）
+    Value: /var/log/workshop-init.log
