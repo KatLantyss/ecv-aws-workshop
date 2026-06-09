@@ -32,14 +32,14 @@ order: 1
 
 下載共用基礎設施模板：
 
-[::button[vibe-coding-lab-infra.yaml]{variant="default" prefix="arrow-down-to-line"}](vibe-coding-lab-infra.yaml)
+[::button[claude-vibe-spec-lab-infra.yaml]{variant="default" prefix="arrow-down-to-line"}](claude-vibe-spec-lab-infra.yaml)
 
 :::steps
 1. 登入 AWS Console，前往 **CloudFormation → Stacks → Create stack**
 
-2. 選擇 **Upload a template file**，上傳 `vibe-coding-lab-infra.yaml`
+2. 選擇 **Upload a template file**，上傳 `claude-vibe-spec-lab-infra.yaml`
 
-3. Stack name 輸入：``vibe-coding-lab-infra``
+3. Stack name 輸入：``claude-vibe-spec-lab-infra``
 
 4. 不需要修改任何參數，直接 **Next → Next → Submit**
 
@@ -64,19 +64,22 @@ order: 1
 
 下載學員 Lab 模板：
 
-[::button[vibe-coding-lab-user.yaml]{variant="default" prefix="arrow-down-to-line"}](vibe-coding-lab-user.yaml)
+[::button[claude-vibe-spec-lab-user.yaml]{variant="default" prefix="arrow-down-to-line"}](claude-vibe-spec-lab-user.yaml)
 
 :::steps
-1. 前往 **CloudFormation → Create stack**，上傳 `vibe-coding-lab-user.yaml`
+1. 前往 **CloudFormation → Create stack**，上傳 `claude-vibe-spec-lab-user.yaml`
 
 2. 填寫以下參數：
 
    | 參數 | 說明 | 範例 |
    |------|------|------|
-   | **Stack name** | 建議與 UserPrefix 一致 | `vibe-coding-lab-ws-01` |
+   | **Stack name** | 建議與 UserPrefix 一致 | `claude-vibe-spec-lab-ws-01` |
    | **UserPrefix** | 學員專屬前綴，小寫英數字與連字號 | `ws-01` |
-   | **AnthropicApiKey** | 學員的 Anthropic API Key | `sk-ant-...` |
-   | **LabName** | 保持預設值 | `vibe-coding-lab` |
+   | **LabName** | 保持預設值 | `claude-vibe-spec-lab` |
+
+   :::alert{type="info"}
+   不需要填入 API Key。學員將在課程開始時用自己的 **Claude Enterprise 帳號**透過瀏覽器 OAuth 登入，credentials 由 Claude Code 自行管理。
+   :::
 
 3. Submit 後等待 `CREATE_COMPLETE`（約 3–5 分鐘，EC2 UserData 初始化需要時間）
 
@@ -93,24 +96,23 @@ order: 1
 如果學員人數較多，可以用 AWS CLI 批次執行：
 
 ```bash
-for i in $(seq -w 1 20); do
+for i in $(seq -w 1 30); do
   aws cloudformation create-stack \
-    --stack-name "vibe-coding-lab-ws-${i}" \
-    --template-body file://vibe-coding-lab-user.yaml \
+    --stack-name "claude-vibe-spec-lab-ws-${i}" \
+    --template-body file://claude-vibe-spec-lab-user.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameters \
       ParameterKey=UserPrefix,ParameterValue="ws-${i}" \
-      ParameterKey=AnthropicApiKey,ParameterValue="sk-ant-YOUR_KEY_HERE" \
-      ParameterKey=LabName,ParameterValue="vibe-coding-lab"
+      ParameterKey=LabName,ParameterValue="claude-vibe-spec-lab"
 done
 ```
 
 部署完成後，用以下指令批次取得所有學員的 URL：
 
 ```bash
-for i in $(seq -w 1 20); do
+for i in $(seq -w 1 30); do
   URL=$(aws cloudformation describe-stacks \
-    --stack-name "vibe-coding-lab-ws-${i}" \
+    --stack-name "claude-vibe-spec-lab-ws-${i}" \
     --query "Stacks[0].Outputs[?OutputKey=='VSCodeUrl'].OutputValue" \
     --output text)
   echo "ws-${i}: ${URL}  (密碼: ws-${i})"
@@ -131,7 +133,7 @@ aws ssm start-session --target <InstanceId>
 # 進去後執行：
 sudo systemctl status code-server
 claude --version
-ls /home/ec2-user/vibe-coding-lab/
+ls /home/ec2-user/claude-vibe-spec-lab/
 ```
 
 :::alert{type="info"}
@@ -163,21 +165,52 @@ URL：http://54.x.x.x:8080
 ```bash
 node --version    # 應顯示 v22.x.x
 claude --version  # 應顯示 Claude Code 版本
-ls ~/vibe-coding-lab/   # 應看到 user-auth.js、user-auth-spec.md
+ls ~/claude-vibe-spec-lab/   # 應看到 user-auth.js、user-auth-spec.md
 ```
 
 5. 切換到 Lab 工作目錄：
 
 ```bash
-cd ~/vibe-coding-lab
+cd ~/claude-vibe-spec-lab
 ```
 :::
 
 ---
 
-## 【學員】啟動 Claude Code
+## 【學員】啟動 Claude Code 並登入
 
-環境中已預裝兩種使用方式，你可以選擇：
+環境中已預裝兩種使用方式，**第一次使用前需要完成 Claude Enterprise 帳號登入**：
+
+:::steps
+1. 在 VS Code Terminal 輸入 `claude` 啟動 Claude Code
+
+```bash
+claude
+```
+
+2. Claude Code 會顯示一個登入 URL，類似：
+
+```
+To sign in, open this URL in your browser:
+https://claude.ai/login?code=XXXXXX...
+
+Or press 'c' to copy the URL to your clipboard.
+```
+
+   按 `c` 複製 URL，貼到**你自己電腦的瀏覽器**開啟
+
+3. 用你的 **Claude Enterprise 帳號**完成登入授權
+
+4. 瀏覽器顯示授權成功後，回到 EC2 terminal，Claude Code 會自動繼續
+
+5. 看到 `>` 提示符表示登入成功，輸入 `/help` 確認可正常使用
+
+:::alert{type="info"}
+登入 credentials 會儲存在 EC2 的 `~/.claude/.credentials.json`，**後續使用不需要重複登入**。
+:::
+:::
+
+---
 
 :::tabs
 ::tab[VS Code Extension（推薦）]
@@ -191,7 +224,7 @@ cd ~/vibe-coding-lab
 1. 在 VS Code 的 Terminal 中輸入：
 
 ```bash
-cd ~/vibe-coding-lab
+cd ~/claude-vibe-spec-lab
 claude
 ```
 
@@ -212,8 +245,8 @@ claude
 | 瀏覽器已連線 VS Code | 看到 VS Code 介面 |
 | Node.js 22 已安裝 | `node --version` → `v22.x.x` |
 | Claude Code 已安裝 | `claude --version` |
-| API Key 已設定 | `echo $ANTHROPIC_API_KEY` → 顯示 `sk-ant-...` |
-| 工作目錄有起始檔案 | `ls ~/vibe-coding-lab/` → 看到 `user-auth.js` |
+| Claude Enterprise 已登入 | `claude` 啟動後看到 `>` 提示符，無登入提示 |
+| 工作目錄有起始檔案 | `ls ~/claude-vibe-spec-lab/` → 看到 `user-auth.js` |
 
 :::alert{type="success"}
 環境就緒！繼續進入 Slash 指令速覽。
@@ -228,6 +261,7 @@ claude
 | 密碼錯誤 | 密碼為講師指定的 UserPrefix，例如 `ws-01` |
 | VS Code 載入很慢 | 等候約 10–20 秒，第一次載入會初始化 Extension |
 | `claude` 指令找不到 | 執行 `source ~/.bashrc` 後再試 |
-| API Key 是空的 | 通知講師確認 CloudFormation 部署參數 |
+| 登入 URL 沒有反應 | 確認用自己電腦的瀏覽器開啟（不是在 code-server 裡開） |
+| Claude Enterprise 登入失敗 | 確認你的帳號已被 Enterprise admin 邀請並啟用 |
 | code-server 沒有回應 | 請講師查看 `/var/log/workshop-init.log` |
 :::

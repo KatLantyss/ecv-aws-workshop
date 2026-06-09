@@ -83,7 +83,7 @@ order: 0
 | 項目 | 說明 |
 |------|------|
 | 瀏覽器 | Chrome 或 Edge（連線 EC2 上的 VS Code） |
-| Anthropic API Key | 提供給講師，部署環境時填入 |
+| Claude Enterprise 帳號 | 由 Enterprise admin 邀請啟用，用於登入 Claude Code |
 | 連線資訊 | 講師會在課前提供 URL 與密碼 |
 
 :::alert{type="info"}

@@ -21,7 +21,7 @@ order: 3
 1. 切換到工作目錄
 
 ```bash
-cd ~/vibe-coding-lab
+cd ~/claude-vibe-spec-lab
 ```
 
 2. 確認起始檔案已就緒

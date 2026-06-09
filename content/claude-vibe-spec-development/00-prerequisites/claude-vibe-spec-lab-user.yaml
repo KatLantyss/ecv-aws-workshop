@@ -1,8 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Vibe Coding & SDD Workshop - Per-User Lab Resources.
+  Claude Vibe Coding & SDD Workshop - Per-User Lab Resources.
   Each student gets their own EC2 with code-server (browser-based VS Code),
   Claude Code CLI + VS Code Extension pre-installed.
+  Students authenticate Claude Code with their own Claude Enterprise account
+  via browser OAuth — no API Key required.
   Students open VS Code in their browser — no local installation required.
 
 Parameters:
@@ -12,14 +14,9 @@ Parameters:
     ConstraintDescription: 只能使用小寫英文、數字與連字號
     Description: 學員專屬前綴（例如 ws-01），由講師指定
 
-  AnthropicApiKey:
-    Type: String
-    NoEcho: true
-    Description: 學員的 Anthropic API Key（sk-ant-...），輸入後不會顯示
-
   LabName:
     Type: String
-    Default: vibe-coding-lab
+    Default: claude-vibe-spec-lab
     Description: Lab 名稱，用於資源命名與匯入共用基礎設施
 
 Resources:
@@ -101,7 +98,8 @@ Resources:
 
           # ── 系統更新 ──────────────────────────────────────────
           dnf update -y
-          dnf install -y git curl tar gzip
+          # --allowerasing 處理 curl vs curl-minimal 的套件衝突
+          dnf install -y --allowerasing git tar gzip
 
           # ── Node.js 22 LTS（Claude Code CLI 需要 Node 18+）──────
           curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
@@ -130,13 +128,14 @@ Resources:
           cert: false
           CODESERVER_CONFIG
 
-          # ── 環境變數：寫入 /etc/environment（所有 session 通用）──
-          echo "ANTHROPIC_API_KEY=${AnthropicApiKey}" >> /etc/environment
+          # ── LAB_USER 環境變數 ────────────────────────────────
+          # 注意：不寫入 ANTHROPIC_API_KEY，學員在 Lab 開始時透過瀏覽器 OAuth
+          # 登入自己的 Claude Enterprise 帳號，credentials 由 Claude Code 自行管理
+          # 在 ~/.claude/.credentials.json（mode 0600）
           echo "LAB_USER=${UserPrefix}" >> /etc/environment
 
           # ── ec2-user .bashrc（code-server terminal session）──
           cat >> /home/ec2-user/.bashrc << 'BASHRC'
-          export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY /etc/environment | cut -d= -f2)
           export LAB_USER=$(grep LAB_USER /etc/environment | cut -d= -f2)
           BASHRC
 
@@ -149,7 +148,6 @@ Resources:
           [Service]
           Type=simple
           User=ec2-user
-          Environment=ANTHROPIC_API_KEY_FILE=/etc/environment
           EnvironmentFile=/etc/environment
           ExecStart=/usr/bin/code-server --config /home/ec2-user/.config/code-server/config.yaml
           Restart=always
@@ -172,8 +170,8 @@ Resources:
             --force 2>&1 || echo "Extension install will retry on first launch"
 
           # ── 建立 Lab 工作目錄與範例檔案 ──────────────────────
-          mkdir -p /home/ec2-user/vibe-coding-lab
-          cd /home/ec2-user/vibe-coding-lab
+          mkdir -p /home/ec2-user/claude-vibe-spec-lab
+          cd /home/ec2-user/claude-vibe-spec-lab
 
           # Lab 1 範例：user-auth.js（刻意含多個問題）
           cat > user-auth.js << 'JSEOF'
@@ -267,9 +265,9 @@ Resources:
           npm init -y
           npm install --save-dev jest
 
-          # VS Code workspace 設定（讓 code-server 開啟時預設顯示此目錄）
-          mkdir -p /home/ec2-user/vibe-coding-lab/.vscode
-          cat > /home/ec2-user/vibe-coding-lab/.vscode/settings.json << 'VSCODE_SETTINGS'
+          # VS Code workspace 設定
+          mkdir -p /home/ec2-user/claude-vibe-spec-lab/.vscode
+          cat > /home/ec2-user/claude-vibe-spec-lab/.vscode/settings.json << 'VSCODE_SETTINGS'
           {
             "editor.fontSize": 14,
             "editor.tabSize": 2,
@@ -278,8 +276,6 @@ Resources:
             "files.autoSaveDelay": 1000
           }
           VSCODE_SETTINGS
-          # 注意：ANTHROPIC_API_KEY 透過 code-server systemd EnvironmentFile 注入，
-          # 在 VS Code Terminal 中執行 `echo $ANTHROPIC_API_KEY` 可確認已載入
 
           # 調整所有檔案的擁有者為 ec2-user
           chown -R ec2-user:ec2-user /home/ec2-user/
@@ -300,7 +296,7 @@ Outputs:
     Value: !Sub 'http://${WorkshopHost.PublicIp}:8080'
 
   LoginPassword:
-    Description: VS Code 登入密碼
+    Description: VS Code 登入密碼（= UserPrefix）
     Value: !Ref UserPrefix
 
   SSMSessionUrl:
@@ -313,7 +309,7 @@ Outputs:
 
   LabDirectory:
     Description: Lab 工作目錄（在 VS Code 終端機中使用）
-    Value: /home/ec2-user/vibe-coding-lab
+    Value: /home/ec2-user/claude-vibe-spec-lab
 
   InitLogLocation:
     Description: 環境初始化 log（排查用）

@@ -22,14 +22,14 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: vibe-coding-lab-vpc
+          Value: claude-vibe-spec-lab-vpc
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: vibe-coding-lab-igw
+          Value: claude-vibe-spec-lab-igw
 
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -46,7 +46,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: vibe-coding-lab-public-1
+          Value: claude-vibe-spec-lab-public-1
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -54,7 +54,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: vibe-coding-lab-rtb
+          Value: claude-vibe-spec-lab-rtb
 
   PublicRoute:
     Type: AWS::EC2::Route
@@ -74,12 +74,12 @@ Outputs:
   VPCId:
     Value: !Ref VPC
     Export:
-      Name: vibe-coding-lab-VPCId
+      Name: claude-vibe-spec-lab-VPCId
   PublicSubnet1:
     Value: !Ref PublicSubnet1
     Export:
-      Name: vibe-coding-lab-PublicSubnet1
+      Name: claude-vibe-spec-lab-PublicSubnet1
   Region:
     Value: !Ref AWS::Region
     Export:
-      Name: vibe-coding-lab-Region
+      Name: claude-vibe-spec-lab-Region
