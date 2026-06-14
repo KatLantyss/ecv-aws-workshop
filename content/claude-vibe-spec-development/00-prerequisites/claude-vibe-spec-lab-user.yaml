@@ -3,9 +3,10 @@ Description: >
   Claude Vibe Coding & SDD Workshop - Per-User Lab Resources.
   Each student gets their own EC2 with code-server (browser-based VS Code),
   Claude Code CLI + VS Code Extension pre-installed.
-  Students authenticate Claude Code with their own Claude Enterprise account
-  via browser OAuth — no API Key required.
-  Students open VS Code in their browser — no local installation required.
+  CloudFront provides valid HTTPS termination so browser WebView / Service Worker
+  can load correctly (crypto.subtle requires Secure Context).
+  Students authenticate Claude Code via browser OAuth using their own Claude account.
+  Students open VS Code via the CloudFront HTTPS URL — no local installation required.
 
 Parameters:
   UserPrefix:
@@ -18,6 +19,8 @@ Parameters:
     Type: String
     Default: claude-vibe-spec-lab
     Description: Lab 名稱，用於資源命名與匯入共用基礎設施
+
+
 
 Resources:
 
@@ -34,7 +37,6 @@ Resources:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
       ManagedPolicyArns:
-        # SSM Session Manager 連線所需（講師排查用，學員主要走瀏覽器 VS Code）
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags:
         - Key: Workshop
@@ -50,8 +52,7 @@ Resources:
         - !Ref WorkshopHostRole
 
   # ==================== Security Group ====================
-  # 開放 8080（code-server VS Code）給所有 IP
-  # 實際存取仍需要密碼（code-server 登入頁）
+  # 開放 8080 給所有 IP（code-server 有密碼保護，不需要限制來源）
   WorkshopHostSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -64,7 +65,7 @@ Resources:
           FromPort: 8080
           ToPort: 8080
           CidrIp: 0.0.0.0/0
-          Description: code-server (browser VS Code)
+          Description: code-server HTTP (password protected)
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
@@ -79,9 +80,6 @@ Resources:
   WorkshopHost:
     Type: AWS::EC2::Instance
     Properties:
-      # t3.medium: 2 vCPU / 4GB RAM
-      # code-server 本身約佔 300MB，加上 Node.js + Claude Code 需要至少 2GB
-      # t3.small (2GB) 在多個學員同時操作時容易 OOM，medium 較穩定
       InstanceType: t3.medium
       ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
       SubnetId:
@@ -98,13 +96,11 @@ Resources:
 
           # ── 系統更新 ──────────────────────────────────────────
           dnf update -y
-          # --allowerasing 處理 curl vs curl-minimal 的套件衝突
           dnf install -y --allowerasing git tar gzip
 
-          # ── Node.js 22 LTS（Claude Code CLI 需要 Node 18+）──────
+          # ── Node.js 22 LTS ────────────────────────────────────
           curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
           dnf install -y nodejs
-
           echo "Node.js: $(node --version)"
           echo "npm:     $(npm --version)"
 
@@ -113,13 +109,12 @@ Resources:
           echo "Claude Code: $(claude --version)"
 
           # ── code-server（瀏覽器版 VS Code）──────────────────
-          # 使用官方安裝腳本，自動選擇最新穩定版
           export HOME=/root
           curl -fsSL https://code-server.dev/install.sh | sh
 
           # ── code-server 設定檔 ────────────────────────────────
-          # 每位學員的密碼 = UserPrefix（例如 ws-01）
-          # 課程結束後建議由講師統一刪除 Stack
+          # cert: false — HTTPS 由 CloudFront 處理，EC2 跑 HTTP 即可
+          # 密碼 = UserPrefix（例如 ws-01）
           mkdir -p /home/ec2-user/.config/code-server
           cat > /home/ec2-user/.config/code-server/config.yaml << 'CODESERVER_CONFIG'
           bind-addr: 0.0.0.0:8080
@@ -128,21 +123,28 @@ Resources:
           cert: false
           CODESERVER_CONFIG
 
-          # ── LAB_USER 環境變數 ────────────────────────────────
-          # 注意：不寫入 ANTHROPIC_API_KEY，學員在 Lab 開始時透過瀏覽器 OAuth
-          # 登入自己的 Claude Enterprise 帳號，credentials 由 Claude Code 自行管理
-          # 在 ~/.claude/.credentials.json（mode 0600）
+          # ── 環境變數 ──────────────────────────────────────────
           echo "LAB_USER=${UserPrefix}" >> /etc/environment
 
-          # ── ec2-user .bashrc（code-server terminal session）──
+          # ── ec2-user .bashrc ──────────────────────────────────
           cat >> /home/ec2-user/.bashrc << 'BASHRC'
           export LAB_USER=$(grep LAB_USER /etc/environment | cut -d= -f2)
           BASHRC
 
-          # ── code-server systemd service（開機自動啟動）────────
+          # ── Claude Code CLI onboarding skip ──────────────────
+          mkdir -p /home/ec2-user/.claude
+          cat > /home/ec2-user/.claude.json << 'CLAUDEJSON'
+          {
+            "hasCompletedOnboarding": true,
+            "autoUpdaterStatus": "disabled"
+          }
+          CLAUDEJSON
+          chmod 600 /home/ec2-user/.claude.json
+
+          # ── code-server systemd service ───────────────────────
           cat > /etc/systemd/system/code-server.service << 'SERVICE'
           [Unit]
-          Description=code-server (Browser VS Code)
+          Description=code-server (Browser VS Code via CloudFront HTTPS)
           After=network.target
 
           [Service]
@@ -161,19 +163,16 @@ Resources:
           systemctl enable code-server
           systemctl start code-server
 
-          # ── Claude Code Extension（從 Open VSX 安裝）─────────
-          # code-server 使用 Open VSX Registry，Claude Code 官方 extension 已上架
-          # 等待 code-server 完全啟動後再安裝 extension
+          # ── Claude Code Extension ─────────────────────────────
           sleep 5
           sudo -u ec2-user /usr/bin/code-server \
             --install-extension Anthropic.claude-code \
             --force 2>&1 || echo "Extension install will retry on first launch"
 
-          # ── 建立 Lab 工作目錄與範例檔案 ──────────────────────
+          # ── Lab 工作目錄與範例檔案 ────────────────────────────
           mkdir -p /home/ec2-user/claude-vibe-spec-lab
           cd /home/ec2-user/claude-vibe-spec-lab
 
-          # Lab 1 範例：user-auth.js（刻意含多個問題）
           cat > user-auth.js << 'JSEOF'
           const users = [];
 
@@ -211,7 +210,6 @@ Resources:
           module.exports = { register, login, getUserData };
           JSEOF
 
-          # Lab 2 範例：空白 Spec 模板
           cat > user-auth-spec.md << 'SPECEOF'
           ## 功能名稱
           使用者認證模組（User Authentication）
@@ -261,11 +259,9 @@ Resources:
           3.
           SPECEOF
 
-          # 初始化 npm 專案（jest 預先裝好，學員不需要等待安裝）
           npm init -y
           npm install --save-dev jest
 
-          # VS Code workspace 設定
           mkdir -p /home/ec2-user/claude-vibe-spec-lab/.vscode
           cat > /home/ec2-user/claude-vibe-spec-lab/.vscode/settings.json << 'VSCODE_SETTINGS'
           {
@@ -277,9 +273,14 @@ Resources:
           }
           VSCODE_SETTINGS
 
-          # 調整所有檔案的擁有者為 ec2-user
-          chown -R ec2-user:ec2-user /home/ec2-user/
+          mkdir -p /home/ec2-user/.local/share/code-server/User
+          cat > /home/ec2-user/.local/share/code-server/User/settings.json << 'GLOBAL_SETTINGS'
+          {
+            "editor.fontSize": 14
+          }
+          GLOBAL_SETTINGS
 
+          chown -R ec2-user:ec2-user /home/ec2-user/
           echo "=== Workshop EC2 Init Complete: $(date) ==="
 
       Tags:
@@ -290,10 +291,68 @@ Resources:
         - Key: User
           Value: !Ref UserPrefix
 
+  # ==================== CloudFront Distribution ====================
+  # 每位學員各自一個 CloudFront distribution
+  # 提供有效的 *.cloudfront.net HTTPS 憑證，解決 Service Worker SSL 問題
+  # WebSocket 支援透過 AllowedMethods + 動態 cache policy 處理
+  WorkshopCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub '${LabName}-${UserPrefix} code-server'
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - Id: CodeServerOrigin
+            # CloudFront 不接受 IP，使用 EC2 Public DNS hostname
+            # 格式：ec2-{ip-dashes}.{region}.compute.amazonaws.com
+            DomainName: !Sub
+              - 'ec2-${DashIp}.${AWS::Region}.compute.amazonaws.com'
+              - DashIp: !Join
+                  - '-'
+                  - !Split
+                    - '.'
+                    - !GetAtt WorkshopHost.PublicIp
+            CustomOriginConfig:
+              HTTPPort: 8080
+              OriginProtocolPolicy: http-only
+              # code-server 使用 WebSocket，需要設定較長的 timeout
+              OriginReadTimeout: 60
+              OriginKeepaliveTimeout: 60
+        DefaultCacheBehavior:
+          TargetOriginId: CodeServerOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          # 全動態應用，完全不快取
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad  # CachingDisabled (AWS managed)
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3  # AllViewer (forward all headers/cookies/query)
+          # WebSocket upgrade 支援
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - PUT
+            - POST
+            - PATCH
+            - DELETE
+          # 允許壓縮（code-server 靜態資源受益明顯）
+          Compress: true
+        # 不需要自訂 domain，使用 *.cloudfront.net 預設憑證
+        # 這個憑證是 AWS 簽發的有效憑證，瀏覽器完全信任，無警告
+        PriceClass: PriceClass_100  # 僅使用北美 + 歐洲 edge（成本最低；亞太 workshop 可改 PriceClass_All）
+      Tags:
+        - Key: Workshop
+          Value: !Ref LabName
+        - Key: User
+          Value: !Ref UserPrefix
+
 Outputs:
   VSCodeUrl:
     Description: 學員用瀏覽器開啟此 URL 進入 VS Code（密碼為 UserPrefix，例如 ws-01）
-    Value: !Sub 'http://${WorkshopHost.PublicIp}:8080'
+    Value: !Sub 'https://${WorkshopCloudFrontDistribution.DomainName}'
+
+  CloudFrontDomain:
+    Description: CloudFront domain（xxxx.cloudfront.net）
+    Value: !GetAtt WorkshopCloudFrontDistribution.DomainName
 
   LoginPassword:
     Description: VS Code 登入密碼（= UserPrefix）

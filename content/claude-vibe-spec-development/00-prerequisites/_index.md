@@ -15,9 +15,9 @@ order: 1
 
 ```
 講師 → 部署 infra stack（VPC，一次）
-講師 → 為每位學員部署 user stack（EC2 + code-server）
+講師 → 為每位學員部署 user stack（EC2 + code-server + CloudFront）
        ↓
-學員 → 用瀏覽器開啟 http://<EC2 IP>:8080
+學員 → 用瀏覽器開啟 https://xxxx.cloudfront.net（有效 HTTPS，無憑證警告）
 學員 → 輸入密碼登入 VS Code（密碼 = 講師指定的 UserPrefix）
 學員 → 在 VS Code 的 Terminal 或側邊欄開始 Lab
 ```
@@ -78,7 +78,7 @@ order: 1
    | **LabName** | 保持預設值 | `claude-vibe-spec-lab` |
 
    :::alert{type="info"}
-   不需要填入 API Key。學員將在課程開始時用自己的 **Claude Enterprise 帳號**透過瀏覽器 OAuth 登入，credentials 由 Claude Code 自行管理。
+   不需要填入 API Key。學員將在課程開始時用自己的 **Claude 帳號**透過瀏覽器 OAuth 登入，credentials 由 Claude Code 自行管理。
    :::
 
 3. Submit 後等待 `CREATE_COMPLETE`（約 3–5 分鐘，EC2 UserData 初始化需要時間）
@@ -87,9 +87,15 @@ order: 1
 
    | Output | 說明 |
    |--------|------|
-   | `VSCodeUrl` | 學員瀏覽器連線 URL（例如 `http://54.x.x.x:8080`） |
+   | `VSCodeUrl` | 學員瀏覽器連線 URL（`https://xxxx.cloudfront.net`） |
+   | `CloudFrontDomain` | CloudFront domain name |
    | `LoginPassword` | VS Code 登入密碼（= UserPrefix，例如 `ws-01`） |
    | `SSMSessionUrl` | 講師排查用的 SSM 連線連結 |
+
+   :::alert{type="info"}
+   CloudFront distribution 部署約需額外 **3–5 分鐘**（全球 edge 節點同步）。  
+   `CREATE_COMPLETE` 後請稍等一下再把 URL 發給學員，確認 CloudFront 已完全就緒。
+   :::
 :::
 
 :::expand{title="批次部署多位學員的技巧"}
@@ -147,20 +153,22 @@ ls /home/ec2-user/claude-vibe-spec-lab/
 講師會提供你一組連線資訊，格式如下：
 
 ```
-URL：http://54.x.x.x:8080
+URL：https://xxxx.cloudfront.net
 密碼：ws-01
 ```
 
 :::steps
 1. 用瀏覽器（建議 Chrome 或 Edge）開啟講師提供的 URL
 
-   ![code-server 登入畫面](./img/code-server-login.png "輸入講師提供的密碼登入")
+   :::alert{type="info"}
+   URL 是 `https://xxxx.cloudfront.net` 格式，由 AWS 簽發有效憑證，**不會出現憑證警告**，直接進入登入頁。
+   :::
 
 2. 在 Password 欄位輸入講師提供的密碼（例如 `ws-01`），點 **Submit**
 
-3. 進入 VS Code 後，點選上方選單 **Terminal → New Terminal**，開啟終端機
+4. 進入 VS Code 後，點選上方選單 **Terminal → New Terminal**，開啟終端機
 
-4. 在終端機確認環境：
+5. 在終端機確認環境：
 
 ```bash
 node --version    # 應顯示 v22.x.x
@@ -168,7 +176,7 @@ claude --version  # 應顯示 Claude Code 版本
 ls ~/claude-vibe-spec-lab/   # 應看到 user-auth.js、user-auth-spec.md
 ```
 
-5. 切換到 Lab 工作目錄：
+6. 切換到 Lab 工作目錄：
 
 ```bash
 cd ~/claude-vibe-spec-lab
@@ -179,7 +187,7 @@ cd ~/claude-vibe-spec-lab
 
 ## 【學員】啟動 Claude Code 並登入
 
-環境中已預裝兩種使用方式，**第一次使用前需要完成 Claude Enterprise 帳號登入**：
+環境已預裝 Claude Code，**第一次使用前需要完成帳號登入**：
 
 :::steps
 1. 在 VS Code Terminal 輸入 `claude` 啟動 Claude Code
@@ -199,7 +207,7 @@ Or press 'c' to copy the URL to your clipboard.
 
    按 `c` 複製 URL，貼到**你自己電腦的瀏覽器**開啟
 
-3. 用你的 **Claude Enterprise 帳號**完成登入授權
+3. 用你的 **Claude 帳號**完成登入授權
 
 4. 瀏覽器顯示授權成功後，回到 EC2 terminal，Claude Code 會自動繼續
 
@@ -215,10 +223,10 @@ Or press 'c' to copy the URL to your clipboard.
 :::tabs
 ::tab[VS Code Extension（推薦）]
 1. 點左側 Activity Bar 的 **Spark ⚡ 圖示**
-2. 在側邊欄面板輸入你的第一個 Prompt
+2. 面板載入後直接輸入 Prompt，無需登入
 3. Claude Code 會直接存取當前開啟的工作目錄
 
-**優點：** 不用切換視窗，可以在旁邊看 code 的同時對話，接受/拒絕每一行 diff 修改
+**優點：** 不用切換視窗，可以在旁邊看 code 的同時對話；每次 AI 修改都會顯示 diff，可以逐行 accept/reject
 
 ::tab[Terminal CLI]
 1. 在 VS Code 的 Terminal 中輸入：
@@ -242,10 +250,10 @@ claude
 
 | 項目 | 確認指令 / 方式 |
 |------|----------------|
-| 瀏覽器已連線 VS Code | 看到 VS Code 介面 |
+| 瀏覽器已連線 VS Code | 看到 VS Code 介面（已接受 HTTPS 憑證警告） |
 | Node.js 22 已安裝 | `node --version` → `v22.x.x` |
 | Claude Code 已安裝 | `claude --version` |
-| Claude Enterprise 已登入 | `claude` 啟動後看到 `>` 提示符，無登入提示 |
+| Claude Code 可正常使用 | 點 ⚡ 圖示後面板顯示對話介面，或 `claude` 啟動後看到 `>` 提示符 |
 | 工作目錄有起始檔案 | `ls ~/claude-vibe-spec-lab/` → 看到 `user-auth.js` |
 
 :::alert{type="success"}
@@ -257,11 +265,11 @@ claude
 :::expand{title="常見問題"}
 | 問題 | 解法 |
 |------|------|
-| 瀏覽器無法開啟 URL | 確認使用 `http://`（非 https），確認 IP 正確 |
+| 瀏覽器無法開啟 URL | 確認使用 `https://xxxx.cloudfront.net` 格式，確認 URL 正確 |
+| 頁面顯示 504 Gateway Timeout | CloudFront 尚未就緒，等 1–2 分鐘後重新整理 |
 | 密碼錯誤 | 密碼為講師指定的 UserPrefix，例如 `ws-01` |
 | VS Code 載入很慢 | 等候約 10–20 秒，第一次載入會初始化 Extension |
 | `claude` 指令找不到 | 執行 `source ~/.bashrc` 後再試 |
-| 登入 URL 沒有反應 | 確認用自己電腦的瀏覽器開啟（不是在 code-server 裡開） |
-| Claude Enterprise 登入失敗 | 確認你的帳號已被 Enterprise admin 邀請並啟用 |
+| Claude Code 側邊欄空白 | 確認是用 CloudFront HTTPS URL 開啟（非 EC2 IP 直連） |
 | code-server 沒有回應 | 請講師查看 `/var/log/workshop-init.log` |
 :::
