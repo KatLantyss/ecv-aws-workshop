@@ -12,139 +12,97 @@ order: 5
 ## 你完成了什麼
 
 :::steps
-1. **安裝與設定** Claude Code CLI 與（選用）VS Code Extension
+1. **Vibe Coding（Lab 1）**
+   從零開始，純粹透過對話，建出一個完整的背英文單詞 App。
+   體驗了「說出需求 → 觀察結果 → 迭代修改」的快速開發節奏。
 
-2. **掌握 Slash 指令** — `/init`、`/memory`、`/plan`、`/compact`、`/commit` 等核心操作
-
-3. **Vibe Coding 實戰** — 用對話式 AI 協作完成程式碼解釋、安全審查、重構與測試生成
-
-4. **Spec Driven Development 實戰** — 撰寫結構化規格文件，用 Spec 驅動 AI 生成可驗收的程式碼
-
-5. **比較兩種模式** — 親身感受有 Spec 與無 Spec 的 AI 輸出差異
+2. **Spec Driven Development（Lab 2）**
+   在既有 App 上，用 `claude-code-spec-workflow` 走完 **需求 → 設計 → 任務 → 實作** 的完整流程，為 Word Vault 加入「測驗模式」功能。
+   體驗了「先想清楚再動手」的結構化 AI 開發方式。
 :::
 
 ---
 
-## 什麼時候用 Vibe Coding？什麼時候用 SDD？
+## 什麼時候用哪種方式？
 
-| 情境 | 建議模式 |
-|------|----------|
-| 探索性開發、原型驗證 | Vibe Coding |
+| 情境 | 建議 |
+|------|------|
+| 探索、驗證想法、小功能 | Vibe Coding |
 | 不確定技術方向，想快速試驗 | Vibe Coding |
-| 除錯、解釋現有程式碼 | Vibe Coding |
-| 功能明確、需要可預測輸出 | Spec Driven Development |
-| 多人協作、需要共同規格文件 | Spec Driven Development |
-| 生成後要跑 CI/CD 驗收 | Spec Driven Development |
-| 外包給 AI 大型功能 | Spec Driven Development |
+| 功能複雜、影響範圍大 | Spec Driven Development |
+| 需要跟團隊溝通或分工 | Spec Driven Development |
+| 需要可驗收的交付標準 | Spec Driven Development |
 
-**實務上，兩者通常搭配使用：** 先用 Vibe Coding 探索方向、理解問題，確認後再寫 Spec 讓 AI 正式實作。
+**實務節奏：** 先用 Vibe Coding 把方向摸清楚，確認可行後再用 SDD 正式開發。
 
 ---
 
-## 反思問題
+## 核心指令速查
 
-思考完成今天的實作後，你對以下問題的看法：
-
-:::steps
-1. **Vibe Coding 的限制** — 在哪些情況下，「來回對話」的方式讓你覺得失控或難以預測？
-
-2. **Spec 的投入成本** — 撰寫 Spec 花了你多少時間？這個投入相對於「多次來回修改」值得嗎？
-
-3. **AI 的邊界** — 有沒有哪些需求，你發現 Claude Code 無法正確理解，即使 Prompt 很詳細？
-
-4. **團隊導入** — 如果你的團隊要導入 SDD 工作流程，最大的障礙會是什麼？
-:::
-
----
-
-## Slash 指令複習卡
-
-帶走這張快速參考：
+**Claude Code 內建指令：**
 
 | 指令 | 記憶口訣 |
 |------|----------|
-| `/init` | **初始化**：新專案的第一步 |
-| `/memory` | **記憶**：告訴 AI 關於你和你的專案 |
-| `/plan` | **計畫**：大改動前先確認方向 |
-| `/compact` | **壓縮**：context 快滿時用 |
-| `/clear` | **清空**：重新開始一個全新對話 |
-| `/commit` | **提交**：讓 AI 幫你寫 commit message |
-| `/review` | **審查**：PR review 自動化 |
-| `/help` | **求助**：忘記指令時查詢 |
+| `/init` | 初始化：新專案第一步 |
+| `/plan` | 計畫：大改動前先確認方向 |
+| `/compact` | 壓縮：context 快滿時用 |
+| `/commit` | 提交：讓 AI 幫你寫 commit message |
+| `/clear` | 清空：重新開始 |
+
+**Spec Workflow 指令：**
+
+| 指令 | 用途 |
+|------|------|
+| `/spec-steering-setup` | 建立專案規範文件（一次性） |
+| `/spec-create <名稱> "<描述>"` | 啟動一個新功能的規格流程 |
+| `/spec-execute <任務號> <規格名>` | 執行規格中的指定任務 |
+| `/spec-list` | 查看所有規格狀態 |
 
 ---
 
-## 延伸挑戰（課後自行完成）
+## 課後延伸挑戰
 
 :::tabs
-::tab[進階 Prompt 技巧]
-試試以下 Prompt 策略，觀察輸出的差異：
+::tab[延伸 Word Vault]
+繼續在 Word Vault 上練習 SDD，選一個新功能：
 
-- **角色設定**：`你是一位資深 Node.js 工程師，請以 production-ready 的標準...`
-- **限制條件**：`只使用 Node.js 內建模組，不引入任何第三方依賴...`
-- **輸出格式**：`請以 TypeScript 撰寫，包含完整的型別定義...`
-- **反向驗證**：`請告訴我這份 Spec 有哪些模糊之處，然後提出你的假設後再實作`
+```
+/spec-create import-export "支援 CSV 格式匯入匯出單詞清單"
+```
+
+或：
+
+```
+/spec-create spaced-repetition "用間隔重複演算法排程複習提醒"
+```
+
+從需求 → 設計 → 任務，走一遍完整流程。
 
 ::tab[逆向工程 Spec]
-找一段你工作中的既有程式碼，請 Claude Code 幫你：
+找一段你工作中的既有程式碼，請 Claude Code 為它逆向生成規格文件：
 
 ```
-請閱讀 [your-file.js]，
-為它逆向生成一份符合 Spec 格式的規格文件，
-包含：功能名稱、輸入規格、輸出規格、業務規則、已知邊界行為。
+請閱讀這段程式碼，為它生成一份 spec-workflow 格式的規格文件，
+包含：功能描述、輸入輸出、業務規則、測試情境。
+
+[貼上你的程式碼]
 ```
 
-比較 AI 生成的 Spec 與你心目中的需求，找出差距。
+把 AI 生成的 spec 與你心目中的需求比對，找出差距。
 
-::tab[自訂 Skill]
-為你的專案建立一個自訂 Slash 指令：
+::tab[導入真實專案]
+在你的真實工作專案中試用：
 
-1. 建立 `.claude/skills/check/SKILL.md`
-2. 在裡面描述你的工作流程（例如：每次修改後執行 lint + test + 生成簡短 summary）
-3. 在 Claude Code 中輸入 `/check` 執行
-
-這讓重複性的工作流程變成可重用的指令。
-:::
-
----
-
-## 取得 Spec 模板
-
-課程使用的空白 Spec 模板如下，可直接複製使用：
-
-:::expand{title="展開 Spec 模板"}
-```markdown
-## 功能名稱
-<!-- 一行描述 -->
-
-## 背景與目的
-<!-- 為什麼需要這個功能？解決什麼問題？ -->
-
-## 輸入規格
-<!-- 每個函數的參數：名稱、型別、是否必填、格式限制 -->
-
-## 輸出規格
-<!-- 成功 / 各種失敗情境的回傳格式與 error code -->
-
-## 業務規則
-<!-- 特殊邏輯、限制條件、邊界行為 -->
-
-## 錯誤處理
-<!-- 各種錯誤情境的處理方式，不暴露系統內部訊息 -->
-
-## 不在範圍內
-<!-- 明確列出這個版本不實作的功能 -->
-
-## 測試情境
-<!-- 驗收時需要通過的具體測試案例，編號列出 -->
-1. 
-2. 
-3. 
+```bash
+cd /path/to/your/project
+npx @pimzino/claude-code-spec-workflow
 ```
+
+選一個中等複雜度的功能，先跑 `/spec-steering-setup` 建立專案規範，再試著走 SDD 流程，感受在真實 codebase 上的體驗。
 :::
 
 ---
 
 :::alert{type="success"}
-感謝完成課程！Vibe Coding 與 Spec Driven Development 是互補的工具，而不是二選一。找到屬於你的節奏，讓 AI 成為真正意義上的開發夥伴。
+感謝完成課程！Vibe Coding 讓你快速動起來，Spec Driven Development 讓你可以放心交給 AI 做。兩個工具在手，找到屬於你的節奏。
 :::

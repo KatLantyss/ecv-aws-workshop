@@ -139,7 +139,7 @@ aws ssm start-session --target <InstanceId>
 # 進去後執行：
 sudo systemctl status code-server
 claude --version
-ls /home/ec2-user/claude-vibe-spec-lab/
+ls /home/ec2-user/word-vault/
 ```
 
 :::alert{type="info"}
@@ -173,13 +173,13 @@ URL：https://xxxx.cloudfront.net
 ```bash
 node --version    # 應顯示 v22.x.x
 claude --version  # 應顯示 Claude Code 版本
-ls ~/claude-vibe-spec-lab/   # 應看到 user-auth.js、user-auth-spec.md
+ls ~/word-vault/  # 應看到 CLAUDE.md、serve.sh
 ```
 
 6. 切換到 Lab 工作目錄：
 
 ```bash
-cd ~/claude-vibe-spec-lab
+cd ~/word-vault
 ```
 :::
 
@@ -232,7 +232,7 @@ Or press 'c' to copy the URL to your clipboard.
 1. 在 VS Code 的 Terminal 中輸入：
 
 ```bash
-cd ~/claude-vibe-spec-lab
+cd ~/word-vault
 claude
 ```
 
@@ -254,7 +254,7 @@ claude
 | Node.js 22 已安裝 | `node --version` → `v22.x.x` |
 | Claude Code 已安裝 | `claude --version` |
 | Claude Code 可正常使用 | 點 ⚡ 圖示後面板顯示對話介面，或 `claude` 啟動後看到 `>` 提示符 |
-| 工作目錄有起始檔案 | `ls ~/claude-vibe-spec-lab/` → 看到 `user-auth.js` |
+| 工作目錄有起始檔案 | `ls ~/word-vault/` → 看到 `CLAUDE.md`、`serve.sh` |
 
 :::alert{type="success"}
 環境就緒！繼續進入 Slash 指令速覽。
