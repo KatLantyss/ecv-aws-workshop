@@ -1,0 +1,4 @@
+﻿Vessel,IMO_No,Year_Built,Flag,Class,Type,TEU_Capacity,LOA_m,Beam_m,Design_Draft_m,Design_Speed_kt,MCO_kW,NCO_kW,Design_SFOC_g_kWh,Design_FOC_t_day_NCO,Hull_Paint_Type,Last_Drydock,Next_Drydock_Due,Alliance
+YM WELLNESS,9786654,2017,Republic of China (Taiwan),DNV,Container Ship,14000,366,51.2,15.2,22.5,68000,57800,163.0,214.3,Intersleek 1100SR,2023-04-10,2025-10-01,THE Alliance
+YM VICTORY,9624516,2013,Republic of China (Taiwan),ABS,Container Ship,8500,300,45.6,14.0,21.8,58000,49300,167.5,197.6,Hempel Antifouling,2022-11-20,2025-05-01,THE Alliance
+YM COSMOS,9441723,2010,Republic of China (Taiwan),LR,Container Ship,4500,260,40.0,13.0,20.5,48000,40800,172.0,168.5,Jotun SeaQuantum,2024-01-15,2026-07-01,THE Alliance
