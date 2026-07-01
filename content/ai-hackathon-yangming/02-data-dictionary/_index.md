@@ -13,6 +13,14 @@ order: 2
 這份資料是**參考基準，不是標準答案**。你可以設計完全不同的欄位結構——只要能回答四項評選需求即可。儲存格式也不限 Excel，CSV、Parquet 或資料庫都可以。
 :::
 
+:::banner{type="success"}
+🚢 **想要更直覺地記住這些欄位嗎？**
+
+我們準備了一個互動式船體解剖圖，點擊船的各個部位就能看到對應欄位說明。
+
+<a href="content/ai-hackathon-yangming/02-data-dictionary/visual.html" target="_blank" style="display:inline-flex;align-items:center;gap:0.5rem;background:#1d6fb8;color:white;padding:0.55rem 1.3rem;border-radius:0.5rem;text-decoration:none;font-weight:600;font-size:0.9rem;margin-top:0.5rem">🚢 開啟視覺化導覽</a>
+:::
+
 ---
 
 :::tabs
@@ -239,6 +247,88 @@ order: 2
 | `Last_Drydock` | **上次進塢（乾塢大修）日期** | ::badge[維修紀錄]{type="default"} 單位天數，進塢頻率約 2.5–5 年一次 |
 | `Next_Drydock_Due` | **下次預計進塢日期** | ::badge[目標預測]{type="warning"} AI 可以根據 Speed Loss 趨勢、外推劣化速率建議是否提前或延後進塢日期，這裡是「最佳維修時機建議」的評選目標欄位 |
 
+:::
+
+---
+
+## 國際標準說明
+
+### ISO 15016 — 船舶試航修正標準
+
+:::banner{type="info"}
+**ISO 15016:2015** 全名為 *Ships and marine technology — Guidelines for the assessment of speed and power performance by analysis of speed trial data*，是量化「天候對船速影響」的國際標準方法。
+:::
+
+船在海上行駛時，風、浪、洋流、吃水深度都會改變實際量測到的速度，導致不同天之間的數據無法直接比較。ISO 15016 提供一套**修正公式**，將這些外部干擾排除後，把觀測到的實際速度換算成「等效靜水速度」（Speed in Calm Sea），讓每一天的效能都站在同一基準上。
+
+**修正流程摘要：**
+
+:::steps
+1. 收集 Noon Report 中的原始觀測值：`Actual_Speed_kt`、`ME_Power_kW`、`Wind_BFT`、`Wave_Height_m`、`Current_kt`
+2. 依 ISO 15016 公式，計算風浪阻力增量（Added Resistance due to Wind & Waves）
+3. 扣除洋流的速度貢獻（或扣除，視方向而定）
+4. 結合當前吃水（`Draft_F_m` / `Draft_A_m`）修正排水量差異
+5. 輸出修正後航速：`Speed_Corrected_ISO15016_kt`
+:::
+
+**在本資料集的對應欄位：**
+
+| 欄位 | 說明 |
+|---|---|
+| `Speed_Corrected_ISO15016_kt`（Noon\_Report） | ISO 15016 修正後的等效靜水速度，所有跨日效能比較都應使用此欄位而非 `Actual_Speed_kt` |
+| `Wind_BFT`、`Wave_Height_m`、`Current_kt`（Noon\_Report） | ISO 15016 修正所需的氣象海況輸入 |
+| `Draft_F_m`、`Draft_A_m`（Noon\_Report） | 吃水修正輸入，影響排水量計算 |
+
+:::alert{type="warning"}
+**常見誤解**：直接用 `Actual_Speed_kt` 比較不同天的效能，會讓「逆風逆流日」看起來比「順天候日」差很多，但這是環境因素而非船體劣化。AI 模型訓練時應優先使用 `Speed_Corrected_ISO15016_kt` 作為速度輸入特徵。
+:::
+
+---
+
+### ISO 19030 — 船體與螺旋槳效能量測標準
+
+:::banner{type="info"}
+**ISO 19030:2016** 全名為 *Ships and marine technology — Measurement of changes in hull and propeller performance*，是量化「船體與螺旋槳效能隨時間劣化程度」的國際標準，由 ISO 發布、廣泛應用於商業航運的維修決策。
+:::
+
+ISO 19030 定義了三個子標準：
+
+| 子標準 | 內容 |
+|---|---|
+| **Part 1** — 總則 | 定義術語、量測方法與資料品質要求 |
+| **Part 2** — 預先核可的量測方法 | 使用主機功率與燃油消耗量推算效能指數 |
+| **Part 3** — 替代量測方法 | 使用扭矩計、軸功率計等直接量測設備的替代方案 |
+
+**核心概念 — Performance Index（PE Index）：**
+
+ISO 19030 以 **Performance Index（效能指數）** 量化船體/螺旋槳效能相對於基準狀態的變化：
+
+```
+PE Index = Power_reference / Power_observed
+```
+
+- **= 1.0**：效能與乾塢剛出廠後的基準相同
+- **< 1.0**：效能劣化（數字越小越差）；污損、磨損都會讓這個值降低
+- **> 1.0**：效能優於基準（很少見，通常是量測誤差或特殊塗料效果）
+
+**標準定義的維修觸發門檻：**
+
+:::steps
+1. **PE Index < 0.95**：效能輕度下降，持續監控
+2. **PE Index < 0.90**：效能中度下降，建議安排下次靠港時清潔
+3. **PE Index < 0.85**：效能嚴重下降，::badge[EXCEEDED]{type="danger"} 應盡快安排計劃外水下清潔或進塢
+:::
+
+**在本資料集的對應欄位：**
+
+| 欄位 | 說明 |
+|---|---|
+| `ISO19030_PE_Index`（UWI\_Inspections） | 每次水下檢查時計算的效能指數，直接反映該時間點的船體 + 螺旋槳綜合劣化程度 |
+| `ISO19030_Threshold_Flag`（UWI\_Inspections） | `OK` = 尚在標準容許範圍內；`EXCEEDED` = 已超過 ISO 19030 維修門檻 |
+| `Hull_Biofouling_Score`（UWI\_Inspections） | PE Index 劣化的主要成因，分數越高代表船底污損越嚴重 |
+
+:::alert{type="info"}
+**兩個標準的分工**：ISO 15016 處理「如何公平量測今天的速度」（排除天候影響），ISO 19030 處理「如何判斷船體效能有沒有劣化」（跨時間的趨勢比較）。兩者結合，才能從 Noon Report 的每日數據中可靠地推斷出船體狀況。
 :::
 
 ---
